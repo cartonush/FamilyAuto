@@ -1,7 +1,7 @@
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,collection,doc,setDoc,updateDoc,query,where,onSnapshot,serverTimestamp,arrayUnion} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
-import {getApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
-const auth=getAuth(getApp()),db=getFirestore(getApp()),root=document.getElementById('homesRoot');
+import {app} from './firebase-config.js';
+const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('homesRoot');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let stopHouses=null,stopRequests=null,currentHouse=null,houses=[],user=null;
 root.innerHTML='<div class="section-title"><h2>הבתים שלי</h2><span class="pill">Firestore</span></div><p id="houseInfo">התחבר כדי לנהל בתים משותפים.</p><div id="houseControls" hidden><form id="createHouseForm"><label>שם בית חדש<input name="houseName" maxlength="25" required placeholder="לדוגמה: הבית שלנו"></label><button class="primary">יצירת בית</button></form><form id="joinHouseForm"><label>קוד הזמנה לבית<input name="houseCode" maxlength="32" minlength="32" required autocomplete="off" placeholder="הדבק קוד שקיבלת"></label><button>בקשת הצטרפות</button></form><div id="houseList"></div><div id="houseDetails"></div></div>';
