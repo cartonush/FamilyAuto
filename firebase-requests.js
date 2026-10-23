@@ -3,7 +3,7 @@ import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.
 import {getFirestore,collection,doc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('requestsRoot');
-root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.8</span></div>
+root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.9</span></div>
 <p id="requestStatus" aria-live="polite">התחבר ובחר בית כדי להתחיל.</p>
 <form id="requestForm" hidden>
 <label>תחילת שימוש<button type="button" class="ios-date-trigger" id="pickStart" aria-haspopup="dialog"><span id="startLabel"></span><span class="ios-date-chevron">⌄</span></button><input type="hidden" name="start"></label>
