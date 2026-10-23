@@ -8,15 +8,16 @@ Hebrew RTL installable family-car booking application. Hosted on GitHub Pages an
 - Per-user Firestore profile (display name and optional phone number). The phone number is **not** a login factor or SMS verification.
 - Create houses, join via invitation code, approve members atomically, switch houses.
 - Owner-managed member role (`user` / `authorized`) and temporary booking-request suspension.
-- Shared pending booking requests in Firestore visible to all members of the selected house, with real-time subscriptions and user cancellation.
-- Owner can approve or reject requests. Approvals use a Firestore transaction and a shared schedule document to check for overlaps. The home screen and calendar consume the same live data.
+- Ordinary members submit pending booking requests. Authorized members and the house owner create approved future reservations immediately in a Firestore transaction; instant car use is a separate permission. All reservations synchronize across household members.
+- Members can cancel their own future approved non-instant reservations atomically, freeing the shared schedule.
+- Owner can approve or reject pending requests. Approvals use a Firestore transaction and a shared schedule document to check for overlaps. The home screen and calendar consume the same live data.
 - Responsive RTL layout, dark mode, PWA installation.
 
 ## Not yet production-ready
 - **Booking approval is an experimental client-side transaction.** It checks overlaps atomically for ordinary clients, but Firestore security rules cannot yet independently verify all non-overlapping schedule entries. Do not rely on this preview for real car allocation.
 - The older booking demo under Settings still uses localStorage and must not be mistaken for shared reservations.
 - No offline request queue, push delivery, 7-day house recovery, account deletion, multi-car management, audit log, automated integration tests, or verified exact SwiftUI visual parity.
-- The house membership/role UI needs multi-account integration testing and rule emulator tests.
+- The house membership/role UI still needs real multi-account browser integration testing. Emulator tests cover permission combinations but cannot validate live UI or deployed Firebase rules.
 - Client-side password checks can be bypassed unless Firebase Auth password policy is configured.
 - Do not rely on this preview for real car allocation.
 
@@ -24,7 +25,7 @@ Hebrew RTL installable family-car booking application. Hosted on GitHub Pages an
 The file `firestore.rules` is **not deployed automatically** by GitHub Pages.
 1. Open [Firestore Rules](https://console.firebase.google.com/project/familyauto-s/firestore/databases/-default-/rules).
 2. Copy the **complete** contents of [firestore.rules](./firestore.rules).
-3. Replace existing rules, then **Publish**.
+3. Replace existing rules, then **Publish**. This is required for v1.15 authorized direct booking; otherwise these transactions will be denied.
 4. Verify a test account can save its own profile, create a house, request membership and submit a pending booking.
 5. In a two-account test, submit a request as a member, approve as owner, confirm both devices display the same reservation, then try an overlapping request.
 6. If the UI says `permission-denied`, the latest Firestore rules have not been published or the signed-in user is not a member of the active house.
