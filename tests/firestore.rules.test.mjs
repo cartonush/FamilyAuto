@@ -195,3 +195,74 @@ test('suspended user cannot create a pending booking or use the car immediately'
  await assertFails(addDoc(collection(db,'houses',hid,'bookingRequests'),{createdBy:'suspended',displayName:'Suspended',startAt:start,endAt:end,note:'',status:'pending',createdAt:serverTimestamp()}));
  await assertFails(addDoc(collection(db,'houses',hid,'bookingRequests'),{createdBy:'suspended',displayName:'Suspended',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()}));
 });
+
+
+const directMatrix=[
+ {id:'30000000000000000000000000000001',name:'Nisoi1 authorized and instant',role:'authorized',canTakeCar:true,allowed:true},
+ {id:'30000000000000000000000000000002',name:'Nisoi2 authorized only',role:'authorized',canTakeCar:false,allowed:true},
+ {id:'30000000000000000000000000000003',name:'Nisoi3 instant only',role:'user',canTakeCar:true,allowed:false},
+ {id:'30000000000000000000000000000004',name:'Nisoi4 ordinary',role:'user',canTakeCar:false,allowed:false}
+];
+for(const config of directMatrix){
+ test('future direct reservation: '+config.name,async()=>{
+  await env.withSecurityRulesDisabled(async ctx=>{
+   const db=ctx.firestore();
+   await setDoc(doc(db,'houses',config.id),{name:'Direct Booking',ownerUid:'owner',memberIds:['owner','tester'],createdAt:Timestamp.now()});
+   await setDoc(doc(db,'houses',config.id,'memberSettings','tester'),{displayName:'Tester',role:config.role,canTakeCar:config.canTakeCar,suspendedUntil:null,updatedAt:Timestamp.now()});
+  });
+  const db=env.authenticatedContext('tester').firestore();
+  const booking=doc(collection(db,'houses',config.id,'bookingRequests'));
+  const schedule=doc(db,'houses',config.id,'system','schedule');
+  const start=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+  const end=Timestamp.fromDate(new Date(Date.now()+7_200_000));
+  const action=()=>runTransaction(db,async tx=>{
+   const scheduleSnap=await tx.get(schedule);
+   const reservations=scheduleSnap.exists()?scheduleSnap.data().reservations||[]:[];
+   tx.set(booking,{createdBy:'tester',displayName:'Tester',startAt:start,endAt:end,note:'Test',status:'approved',approvedBy:'tester',approvedAt:serverTimestamp(),createdAt:serverTimestamp()});
+   tx.set(schedule,{reservations:[...reservations,{id:booking.id,createdBy:'tester',startAt:start,endAt:end}],updatedAt:serverTimestamp()});
+  });
+  if(config.allowed){
+   await assertSucceeds(action());
+   const booked=await getDoc(booking);
+   assert.equal(booked.data().status,'approved');
+   await assertSucceeds(runTransaction(db,async tx=>{
+    const [bookedSnap,scheduleSnap]=await Promise.all([tx.get(booking),tx.get(schedule)]);
+    const reservations=scheduleSnap.data().reservations;
+    tx.update(booking,{status:'cancelled'});
+    tx.set(schedule,{reservations:reservations.filter(x=>x.id!==booking.id),updatedAt:serverTimestamp()});
+   }));
+  }else{
+   await assertFails(action());
+  }
+ });
+}
+test('ordinary member cannot forge a direct approval without updating schedule',async()=>{
+ const hid='30000000000000000000000000000005';
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const db=ctx.firestore();
+  await setDoc(doc(db,'houses',hid),{name:'No Forgery',ownerUid:'owner',memberIds:['owner','regular'],createdAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'memberSettings','regular'),{displayName:'Regular',role:'user',canTakeCar:false,suspendedUntil:null,updatedAt:Timestamp.now()});
+ });
+ const db=env.authenticatedContext('regular').firestore();
+ const start=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+7_200_000));
+ await assertFails(addDoc(collection(db,'houses',hid,'bookingRequests'),{createdBy:'regular',displayName:'Regular',startAt:start,endAt:end,note:'',status:'approved',approvedBy:'regular',approvedAt:serverTimestamp(),createdAt:serverTimestamp()}));
+});
+test('suspended authorized member cannot create direct approved booking',async()=>{
+ const hid='30000000000000000000000000000006';
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const db=ctx.firestore();
+  await setDoc(doc(db,'houses',hid),{name:'Suspended',ownerUid:'owner',memberIds:['owner','suspended'],createdAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'memberSettings','suspended'),{displayName:'Suspended',role:'authorized',canTakeCar:true,suspendedUntil:Timestamp.fromDate(new Date(Date.now()+86_400_000)),updatedAt:Timestamp.now()});
+ });
+ const db=env.authenticatedContext('suspended').firestore();
+ const start=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+7_200_000));
+ const booking=doc(collection(db,'houses',hid,'bookingRequests'));
+ const schedule=doc(db,'houses',hid,'system','schedule');
+ await assertFails(runTransaction(db,async tx=>{
+  await tx.get(schedule);
+  tx.set(booking,{createdBy:'suspended',displayName:'Suspended',startAt:start,endAt:end,note:'',status:'approved',approvedBy:'suspended',approvedAt:serverTimestamp(),createdAt:serverTimestamp()});
+  tx.set(schedule,{reservations:[{id:booking.id,createdBy:'suspended',startAt:start,endAt:end}],updatedAt:serverTimestamp()});
+ }));
+});
