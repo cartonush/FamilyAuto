@@ -1,3 +1,5 @@
+import {app} from './firebase-config.js';
+import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 const mainPages=['home','calendar','requests','settings'];
 const subs=['profile','houses','members','appearance','account','preview'];
 let activePage='home',activeSub=null,activeHouse=null,requestItems=[],myUid=null,selectedDate=new Date(),calendarCursor=new Date();
@@ -18,7 +20,7 @@ function navigate(target,replace=false){
   const sub=parts[0]==='settings'&&parts.length>1?parts.slice(1).join('-'):null;
   const page=sub?'settings':mainPages.includes(target)?target:'home';
   if(sub&&!subs.includes(sub))return navigate('settings',replace);
-  const expanded=sub&&page==='settings'&&activePage==='settings'&&activeSub===sub;
+  const expanded=!replace&&sub&&page==='settings'&&activePage==='settings'&&activeSub===sub;
   activePage=page;activeSub=expanded?null:sub;
   document.querySelectorAll('.app-page').forEach(el=>el.hidden=el.dataset.page!==page);
   $('settingsMenu').hidden=false;
@@ -53,8 +55,8 @@ function home(){
 }
 window.addEventListener('familyauto:house',e=>{activeHouse=e.detail;requestItems=[];home();drawCalendar()});
 window.addEventListener('familyauto:requests',e=>{requestItems=e.detail||[];home();drawCalendar()});
-window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];myUid=null;home();drawCalendar()});
-window.addEventListener('familyauto:auth',e=>{myUid=e.detail?.uid||null;home()});
+window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];home();drawCalendar()});
+onAuthStateChanged(getAuth(app),user=>{myUid=user?.uid||null;if(!user){activeHouse=null;requestItems=[]}home();drawCalendar()});
 const fmt=new Intl.DateTimeFormat('he-IL',{month:'long',year:'numeric'});
 const dayFmt=new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'});
 function drawCalendar(){
