@@ -89,3 +89,20 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 .time-pickers select{padding-inline:6px}
 :root.dark .time-field{border-color:#42566c}
 @media(max-width:370px){.time-pickers{gap:4px}.time-field{padding:8px}.time-pickers input,.time-pickers select{font-size:15px;padding-inline:2px}}
+
+/* Native-looking single-field quarter-hour picker, 1.8 hotfix */
+.slot-display{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;text-align:right;border:1px solid #bac9dc;background:transparent;color:inherit;font-size:16px;padding:12px 14px;border-radius:13px}
+.slot-display>span:last-child{color:#70849d}
+.slot-picker{width:min(92vw,430px);max-width:430px;border:0;border-radius:22px;padding:20px;background:#fff;color:#15263e}
+.slot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.slot-head h2{margin:0}.slot-head button{background:#edf2f8}
+.slot-picker>label{display:grid;gap:8px;margin-bottom:14px}
+.slot-picker input[type=date]{display:block;width:100%;min-width:0;max-width:100%;font-size:16px;min-height:48px}
+.slot-wheel-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.slot-wheel-row label{display:grid;gap:8px;min-width:0}
+.slot-wheel-row select{display:block;width:100%;min-width:0;min-height:50px;font-size:20px;text-align:center;border:1px solid #bac9dc;border-radius:12px;background:#f5f8fc;color:#15263e}
+.slot-note{font-size:13px;margin:12px 0}.slot-error{font-size:13px;color:#b3261e;min-height:18px}
+.slot-confirm{display:block;width:100%;min-height:48px}
+:root.dark .slot-picker{background:#19283b;color:#f2f6ff}
+:root.dark .slot-display{border-color:#5a7089;color:#f2f6ff}
+:root.dark .slot-wheel-row select{background:#26384d;color:#fff;border-color:#5a7089}
