@@ -50,3 +50,17 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 :root.dark .neutral{background:#30465f;color:#dce9ff}
 @media(max-width:370px){main{padding-inline:12px}.panel{padding:16px}.settings-link{padding:14px 12px}.calendar-grid{gap:3px}.calendar-day{min-height:33px}.home-metrics>div{padding:12px}.bottom-nav .nav-icon{font-size:21px}}
 @media(min-width:900px){.bottom-nav{left:50%;transform:translateX(-50%);max-width:820px;border-radius:18px 18px 0 0}}
+
+/* Collapsible settings cards */
+.settings-menu{gap:9px}
+.settings-link{transition:background .18s,border-color .18s,box-shadow .18s}
+.settings-link.expanded{border-color:#8fb8ec;background:#edf5ff;border-radius:18px 18px 8px 8px}
+.settings-link>b{display:inline-block;transition:transform .18s}
+.settings-link.expanded>b{transform:rotate(180deg)}
+.settings-subpage{min-width:0;animation:accordionIn .16s ease-out;margin:-4px 0 10px;border:1px solid #dbe7f5;border-radius:0 0 18px 18px;padding:0 12px 10px;background:#fff}
+.settings-subpage>.panel{margin:10px 0;box-shadow:none;padding:12px}
+.settings-subpage>.notice{margin:12px 0}
+@keyframes accordionIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+:root.dark .settings-link.expanded{background:#263e5d;border-color:#5276a6}
+:root.dark .settings-subpage{background:#19283b;border-color:#3a4b60}
+@media(prefers-reduced-motion:reduce){.settings-subpage{animation:none}.settings-link,.settings-link>b{transition:none}}
