@@ -75,6 +75,14 @@ function home(){
  $('homePendingCount').textContent=activeHouse?own.filter(x=>x.status==='pending').length:'—';
  $('homeRequestsMessage').textContent=!activeHouse?'בחר בית כדי להציג את הבקשות שלך.':own.length?'בקשה אחרונה: '+new Date((own[0].startAt?.seconds||0)*1000).toLocaleString('he-IL'):'אין בקשות שהגשת בבית הזה.';
 }
+const instantHomeButton=document.getElementById('homeInstantBtn');
+instantHomeButton?.addEventListener('click',()=>{
+ navigate('requests');
+ window.dispatchEvent(new Event('familyauto:instant-open'));
+});
+window.addEventListener('familyauto:instant-permission',e=>{
+ if(instantHomeButton)instantHomeButton.hidden=!e.detail;
+});
 window.addEventListener('familyauto:house',e=>{activeHouse=e.detail;requestItems=[];reservations=[];home();drawCalendar()});
 window.addEventListener('familyauto:requests',e=>{
  const payload=e.detail||{};
