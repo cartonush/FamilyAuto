@@ -1,6 +1,6 @@
-const CACHE='familyauto-shell-v114';
-const VERSION='1.14';
-const ASSETS=['./','./index.html','./styles.css?v=1.14','./app.js?v=1.14','./navigation.js?v=1.14','./firebase-auth.js?v=1.14','./firebase-config.js','./firebase-profile.js?v=1.14','./firebase-members.js?v=1.14','./firebase-requests.js?v=1.14','./firebase-homes.js?v=1.14','./manifest.webmanifest','./icon.svg'];
+const CACHE='familyauto-shell-v115';
+const VERSION='1.15';
+const ASSETS=['./','./index.html','./styles.css?v=1.15','./app.js?v=1.15','./navigation.js?v=1.15','./firebase-auth.js?v=1.15','./firebase-config.js','./firebase-profile.js?v=1.15','./firebase-members.js?v=1.15','./firebase-requests.js?v=1.15','./firebase-homes.js?v=1.15','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
