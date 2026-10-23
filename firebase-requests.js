@@ -6,7 +6,7 @@ const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('reque
 root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.5</span></div>
 <p id="requestStatus" aria-live="polite">התחבר ובחר בית כדי להתחיל.</p>
 <form id="requestForm" hidden>
-<label>תחילת שימוש<input type="datetime-local" name="start" required></label>
+<label>תחילת שימוש<input type="datetime-local" name="start" required></label><button type="button" id="startNowBtn" class="text-action">התחל עכשיו</button><small id="startHint">אפשר לבחור שעה עתידית או ללחוץ על ״התחל עכשיו״.</small>
 <label>סיום שימוש<input type="datetime-local" name="end" required></label>
 <label>הערה (לא חובה)<input name="note" maxlength="200" placeholder="לאן נוסעים?"></label>
 <button class="primary" type="submit">שליחת בקשה</button>
@@ -14,6 +14,28 @@ root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><sp
 <div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
+const startInput=form.elements.start,endInput=form.elements.end;
+const localDateTime=date=>{
+ const d=new Date(date.getTime()-date.getTimezoneOffset()*60000);
+ return d.toISOString().slice(0,16);
+};
+const minStart=()=>new Date(Date.now()+2*60000);
+function updateStartMin(){
+ startInput.min=localDateTime(minStart());
+}
+$('startNowBtn').addEventListener('click',()=>{
+ const start=minStart();
+ startInput.value=localDateTime(start);
+ const currentEnd=new Date(endInput.value);
+ if(!endInput.value||!Number.isFinite(currentEnd.getTime())||currentEnd<=start){
+  endInput.value=localDateTime(new Date(start.getTime()+24*3600000));
+ }
+ say('שעת ההתחלה נקבעה לעוד שתי דקות, כדי לאפשר שליחה תקינה לשרת.');
+});
+startInput.addEventListener('focus',updateStartMin);
+form.addEventListener('focusin',updateStartMin);
+updateStartMin();
+
 let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0;
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
@@ -127,7 +149,11 @@ form.addEventListener('submit',async e=>{
  if(!selected||!currentUser)return say('בחר בית פעיל והתחבר לפני שליחת בקשה.',true);
  const houseId=selected.id,userId=currentUser.uid;
  const data=new FormData(form),start=new Date(String(data.get('start'))),end=new Date(String(data.get('end')));
- if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||start.getTime()<=Date.now()||end<=start||end-start>30*86400000)return say('יש לבחור טווח עתידי תקין של עד 30 ימים.',true);
+ if(!Number.isFinite(start.getTime()))return say('לא נבחרו תאריך ושעת התחלה תקינים.',true);
+ if(!Number.isFinite(end.getTime()))return say('לא נבחרו תאריך ושעת סיום תקינים.',true);
+ if(start.getTime()<=Date.now()+10000)return say('שעת ההתחלה חייבת להיות בעתיד. להזמנה מהיום למחר לחץ על ״התחל עכשיו״, או בחר שעה מאוחרת יותר היום.',true);
+ if(end.getTime()<=start.getTime())return say('שעת הסיום חייבת להיות אחרי שעת ההתחלה.',true);
+ if(end.getTime()-start.getTime()>30*86400000)return say('משך ההזמנה לא יכול לעלות על 30 ימים.',true);
  if(!navigator.onLine)return say('אין אינטרנט. הבקשה לא נשלחה; אפשר לנסות שוב כשהחיבור חוזר.',true);
  const submit=form.querySelector('button[type=submit]');submit.disabled=true;say('שולח את הבקשה ל־Firestore...');
  try{
