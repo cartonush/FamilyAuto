@@ -31,7 +31,7 @@ function render(){
   list.append(row)
  }
 }
-function clear(){if(unsubscribe){unsubscribe();unsubscribe=null}records=[];list.replaceChildren();selected=null;form.hidden=true}
+function clear(){if(unsubscribe){unsubscribe();unsubscribe=null}records=[];window.dispatchEvent(new CustomEvent('familyauto:requests',{detail:[]}));list.replaceChildren();selected=null;form.hidden=true}
 window.addEventListener('familyauto:house',e=>{
  clear();selected=e.detail;if(!selected||!auth.currentUser)return;
  form.hidden=false;
@@ -41,7 +41,7 @@ window.addEventListener('familyauto:house',e=>{
  unsubscribe=onSnapshot(q,snap=>{
   records=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   say(owner?'יש לך '+records.filter(x=>x.status==='pending').length+' בקשות ממתינות.':'בקשות הבית מסונכרנות בזמן אמת.');
-  render()
+  window.dispatchEvent(new CustomEvent('familyauto:requests',{detail:records}));render()
  },e=>say('טעינת בקשות נכשלה: '+(e.code||e.message)+'. בדוק כללי Firestore.',true))
 });
 window.addEventListener('familyauto:signout',()=>{clear();say('התחבר ובחר בית כדי לראות בקשות.')});
