@@ -91,9 +91,9 @@ service cloud.firestore {
         function instantUpdate() {
           let added = request.resource.data.reservations.removeAll(resource.data.reservations);
           let removed = resource.data.reservations.removeAll(request.resource.data.reservations);
-          return instantAllowed(hid)
+          return activeHouse(hid)
             && (
-              (added.size() == 1 && removed.size() == 0 && reservationApproved(added[0]))
+              (instantAllowed(hid) && added.size() == 1 && removed.size() == 0 && reservationApproved(added[0]))
               || (added.size() == 0 && removed.size() == 1 && reservationEnded(removed[0]))
             );
         }
@@ -160,7 +160,7 @@ service cloud.firestore {
             && request.resource.data.status == 'cancelled';
         }
         function validInstant() {
-          return instantAllowed(hid)
+          return activeHouse(hid) && instantAllowed(hid)
             && request.resource.data.keys().hasOnly(['createdBy','displayName','startAt','endAt','note','status','createdAt','instantMode'])
             && request.resource.data.createdBy == request.auth.uid
             && request.resource.data.displayName is string
