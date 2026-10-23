@@ -54,6 +54,36 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
         allow delete: if false;
       }
+      match /bookingRequests/{requestId} {
+        function validRequest() {
+          return request.resource.data.keys().hasOnly(['createdBy','displayName','startAt','endAt','note','status','createdAt'])
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() <= 60
+            && request.resource.data.note is string
+            && request.resource.data.note.size() <= 200
+            && request.resource.data.status == 'pending'
+            && request.resource.data.startAt is timestamp
+            && request.resource.data.endAt is timestamp
+            && request.resource.data.startAt > request.time
+            && request.resource.data.endAt > request.resource.data.startAt
+            && request.resource.data.endAt < request.resource.data.startAt + duration.value(30, 'd')
+            && request.resource.data.createdAt == request.time;
+        }
+        function notSuspended() {
+          return !exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid))
+            || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null
+            || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time;
+        }
+        allow create: if signedIn() && member(hid) && notSuspended() && validRequest();
+        allow get, list: if signedIn() && (owner(hid) || (member(hid) && resource.data.createdBy == request.auth.uid));
+        allow update: if signedIn() && member(hid)
+          && resource.data.createdBy == request.auth.uid
+          && resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.status == 'cancelled';
+        allow delete: if false;
+      }
       match /joinRequests/{uid} {
         allow create: if signedIn() && uid == request.auth.uid
           && exists(/databases/$(database)/documents/houses/$(hid))
