@@ -25,7 +25,7 @@ Hebrew RTL installable family-car booking application. Hosted on GitHub Pages an
 The file `firestore.rules` is **not deployed automatically** by GitHub Pages.
 1. Open [Firestore Rules](https://console.firebase.google.com/project/familyauto-s/firestore/databases/-default-/rules).
 2. Copy the **complete** contents of [firestore.rules](./firestore.rules).
-3. Replace existing rules, then **Publish**. This is required for v1.15 authorized direct booking; otherwise these transactions will be denied.
+3. Replace existing rules, then **Publish**. This is required for v1.15 authorized direct booking. Until publication, the UI falls back to a pending request and displays a warning rather than silently confirming the car.
 4. Verify a test account can save its own profile, create a house, request membership and submit a pending booking.
 5. In a two-account test, submit a request as a member, approve as owner, confirm both devices display the same reservation, then try an overlapping request.
 6. If the UI says `permission-denied`, the latest Firestore rules have not been published or the signed-in user is not a member of the active house.
