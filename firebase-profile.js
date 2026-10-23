@@ -1,8 +1,8 @@
-import {getApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+import {app} from './firebase-config.js';
 import {getAuth,onAuthStateChanged,updateProfile} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,doc,onSnapshot,setDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
-const auth=getAuth(getApp()), db=getFirestore(getApp()), root=document.getElementById('profileRoot');
+const auth=getAuth(app), db=getFirestore(app), root=document.getElementById('profileRoot');
 root.innerHTML='<div class="section-title"><h2>הפרופיל שלי</h2><span class="pill">פרטי חשבון</span></div><p id="profileStatus" aria-live="polite">התחבר כדי לערוך פרופיל.</p><form id="profileForm" hidden><label>שם לתצוגה<input name="displayName" autocomplete="name" maxlength="40" required></label><label>מספר טלפון (לא חובה)<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0501234567" maxlength="16"></label><button class="primary" type="submit">שמירת פרופיל</button><small>מספר הטלפון נשמר בפרופיל שלך בלבד, ואינו משמש להתחברות או לאימות SMS.</small></form>';
 const form=document.getElementById('profileForm'),status=document.getElementById('profileStatus');
 let user=null,unsubscribe=null,loaded=false;
