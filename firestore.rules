@@ -71,13 +71,46 @@ service cloud.firestore {
         allow delete: if false;
       }
       match /system/{docId} {
+        function reservationApproved(item) {
+          return item.keys().hasOnly(['id','createdBy','startAt','endAt'])
+            && item.createdBy == request.auth.uid
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.createdBy == request.auth.uid
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'approved'
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.startAt == item.startAt
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.endAt == item.endAt;
+        }
+        function reservationEnded(item) {
+          return item.createdBy == request.auth.uid
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'ended';
+        }
+        function instantCreate() {
+          return instantAllowed(hid)
+            && request.resource.data.reservations.size() == 1
+            && reservationApproved(request.resource.data.reservations[0]);
+        }
+        function instantUpdate() {
+          let added = request.resource.data.reservations.removeAll(resource.data.reservations);
+          let removed = resource.data.reservations.removeAll(request.resource.data.reservations);
+          return instantAllowed(hid)
+            && (
+              (added.size() == 1 && removed.size() == 0 && reservationApproved(added[0]))
+              || (added.size() == 0 && removed.size() == 1 && reservationEnded(removed[0]))
+            );
+        }
         allow get: if docId == 'schedule' && member(hid);
         allow list: if false;
-        allow create, update: if docId == 'schedule' && (owner(hid) || instantAllowed(hid))
+        allow create: if docId == 'schedule'
           && request.resource.data.keys().hasOnly(['reservations','updatedAt'])
           && request.resource.data.reservations is list
           && request.resource.data.reservations.size() <= 80
-          && request.resource.data.updatedAt == request.time;
+          && request.resource.data.updatedAt == request.time
+          && (owner(hid) || instantCreate());
+        allow update: if docId == 'schedule'
+          && request.resource.data.keys().hasOnly(['reservations','updatedAt'])
+          && request.resource.data.reservations is list
+          && request.resource.data.reservations.size() <= 80
+          && request.resource.data.updatedAt == request.time
+          && (owner(hid) || instantUpdate());
         allow delete: if false;
       }
       match /bookingRequests/{requestId} {
