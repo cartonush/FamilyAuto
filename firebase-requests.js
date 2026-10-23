@@ -364,16 +364,23 @@ form.addEventListener('submit',async e=>{
   if(canBookDirectly()){
    const scheduleRef=doc(db,'houses',houseId,'system','schedule');
    const bookingRef=doc(collection(db,'houses',houseId,'bookingRequests'));
-   await runTransaction(db,async tx=>{
-    const scheduleSnap=await tx.get(scheduleRef);
-    const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
-    const active=entries.filter(r=>r.endAt.toMillis()>Date.now());
-    if(active.some(r=>overlaps(r,bookingData)))throw Error('הרכב כבר מוזמן בטווח הזמן הזה.');
-    if(active.length>=80)throw Error('לוח ההזמנות מלא.');
-    tx.set(bookingRef,{...bookingData,status:'approved',approvedBy:userId,approvedAt:serverTimestamp()});
-    tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:userId,startAt:bookingData.startAt,endAt:bookingData.endAt}],updatedAt:serverTimestamp()});
-   });
-   say('ההזמנה אושרה ונשמרה ביומן המשותף.');
+   try{
+    await runTransaction(db,async tx=>{
+     const scheduleSnap=await tx.get(scheduleRef);
+     const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
+     const active=entries.filter(r=>r.endAt.toMillis()>Date.now());
+     if(active.some(r=>overlaps(r,bookingData)))throw Error('הרכב כבר מוזמן בטווח הזמן הזה.');
+     if(active.length>=80)throw Error('לוח ההזמנות מלא.');
+     tx.set(bookingRef,{...bookingData,status:'approved',approvedBy:userId,approvedAt:serverTimestamp()});
+     tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:userId,startAt:bookingData.startAt,endAt:bookingData.endAt}],updatedAt:serverTimestamp()});
+    });
+    say('ההזמנה אושרה ונשמרה ביומן המשותף.');
+   }catch(err){
+    if(err.code!=='permission-denied')throw err;
+    // Until the new Firestore rules are published, retain the ability to request a booking.
+    await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
+    say('כללי Firestore החדשים עדיין לא מאפשרים הזמנה ישירה. נשלחה בקשה לאישור במקום הזמנה מאושרת; יש לפרסם את כללי הגרסה החדשה.',true);
+   }
   }else{
    await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
    say('הבקשה נשלחה לאישור בעל הבית ותופיע אצל חברי הבית.');
