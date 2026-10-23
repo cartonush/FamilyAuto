@@ -64,3 +64,18 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 :root.dark .settings-link.expanded{background:#263e5d;border-color:#5276a6}
 :root.dark .settings-subpage{background:#19283b;border-color:#3a4b60}
 @media(prefers-reduced-motion:reduce){.settings-subpage{animation:none}.settings-link,.settings-link>b{transition:none}}
+
+/* v1.5: shared bookings */
+.request-entry{align-items:flex-start;flex-wrap:wrap}
+.request-details{flex:1 1 210px;min-width:0}
+.request-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.request-actions button{min-height:40px}
+.request-actions button.primary{background:#2364c4;color:white}
+.request-state{font-weight:700}
+.request-state.approved{color:#13854b}
+.request-state.pending{color:#ab7100}
+.request-state.cancelled,.request-state.rejected{color:#a24a4a}
+.calendar-day.has-approved:after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#1ba766;bottom:4px;left:calc(50% - 3px)}
+.calendar-day.selected.has-approved:after{background:white}
+:root.dark .request-state.approved{color:#6ddba0}
+:root.dark .request-state.pending{color:#f1c16a}
