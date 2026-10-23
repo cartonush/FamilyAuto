@@ -5,6 +5,19 @@ service cloud.firestore {
     function house(hid) { return get(/databases/$(database)/documents/houses/$(hid)); }
     function owner(hid) { return signedIn() && house(hid).data.ownerUid == request.auth.uid; }
     function member(hid) { return signedIn() && request.auth.uid in house(hid).data.memberIds; }
+    match /profiles/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list: if false;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['displayName','phone','updatedAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 40
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() <= 16
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
     match /houses/{hid} {
       allow create: if signedIn()
         && hid.matches('[a-f0-9]{32}')
@@ -25,6 +38,22 @@ service cloud.firestore {
         && request.resource.data.memberIds.size() <= 30
         && request.auth.uid in request.resource.data.memberIds;
       allow delete: if false;
+      match /memberSettings/{uid} {
+        allow get, list: if member(hid);
+        allow create, update: if owner(hid)
+          && uid != request.auth.uid
+          && uid in house(hid).data.memberIds
+          && request.resource.data.keys().hasOnly(['displayName','role','suspendedUntil','updatedAt'])
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 60
+          && request.resource.data.role in ['user','authorized']
+          && (request.resource.data.suspendedUntil == null ||
+             (request.resource.data.suspendedUntil is timestamp &&
+              request.resource.data.suspendedUntil > request.time &&
+              request.resource.data.suspendedUntil < request.time + duration.value(365, 'd')))
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
       match /joinRequests/{uid} {
         allow create: if signedIn() && uid == request.auth.uid
           && exists(/databases/$(database)/documents/houses/$(hid))
