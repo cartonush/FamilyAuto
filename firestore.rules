@@ -5,6 +5,8 @@ service cloud.firestore {
     function house(hid) { return get(/databases/$(database)/documents/houses/$(hid)); }
     function owner(hid) { return signedIn() && house(hid).data.ownerUid == request.auth.uid; }
     function member(hid) { return signedIn() && request.auth.uid in house(hid).data.memberIds; }
+    function activeHouse(hid) { return member(hid) && (!('deletedAt' in house(hid).data) || house(hid).data.deletedAt == null); }
+    function instantAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.canTakeCar == true && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
     match /profiles/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
       allow list: if false;
@@ -39,13 +41,15 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
       allow get, list: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow update: if signedIn() && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','memberIds'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','memberIds','deletedAt'])
         && request.resource.data.ownerUid == resource.data.ownerUid
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 25
         && request.resource.data.memberIds is list
         && request.resource.data.memberIds.size() <= 30
+        && (!('deletedAt' in request.resource.data) || request.resource.data.deletedAt == null || (request.resource.data.deletedAt is timestamp && (request.resource.data.deletedAt == request.time || (resource.data.get('deletedAt', null) is timestamp && request.resource.data.deletedAt == resource.data.deletedAt))))
+        && (request.resource.data.get('deletedAt', null) == resource.data.get('deletedAt', null) || (request.resource.data.deletedAt == request.time && resource.data.get('deletedAt', null) == null) || (request.resource.data.deletedAt == null && resource.data.get('deletedAt', null) is timestamp && resource.data.deletedAt + duration.value(7, 'd') > request.time))
         && validMemberChange()
         && request.auth.uid in request.resource.data.memberIds;
       allow delete: if false;
@@ -54,7 +58,8 @@ service cloud.firestore {
         allow create, update: if owner(hid)
           && uid != request.auth.uid
           && uid in getAfter(/databases/$(database)/documents/houses/$(hid)).data.memberIds
-          && request.resource.data.keys().hasOnly(['displayName','role','suspendedUntil','updatedAt'])
+          && request.resource.data.keys().hasOnly(['displayName','role','canTakeCar','suspendedUntil','updatedAt'])
+          && request.resource.data.get('canTakeCar', false) is bool
           && request.resource.data.displayName is string
           && request.resource.data.displayName.size() <= 60
           && request.resource.data.role in ['user','authorized']
@@ -68,7 +73,7 @@ service cloud.firestore {
       match /system/{docId} {
         allow get: if docId == 'schedule' && member(hid);
         allow list: if false;
-        allow create, update: if docId == 'schedule' && owner(hid)
+        allow create, update: if docId == 'schedule' && (owner(hid) || instantAllowed(hid))
           && request.resource.data.keys().hasOnly(['reservations','updatedAt'])
           && request.resource.data.reservations is list
           && request.resource.data.reservations.size() <= 80
@@ -121,7 +126,39 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
             && request.resource.data.status == 'cancelled';
         }
-        allow create: if signedIn() && member(hid) && notSuspended() && validRequest();
+        function validInstant() {
+          return instantAllowed(hid)
+            && request.resource.data.keys().hasOnly(['createdBy','displayName','startAt','endAt','note','status','createdAt','instantMode'])
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 60
+            && request.resource.data.note is string && request.resource.data.note.size() <= 200
+            && request.resource.data.instantMode in ['fixed','untilDone']
+            && request.resource.data.status == 'approved'
+            && request.resource.data.startAt is timestamp && request.resource.data.endAt is timestamp
+            && request.resource.data.startAt >= request.time - duration.value(2,'m')
+            && request.resource.data.startAt <= request.time + duration.value(20,'m')
+            && request.resource.data.endAt > request.resource.data.startAt
+            && request.resource.data.endAt <= request.resource.data.startAt + duration.value(30,'d')
+            && request.resource.data.createdAt == request.time
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/system/schedule).data.reservations.hasAny([{
+              'id': requestId, 'createdBy': request.auth.uid,
+              'startAt': request.resource.data.startAt, 'endAt': request.resource.data.endAt
+            }]);
+        }
+        function finishInstant() {
+          return activeHouse(hid)
+            && resource.data.status == 'approved'
+            && (resource.data.createdBy == request.auth.uid || owner(hid))
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','endedAt'])
+            && request.resource.data.status == 'ended'
+            && request.resource.data.endedAt == request.time
+            && !getAfter(/databases/$(database)/documents/houses/$(hid)/system/schedule).data.reservations.hasAny([{
+              'id': requestId, 'createdBy': resource.data.createdBy,
+              'startAt': resource.data.startAt, 'endAt': resource.data.endAt
+            }]);
+        }
+        allow create: if (activeHouse(hid) && notSuspended() && validRequest()) || validInstant();
         // All household members can view requests so the shared calendar and status are consistent.
         allow get, list: if member(hid);
         allow update: if (
@@ -129,7 +166,7 @@ service cloud.firestore {
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
           && request.resource.data.status == 'cancelled'
-        ) || ownerDecision() || ownerCancellation();
+        ) || ownerDecision() || ownerCancellation() || finishInstant();
         allow delete: if false;
       }
       match /joinRequests/{uid} {
