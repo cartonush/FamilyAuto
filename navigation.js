@@ -1,50 +1,64 @@
-import {app} from './firebase-config.js';
-import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 const mainPages=['home','calendar','requests','settings'];
 const subs=['profile','houses','members','appearance','account','preview'];
 let activePage='home',activeSub=null,activeHouse=null,requestItems=[],myUid=null,selectedDate=new Date(),calendarCursor=new Date();
 const $=id=>document.getElementById(id);
-for(const sub of subs){
- const button=document.querySelector('.settings-link[data-goto="settings-'+sub+'"]');
- const panel=$('sub-'+sub);
- if(button&&panel){
-  panel.querySelector('.back-link')?.remove();
-  button.insertAdjacentElement('afterend',panel);
-  button.setAttribute('aria-controls','sub-'+sub);
-  button.setAttribute('aria-expanded','false');
- }
-}
-
-function navigate(target,replace=false){
-  const parts=target.split('-');
-  const sub=parts[0]==='settings'&&parts.length>1?parts.slice(1).join('-'):null;
-  const page=sub?'settings':mainPages.includes(target)?target:'home';
-  if(sub&&!subs.includes(sub))return navigate('settings',replace);
-  const expanded=!replace&&sub&&page==='settings'&&activePage==='settings'&&activeSub===sub;
-  activePage=page;activeSub=expanded?null:sub;
-  document.querySelectorAll('.app-page').forEach(el=>el.hidden=el.dataset.page!==page);
-  $('settingsMenu').hidden=false;
-  document.querySelectorAll('.settings-subpage').forEach(el=>el.hidden=el.dataset.subpage!==activeSub);
-  document.querySelectorAll('.settings-link').forEach(el=>{const open=el.dataset.goto==='settings-'+activeSub;el.classList.toggle('expanded',open);el.setAttribute('aria-expanded',String(open));});
-  document.querySelectorAll('.nav-item').forEach(el=>{
-    const on=el.dataset.goto===page;
-    el.classList.toggle('active',on);
-    if(on)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')
-  });
-  const hash='#'+(activeSub?'settings-'+activeSub:page);
-  if(location.hash!==hash){
-    if(replace)history.replaceState(null,'',hash);else history.pushState(null,'',hash)
+// Navigation must not depend on Firebase loading: settings always works offline.
+const knownTargets=new Set([...mainPages,...subs.map(s=>'settings-'+s)]);
+function navigate(target,{replace=false,toggle=false}={}){
+  const name=knownTargets.has(target)?target:'home';
+  const sub=name.startsWith('settings-')?name.slice(9):null;
+  const page=sub?'settings':name;
+  const nextSub=toggle&&activePage==='settings'&&activeSub===sub?null:sub;
+  activePage=page;
+  activeSub=nextSub;
+  for(const el of document.querySelectorAll('.app-page')){
+    const visible=el.dataset.page===page;
+    el.hidden=!visible;
+    el.style.display=visible?'':'none';
   }
-  if(page==='settings'&&activeSub){document.querySelector('.settings-link[data-goto="settings-'+activeSub+'"]').scrollIntoView({block:'nearest',behavior:'smooth'})}else window.scrollTo({top:0,behavior:'instant'});
+  const menu=$('settingsMenu');
+  if(menu){menu.hidden=false;menu.style.display='grid'}
+  for(const el of document.querySelectorAll('.settings-subpage')){
+    const visible=page==='settings'&&el.dataset.subpage===nextSub;
+    el.hidden=!visible;
+    el.style.display=visible?'block':'none';
+  }
+  for(const el of document.querySelectorAll('.settings-link')){
+    const expanded=page==='settings'&&el.dataset.goto==='settings-'+nextSub;
+    el.classList.toggle('expanded',expanded);
+    el.setAttribute('aria-expanded',String(expanded));
+  }
+  for(const el of document.querySelectorAll('.nav-item')){
+    const selected=el.dataset.goto===page;
+    el.classList.toggle('active',selected);
+    if(selected)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');
+  }
+  const hash='#'+(nextSub?'settings-'+nextSub:page);
+  if(location.hash!==hash){
+    if(replace)history.replaceState(null,'',hash);
+    else history.pushState(null,'',hash);
+  }
+  if(page==='settings'&&nextSub){
+    const btn=document.querySelector('.settings-link[data-goto="settings-'+nextSub+'"]');
+    if(btn)requestAnimationFrame(()=>btn.scrollIntoView({block:'nearest',behavior:'smooth'}));
+  }else window.scrollTo(0,0);
 }
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-goto]');
-  if(btn){e.preventDefault();navigate(btn.dataset.goto)}
+document.addEventListener('click',event=>{
+  const control=event.target.closest('[data-goto]');
+  if(!control)return;
+  event.preventDefault();
+  const target=control.dataset.goto;
+  navigate(target,{toggle:target.startsWith('settings-')});
 });
-window.addEventListener('popstate',()=>{activeSub=null;navigate(location.hash.slice(1)||'home',true)});
-window.addEventListener('hashchange',()=>{activeSub=null;navigate(location.hash.slice(1)||'home',true)});
-navigate(location.hash.slice(1)||'home',true);
-$('appearanceToggle').addEventListener('click',()=>$('themeBtn').click());
+window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'home',{replace:true}));
+window.addEventListener('familyauto:auth',event=>{
+  myUid=event.detail?.uid||null;
+  if(!myUid){activeHouse=null;requestItems=[]}
+  home();drawCalendar();
+});
+window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];myUid=null;home();drawCalendar()});
+navigate(location.hash.slice(1)||'home',{replace:true});
+$('appearanceToggle')?.addEventListener('click',()=>$('themeBtn')?.click());
 function home(){
  $('homeHouseName').textContent=activeHouse?'משפחת '+activeHouse.name:'בחר בית בהגדרות כדי להתחיל.';
  $('homeHouseSummary').textContent=activeHouse?activeHouse.name+' · '+(activeHouse.memberIds?.length||0)+' חברים':'עדיין לא נבחר בית. אפשר ליצור בית בהגדרות.';
@@ -55,8 +69,7 @@ function home(){
 }
 window.addEventListener('familyauto:house',e=>{activeHouse=e.detail;requestItems=[];home();drawCalendar()});
 window.addEventListener('familyauto:requests',e=>{requestItems=e.detail||[];home();drawCalendar()});
-window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];home();drawCalendar()});
-onAuthStateChanged(getAuth(app),user=>{myUid=user?.uid||null;if(!user){activeHouse=null;requestItems=[]}home();drawCalendar()});
+
 const fmt=new Intl.DateTimeFormat('he-IL',{month:'long',year:'numeric'});
 const dayFmt=new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'});
 function drawCalendar(){
