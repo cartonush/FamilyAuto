@@ -294,8 +294,10 @@ function updateInstant(){
 }
 $('instantSubmit').addEventListener('click',()=>perform($('instantSubmit'),startInstant));
 window.addEventListener('familyauto:permissions',e=>{
- if(e.detail?.houseId!==selected?.id)return;
- permissions=e.detail.settings||{};permissionCache[selected.id]=permissions;updateInstant()
+ if(!e.detail?.houseId)return;
+ permissionCache[e.detail.houseId]=e.detail.settings||{};
+ if(e.detail.houseId!==selected?.id)return;
+ permissions=permissionCache[selected.id];updateInstant()
 });
 window.addEventListener('familyauto:instant-open',()=>{
  if(!canInstant())return;
