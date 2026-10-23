@@ -23,7 +23,11 @@ root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><sp
 </div></div>
 <p id="iosPickerHint" class="ios-picker-hint" aria-live="polite"></p>
 </dialog>
-<div id="requestList"></div>
+<section id="instantPanel" class="instant-panel" hidden><h3>הרכב אצלי</h3><p>שימוש מיידי ברכב, בהתאם להרשאה שבעל הבית העניק לך.</p>
+<label class="instant-option"><input type="radio" name="instantMode" value="untilDone" checked> עד שאני מסיים — אסיים ידנית באפליקציה</label>
+<label class="instant-option"><input type="radio" name="instantMode" value="fixed"> עד שעת הסיום שבחרתי למעלה</label>
+<p class="muted">במצב ״עד שאני מסיים״ נשמרת חסימה זמנית של עד 30 יום. יש ללחוץ על ״סיימתי״ כשמחזירים את הרכב. הזמנות חופפות ימנעו התחלת שימוש.</p>
+<button type="button" class="primary wide" id="instantSubmit">הרכב אצלי — התחל שימוש</button></section><div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
 const startInput=form.elements.start,endInput=form.elements.end;
@@ -158,11 +162,11 @@ picker.addEventListener('click',event=>{
  if(event.target===picker)picker.close();
 });
 initTimes();
-let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0;
+let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0,permissions={};
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
  const code=e?.code||'';
- if(code==='permission-denied')return 'אין הרשאה ב־Firestore. יש לפרסם את כללי firestore.rules של גרסה 1.5 ב־Firebase Console.';
+ if(code==='permission-denied')return 'אין הרשאה ב־Firestore. ודא שכללי firestore.rules המעודכנים פורסמו ושהמשתמש קיבל הרשאה מתאימה.';
  if(code==='unavailable')return 'אין חיבור זמין ל־Firebase. נסה שוב כשיש אינטרנט.';
  if(code==='failed-precondition')return 'פעולת ההזמנה לא הושלמה. נסה שוב, ייתכן שהרכב הוזמן במקביל.';
  return code||e?.message||'שגיאה לא ידועה';
@@ -195,7 +199,10 @@ function render(){
    reject.onclick=()=>perform(reject,()=>updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'rejected'}));
    actions.append(approve,reject)
   }
-  if((r.status==='pending'&&r.createdBy===currentUser?.uid)||(r.status==='approved'&&isOwner)){
+  if(r.status==='approved'&&r.instantMode&&(r.createdBy===currentUser?.uid||isOwner)){
+   const finish=document.createElement('button');finish.type='button';finish.className='primary';finish.textContent='סיימתי — החזרתי את הרכב';finish.onclick=()=>perform(finish,()=>finishInstant(r));actions.append(finish);
+  }
+  if((r.status==='pending'&&r.createdBy===currentUser?.uid)||(r.status==='approved'&&isOwner&&!r.instantMode)){
    const cancel=document.createElement('button');cancel.type='button';cancel.textContent=r.status==='approved'?'ביטול הזמנה':'ביטול בקשה';
    cancel.onclick=()=>perform(cancel,()=>r.status==='approved'?cancelApproved(r):updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'cancelled'}));
    actions.append(cancel)
@@ -238,17 +245,73 @@ async function cancelApproved(record){
   tx.update(bookingRef,{status:'cancelled'});
  });
 }
+async function startInstant(){
+ if(!selected||!currentUser)throw Error('בחר בית והתחבר.');
+ const hid=selected.id,uid=currentUser.uid;
+ if(!canInstant())throw Error('אין לך הרשאה לשימוש מיידי ברכב.');
+ if(!navigator.onLine)throw Error('יש צורך בחיבור לאינטרנט כדי לתפוס את הרכב.');
+ const mode=document.querySelector('input[name="instantMode"]:checked')?.value||'untilDone';
+ const start=new Date();
+ const chosenEnd=new Date(endInput.value);
+ const end=mode==='untilDone'?new Date(start.getTime()+30*DAY_MS):chosenEnd;
+ if(!Number.isFinite(end.getTime())||end.getTime()<=start.getTime()+SLOT_MS)throw Error('בחר שעת סיום מאוחרת בלפחות 15 דקות.');
+ if(end.getTime()>start.getTime()+30*DAY_MS)throw Error('הזמנה מוגבלת ל־30 ימים.');
+ const scheduleRef=doc(db,'houses',hid,'system','schedule');
+ const bookingRef=doc(collection(db,'houses',hid,'bookingRequests'));
+ const startAt=Timestamp.fromDate(start),endAt=Timestamp.fromDate(end);
+ await runTransaction(db,async tx=>{
+  const scheduleSnap=await tx.get(scheduleRef);
+  const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
+  const active=entries.filter(r=>r.endAt.toMillis()>Date.now());
+  if(active.some(r=>overlaps(r,{startAt,endAt})))throw Error('הרכב כבר מוזמן בטווח הזה. אי אפשר להתחיל שימוש.');
+  if(active.length>=80)throw Error('לוח ההזמנות מלא.');
+  tx.set(bookingRef,{createdBy:uid,displayName:(currentUser.displayName||currentUser.email||'חבר בית').slice(0,60),
+   startAt,endAt,note:'שימוש מיידי ברכב',status:'approved',instantMode:mode,createdAt:serverTimestamp()});
+  tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:uid,startAt,endAt}],updatedAt:serverTimestamp()});
+ });
+}
+async function finishInstant(record){
+ const hid=selected.id,uid=currentUser.uid;
+ if(record.createdBy!==uid&&selected.ownerUid!==uid)throw Error('אין הרשאה לסיים שימוש זה.');
+ const bookingRef=doc(db,'houses',hid,'bookingRequests',record.id),scheduleRef=doc(db,'houses',hid,'system','schedule');
+ await runTransaction(db,async tx=>{
+  const [bookingSnap,scheduleSnap]=await Promise.all([tx.get(bookingRef),tx.get(scheduleRef)]);
+  if(!bookingSnap.exists()||bookingSnap.data().status!=='approved')throw Error('השימוש כבר הסתיים.');
+  const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
+  tx.update(bookingRef,{status:'ended',endedAt:serverTimestamp()});
+  tx.set(scheduleRef,{reservations:entries.filter(r=>r.id!==record.id),updatedAt:serverTimestamp()});
+ });
+}
+function canInstant(){
+ if(!selected||!currentUser||selected.deletedAt)return false;
+ if(selected.ownerUid===currentUser.uid)return true;
+ const p=permissions[currentUser.uid];
+ return p?.canTakeCar===true&&(!p.suspendedUntil||p.suspendedUntil.toMillis()<=Date.now());
+}
+function updateInstant(){
+ $('instantPanel').hidden=!canInstant();
+ window.dispatchEvent(new CustomEvent('familyauto:instant-permission',{detail:canInstant()}));
+}
+$('instantSubmit').addEventListener('click',()=>perform($('instantSubmit'),startInstant));
+window.addEventListener('familyauto:permissions',e=>{
+ if(e.detail?.houseId!==selected?.id)return;
+ permissions=e.detail.settings||{};updateInstant()
+});
+window.addEventListener('familyauto:instant-open',()=>{
+ if(!canInstant())return;
+ $('instantPanel').scrollIntoView({behavior:'smooth',block:'start'});
+});
 function clear(){
  ++epoch;
  if(stopRequests){stopRequests();stopRequests=null}
  if(stopSchedule){stopSchedule();stopSchedule=null}
- selected=null;records=[];schedule=[];form.hidden=true;list.replaceChildren();publish()
+ selected=null;records=[];schedule=[];permissions={};form.hidden=true;list.replaceChildren();updateInstant();publish()
 }
 function subscribe(house){
  clear();selected=house;
  if(!house||!currentUser){say('התחבר ובחר בית כדי ליצור בקשות.');return}
  const generation=epoch;
- form.hidden=false;say('טוען נתונים משותפים של '+house.name+'...');
+ form.hidden=false;updateInstant();say('טוען נתונים משותפים של '+house.name+'...');
  stopRequests=onSnapshot(collection(db,'houses',house.id,'bookingRequests'),snap=>{
   if(generation!==epoch)return;
   records=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
