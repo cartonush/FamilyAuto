@@ -147,3 +147,51 @@ test('authorized role without instant permission cannot use the car immediately'
  const booking=doc(collection(db,'houses',HID,'bookingRequests'));
  await assertFails(setDoc(booking,{createdBy:'member',displayName:'Member',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()}));
 });
+
+
+const permissionMatrix=[
+ {id:'10000000000000000000000000000001',name:'Nisoi1: authorized with instant-use',role:'authorized',canTakeCar:true},
+ {id:'10000000000000000000000000000002',name:'Nisoi2: authorized without instant-use',role:'authorized',canTakeCar:false},
+ {id:'10000000000000000000000000000003',name:'Nisoi3: ordinary with instant-use',role:'user',canTakeCar:true},
+ {id:'10000000000000000000000000000004',name:'Nisoi4: ordinary without instant-use',role:'user',canTakeCar:false}
+];
+for(const combination of permissionMatrix){
+ test('permission matrix: '+combination.name,async()=>{
+  const hid=combination.id;
+  await env.withSecurityRulesDisabled(async ctx=>{
+   const adminDb=ctx.firestore();
+   await setDoc(doc(adminDb,'houses',hid),{name:'Permissions Matrix',ownerUid:'owner',memberIds:['owner','test-user'],createdAt:Timestamp.now()});
+   await setDoc(doc(adminDb,'houses',hid,'memberSettings','test-user'),{displayName:'Test User',role:combination.role,canTakeCar:combination.canTakeCar,suspendedUntil:null,updatedAt:Timestamp.now()});
+  });
+  const db=env.authenticatedContext('test-user').firestore();
+  const start=Timestamp.fromDate(new Date(Date.now()+60_000));
+  const end=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+  const booking=doc(collection(db,'houses',hid,'bookingRequests'));
+  const bookingData={createdBy:'test-user',displayName:'Test User',startAt:start,endAt:end,note:'Permission test',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()};
+  if(combination.canTakeCar){
+   const schedule=doc(db,'houses',hid,'system','schedule');
+   await assertSucceeds(runTransaction(db,async tx=>{
+    const snap=await tx.get(schedule);
+    const reservations=snap.exists()?snap.data().reservations||[]:[];
+    tx.set(booking,bookingData);
+    tx.set(schedule,{reservations:[...reservations,{id:booking.id,createdBy:'test-user',startAt:start,endAt:end}],updatedAt:serverTimestamp()});
+   }));
+   await assertSucceeds(getDoc(booking));
+  }else{
+   await assertFails(setDoc(booking,bookingData));
+  }
+ });
+}
+test('suspended user cannot create a pending booking or use the car immediately',async()=>{
+ const hid='20000000000000000000000000000001';
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const adminDb=ctx.firestore();
+  await setDoc(doc(adminDb,'houses',hid),{name:'Suspension Test',ownerUid:'owner',memberIds:['owner','suspended'],createdAt:Timestamp.now()});
+  await setDoc(doc(adminDb,'houses',hid,'memberSettings','suspended'),{displayName:'Suspended',role:'authorized',canTakeCar:true,suspendedUntil:Timestamp.fromDate(new Date(Date.now()+86_400_000)),updatedAt:Timestamp.now()});
+ });
+ const db=env.authenticatedContext('suspended').firestore();
+ const start=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+7_200_000));
+ await assertFails(addDoc(collection(db,'houses',hid,'bookingRequests'),{createdBy:'suspended',displayName:'Suspended',startAt:start,endAt:end,note:'',status:'pending',createdAt:serverTimestamp()}));
+ await assertFails(addDoc(collection(db,'houses',hid,'bookingRequests'),{createdBy:'suspended',displayName:'Suspended',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()}));
+});
