@@ -154,3 +154,18 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 .settings-logout-area{margin:0 0 14px}
 .settings-logout-area button{border:1px solid #dfb3b8;border-radius:12px;background:transparent;color:#ad2634;font-weight:700;min-height:46px}
 :root.dark .settings-logout-area button{color:#ffabb6}
+
+/* v1.13: dedicated guest login/register home and footer logout */
+.guest-landing{max-width:520px;margin:8px auto 24px}
+.guest-intro{text-align:center;padding:22px 10px 6px}
+.guest-intro h1{font-size:clamp(26px,6vw,38px)}
+.guest-intro p{font-size:15px}
+.guest-auth-card{padding:24px;margin-top:18px;border:1px solid #dceafa}
+.guest-auth-card .auth-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.guest-auth-card .auth-switch button{width:100%}
+.guest-auth-card #authSubmit{width:100%;min-height:48px}
+.guest-auth-card #resetPassword{background:transparent;color:#2364c4;font-weight:700}
+.settings-logout-area{margin:20px 0 12px;padding:12px 0 0;border-top:1px solid #e1e7ef}
+.settings-logout-area button{margin-top:0}
+:root.dark .guest-auth-card{border-color:#405670}
+:root.dark .settings-logout-area{border-color:#405670}
