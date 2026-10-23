@@ -19,6 +19,16 @@ service cloud.firestore {
       allow delete: if false;
     }
     match /houses/{hid} {
+      function validMemberChange() {
+        let before = resource.data.memberIds;
+        let after = request.resource.data.memberIds;
+        let added = after.removeAll(before);
+        return (added.size() == 0 && after.hasAny([resource.data.ownerUid]) && after.size() <= before.size())
+          || (added.size() == 1 && after.size() == before.size() + 1
+              && after.hasAll(before)
+              && exists(/databases/$(database)/documents/houses/$(hid)/joinRequests/$(added[0]))
+              && getAfter(/databases/$(database)/documents/houses/$(hid)/joinRequests/$(added[0])).data.status == 'accepted');
+      }
       allow create: if signedIn()
         && hid.matches('[a-f0-9]{32}')
         && request.resource.data.keys().hasOnly(['name','ownerUid','memberIds','createdAt'])
@@ -36,6 +46,7 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 25
         && request.resource.data.memberIds is list
         && request.resource.data.memberIds.size() <= 30
+        && validMemberChange()
         && request.auth.uid in request.resource.data.memberIds;
       allow delete: if false;
       match /memberSettings/{uid} {
@@ -98,7 +109,8 @@ service cloud.firestore {
         allow update: if owner(hid)
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-          && request.resource.data.status in ['accepted','rejected'];
+          && request.resource.data.status in ['accepted','rejected']
+          && (request.resource.data.status == 'rejected' || uid in getAfter(/databases/$(database)/documents/houses/$(hid)).data.memberIds);
         allow delete: if false;
       }
     }
