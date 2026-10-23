@@ -6,67 +6,158 @@ const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('reque
 root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.8</span></div>
 <p id="requestStatus" aria-live="polite">התחבר ובחר בית כדי להתחיל.</p>
 <form id="requestForm" hidden>
-<label>תחילת שימוש<input type="datetime-local" name="start" step="900" required></label>
-<label>סיום שימוש<input type="datetime-local" name="end" step="900" required></label>
-<small>הזמנה במרווחים של 15 דקות, החל מרבע השעה העתידית הקרובה.</small>
+<label>תחילת שימוש<button type="button" class="ios-date-trigger" id="pickStart" aria-haspopup="dialog"><span id="startLabel"></span><span class="ios-date-chevron">⌄</span></button><input type="hidden" name="start"></label>
+<label>סיום שימוש<button type="button" class="ios-date-trigger" id="pickEnd" aria-haspopup="dialog"><span id="endLabel"></span><span class="ios-date-chevron">⌄</span></button><input type="hidden" name="end"></label>
 <label>הערה (לא חובה)<input name="note" maxlength="200" placeholder="לאן נוסעים?"></label>
 <button class="primary" type="submit">שליחת בקשה</button>
 </form>
+<dialog id="iosPicker" class="ios-picker" aria-labelledby="iosPickerTitle">
+<div class="ios-picker-head"><button type="button" id="iosCancel">ביטול</button><strong id="iosPickerTitle">בחירת תאריך ושעה</strong><button type="button" id="iosDone">סיום</button></div>
+<div class="ios-wheel-frame" aria-label="בחירת תאריך, שעה ודקות">
+<div class="ios-wheel-highlight" aria-hidden="true"></div>
+<div class="ios-wheel-fade" aria-hidden="true"></div>
+<div class="ios-wheels">
+<div class="ios-wheel" id="iosDay" role="listbox" aria-label="תאריך"></div>
+<div class="ios-wheel" id="iosHour" role="listbox" aria-label="שעה"></div>
+<div class="ios-wheel" id="iosMinute" role="listbox" aria-label="דקות"></div>
+</div></div>
+<p id="iosPickerHint" class="ios-picker-hint" aria-live="polite"></p>
+</dialog>
 <div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
 const startInput=form.elements.start,endInput=form.elements.end;
-const SLOT_MS=15*60*1000;
+const SLOT_MS=15*60*1000,DAY_MS=86400000;
 const localDateTime=date=>{
  const d=new Date(date.getTime()-date.getTimezoneOffset()*60000);
  return d.toISOString().slice(0,16);
 };
 const nextQuarter=()=>new Date(Math.ceil((Date.now()+1000)/SLOT_MS)*SLOT_MS);
-const ceilQuarter=date=>new Date(Math.ceil(date.getTime()/SLOT_MS)*SLOT_MS);
 const isQuarter=date=>date.getMinutes()%15===0&&date.getSeconds()===0;
-function setDate(input,date){input.value=localDateTime(date)}
-function setBounds(){
- const first=nextQuarter();
- startInput.min=localDateTime(first);
- const start=startInput.value?new Date(startInput.value):first;
- endInput.min=localDateTime(new Date(Math.max(first.getTime(),start.getTime())+SLOT_MS));
-}
-function normaliseStart(){
- if(!startInput.value)return;
- const chosen=new Date(startInput.value);
- if(!Number.isFinite(chosen.getTime()))return;
- const start=new Date(Math.max(ceilQuarter(chosen).getTime(),nextQuarter().getTime()));
- setDate(startInput,start);
- const end=endInput.value?new Date(endInput.value):null;
- if(!end||!Number.isFinite(end.getTime())||end.getTime()<start.getTime()+SLOT_MS){
-  setDate(endInput,new Date(start.getTime()+SLOT_MS));
- }
- setBounds();
-}
-function normaliseEnd(){
- if(!endInput.value)return;
- const chosen=new Date(endInput.value);
- if(!Number.isFinite(chosen.getTime()))return;
- const start=startInput.value?new Date(startInput.value):nextQuarter();
- setDate(endInput,new Date(Math.max(ceilQuarter(chosen).getTime(),start.getTime()+SLOT_MS)));
- setBounds();
+const dateFormatter=new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const dayFormatter=new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeric',month:'short'});
+const pad=n=>String(n).padStart(2,'0');
+const picker=$('iosPicker'),dayWheel=$('iosDay'),hourWheel=$('iosHour'),minuteWheel=$('iosMinute');
+const wheels=[dayWheel,hourWheel,minuteWheel];
+const ROW=44;
+let editing='start',draft=null,baseDay=null,lockScroll=false;
+const dateAtMidnight=date=>new Date(date.getFullYear(),date.getMonth(),date.getDate());
+const addDays=(date,n)=>new Date(date.getFullYear(),date.getMonth(),date.getDate()+n);
+function setChoice(which,date){
+ (which==='start'?startInput:endInput).value=localDateTime(date);
+ $(which==='start'?'startLabel':'endLabel').textContent=dateFormatter.format(date);
 }
 function initTimes(){
  const start=nextQuarter();
- setDate(startInput,start);
- setDate(endInput,new Date(start.getTime()+SLOT_MS));
- setBounds();
+ setChoice('start',start);
+ setChoice('end',new Date(start.getTime()+SLOT_MS));
 }
-// Safari's native iOS minute wheel ignores step=900. Keep the native picker,
-// but round selected values up to valid quarter-hour slots on change/blur.
-startInput.addEventListener('change',normaliseStart);
-endInput.addEventListener('change',normaliseEnd);
-startInput.addEventListener('blur',normaliseStart);
-endInput.addEventListener('blur',normaliseEnd);
-for(const input of [startInput,endInput]){
- input.addEventListener('focus',setBounds);
+function minAllowed(){return editing==='start'?nextQuarter():new Date(Math.max(nextQuarter().getTime()+SLOT_MS,new Date(startInput.value).getTime()+SLOT_MS))}
+function maxAllowed(){return editing==='start'?new Date(nextQuarter().getTime()+29*DAY_MS):new Date(new Date(startInput.value).getTime()+30*DAY_MS)}
+function closestAllowed(date){
+ const min=minAllowed(),max=maxAllowed();
+ const rounded=new Date(Math.ceil(date.getTime()/SLOT_MS)*SLOT_MS);
+ return new Date(Math.min(max.getTime(),Math.max(min.getTime(),rounded.getTime())));
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)setBounds()});
+function optionsFor(wheel){
+ if(wheel===dayWheel)return Array.from({length:32},(_,i)=>({value:i,label:i===0?'היום':i===1?'מחר':dayFormatter.format(addDays(baseDay,i))}));
+ if(wheel===hourWheel)return Array.from({length:24},(_,i)=>({value:i,label:pad(i)}));
+ return [0,15,30,45].map(n=>({value:n,label:pad(n)}));
+}
+function indexFor(wheel,date){
+ if(wheel===dayWheel)return Math.round((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(baseDay.getFullYear(),baseDay.getMonth(),baseDay.getDate()))/DAY_MS);
+ if(wheel===hourWheel)return date.getHours();
+ return date.getMinutes()/15;
+}
+function selectedDate(dayIndex,hour,minute){
+ const d=addDays(baseDay,dayIndex);
+ return new Date(d.getFullYear(),d.getMonth(),d.getDate(),hour,minute);
+}
+function createWheel(wheel){
+ wheel.replaceChildren();
+ const spacer=document.createElement('div');spacer.className='ios-wheel-spacer';spacer.setAttribute('aria-hidden','true');wheel.append(spacer);
+ for(const option of optionsFor(wheel)){
+  const el=document.createElement('div');el.className='ios-wheel-option';el.textContent=option.label;el.dataset.value=option.value;el.setAttribute('role','option');
+  el.addEventListener('click',()=>wheel.scrollTo({top:el.offsetTop-spacer.offsetTop-ROW*2,behavior:'smooth'}));
+  wheel.append(el);
+ }
+ const bottom=spacer.cloneNode();wheel.append(bottom);
+}
+function scrollWheelTo(wheel,index,behavior='instant'){
+ wheel.scrollTo({top:index*ROW,behavior:behavior==='instant'?'instant':'smooth'});
+}
+function renderWheels(){
+ lockScroll=true;
+ const min=minAllowed(),max=maxAllowed();
+ draft=closestAllowed(draft);
+ for(const wheel of wheels){
+  const items=wheel.querySelectorAll('.ios-wheel-option'),index=indexFor(wheel,draft);
+  items.forEach((item,i)=>{
+   let trial;
+   if(wheel===dayWheel)trial=selectedDate(i,draft.getHours(),draft.getMinutes());
+   else if(wheel===hourWheel)trial=selectedDate(indexFor(dayWheel,draft),i,draft.getMinutes());
+   else trial=selectedDate(indexFor(dayWheel,draft),draft.getHours(),i*15);
+   const tooEarly=trial.getTime()<min.getTime(),tooLate=trial.getTime()>max.getTime();
+   item.classList.toggle('ios-wheel-unavailable',tooEarly||tooLate);
+   item.classList.toggle('ios-wheel-selected',i===index);
+   item.setAttribute('aria-selected',String(i===index));
+  });
+  scrollWheelTo(wheel,index);
+ }
+ $('iosPickerHint').textContent='בחירת דקות: 00, 15, 30, 45 בלבד';
+ requestAnimationFrame(()=>{lockScroll=false});
+}
+function onWheelSettled(wheel){
+ if(lockScroll||!picker.open)return;
+ const max=wheel.querySelectorAll('.ios-wheel-option').length-1;
+ const index=Math.max(0,Math.min(max,Math.round(wheel.scrollTop/ROW)));
+ const day=indexFor(dayWheel,draft),hour=draft.getHours(),minute=draft.getMinutes();
+ draft=closestAllowed(selectedDate(
+  wheel===dayWheel?index:day,
+  wheel===hourWheel?index:hour,
+  wheel===minuteWheel?index*15:minute
+ ));
+ renderWheels();
+}
+for(const wheel of wheels){
+ let settleTimer;
+ wheel.addEventListener('scroll',()=>{
+  if(lockScroll||!picker.open)return;
+  clearTimeout(settleTimer);
+  settleTimer=setTimeout(()=>onWheelSettled(wheel),100);
+ },{passive:true});
+}
+function openPicker(which){
+ editing=which;
+ baseDay=dateAtMidnight(new Date());
+ const value=new Date((which==='start'?startInput:endInput).value);
+ draft=closestAllowed(Number.isFinite(value.getTime())?value:minAllowed());
+ $('iosPickerTitle').textContent=which==='start'?'תחילת שימוש':'סיום שימוש';
+ wheels.forEach(createWheel);
+ picker.showModal();
+ renderWheels();
+}
+$('pickStart').addEventListener('click',()=>openPicker('start'));
+$('pickEnd').addEventListener('click',()=>openPicker('end'));
+$('iosCancel').addEventListener('click',()=>picker.close());
+$('iosDone').addEventListener('click',()=>{
+ // Snap to the currently visible rows, including a wheel still in motion.
+ for(const wheel of wheels){
+  const index=Math.max(0,Math.min(wheel.querySelectorAll('.ios-wheel-option').length-1,Math.round(wheel.scrollTop/ROW)));
+  const day=indexFor(dayWheel,draft),hour=draft.getHours(),minute=draft.getMinutes();
+  draft=closestAllowed(selectedDate(wheel===dayWheel?index:day,wheel===hourWheel?index:hour,wheel===minuteWheel?index*15:minute));
+ }
+ draft=closestAllowed(draft);
+ setChoice(editing,draft);
+ if(editing==='start'){
+  const end=new Date(endInput.value);
+  if(!Number.isFinite(end.getTime())||end.getTime()<draft.getTime()+SLOT_MS)setChoice('end',new Date(draft.getTime()+SLOT_MS));
+ }
+ picker.close();
+});
+picker.addEventListener('click',event=>{
+ if(event.target===picker)picker.close();
+});
 initTimes();
 let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0;
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
