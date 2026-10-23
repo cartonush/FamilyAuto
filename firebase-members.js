@@ -18,7 +18,7 @@ function render(){
     const setting=settings[uid],isOwner=uid===selected.ownerUid;
     const row=document.createElement('div');row.className='member-row';
     const title=document.createElement('strong');title.textContent=isOwner?(owner?'בעל הבית (אתה)':'בעל הבית'):label(uid,setting);
-    const summary=document.createElement('small');summary.textContent=isOwner?'בעל הבית · הרשאות מלאות':setting?.role==='authorized'?'מורשה לשימוש ברכב':'משתמש רגיל';
+    const summary=document.createElement('small');summary.textContent=isOwner?'בעל הבית · הרשאות מלאות':(setting?.role==='authorized'?'משתמש מורשה':'משתמש רגיל')+(setting?.canTakeCar?' · יכול לקחת רכב מיד':'');
     row.append(title,summary);
     if(setting?.suspendedUntil){
       const until=setting.suspendedUntil.toDate?setting.suspendedUntil.toDate():new Date(setting.suspendedUntil);
@@ -31,6 +31,7 @@ function render(){
         const option=document.createElement('option');option.value=value;option.textContent=text;role.append(option)
       }
       role.value=setting?.role||'user';
+      const instantLabel=document.createElement('label');instantLabel.className='member-permission';const instant=document.createElement('input');instant.type='checkbox';instant.checked=setting?.canTakeCar===true;instantLabel.append(instant,document.createTextNode(' הרשאה ל״הרכב אצלי״ (ללא אישור מוקדם)'));
       const suspension=document.createElement('input');suspension.type='datetime-local';suspension.setAttribute('aria-label','הרחקה עד תאריך');suspension.value=localValue(setting?.suspendedUntil);
       const save=document.createElement('button');save.className='primary';save.textContent='שמירת הרשאות';
       save.onclick=async()=>{
@@ -41,6 +42,7 @@ function render(){
           await setDoc(doc(db,'houses',selected.id,'memberSettings',uid),{
             displayName:label(uid,setting).slice(0,60),
             role:role.value,
+            canTakeCar:instant.checked,
             suspendedUntil:date,
             updatedAt:serverTimestamp()
           });
@@ -48,17 +50,17 @@ function render(){
         }catch(e){say('שמירת הרשאות נכשלה: '+(e.code||e.message)+'. ודא שפרסמת את כללי Firestore החדשים.',true)}
         finally{save.disabled=false}
       };
-      controls.append(role,suspension,save);row.append(controls);
+      controls.append(role,instantLabel,suspension,save);row.append(controls);
     }
     list.append(row);
   }
 }
 window.addEventListener('familyauto:house',event=>{
   if(unsubscribe){unsubscribe();unsubscribe=null}
-  selected=event.detail;settings={};render();
+  selected=event.detail;settings={};window.dispatchEvent(new CustomEvent('familyauto:permissions',{detail:{houseId:selected?.id||null,settings}}));render();
   if(!selected)return;
   unsubscribe=onSnapshot(collection(db,'houses',selected.id,'memberSettings'),snap=>{
-    settings={};snap.forEach(d=>{settings[d.id]=d.data()});render();
+    settings={};snap.forEach(d=>{settings[d.id]=d.data()});window.dispatchEvent(new CustomEvent('familyauto:permissions',{detail:{houseId:selected.id,settings}}));render();
   },e=>say('טעינת ההרשאות נכשלה: '+(e.code||e.message),true));
 });
 window.addEventListener('familyauto:signout',()=>{
