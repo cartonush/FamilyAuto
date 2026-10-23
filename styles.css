@@ -79,3 +79,13 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 .calendar-day.selected.has-approved:after{background:white}
 :root.dark .request-state.approved{color:#6ddba0}
 :root.dark .request-state.pending{color:#f1c16a}
+
+/* v1.8: iOS native wheel pickers, quarter-hour minutes only */
+.time-field{border:1px solid #dbe5f2;border-radius:14px;padding:12px;margin:12px 0;min-width:0}
+.time-field legend{font-weight:700;padding:0 6px}
+.time-pickers{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end}
+.time-pickers label{min-width:0;font-size:12px}
+.time-pickers input,.time-pickers select{width:100%;min-width:0;font-size:16px;min-height:46px;background:transparent}
+.time-pickers select{padding-inline:6px}
+:root.dark .time-field{border-color:#42566c}
+@media(max-width:370px){.time-pickers{gap:4px}.time-field{padding:8px}.time-pickers input,.time-pickers select{font-size:15px;padding-inline:2px}}
