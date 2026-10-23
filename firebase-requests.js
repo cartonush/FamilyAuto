@@ -76,9 +76,9 @@ function selectedDate(dayIndex,hour,minute){
 function createWheel(wheel){
  wheel.replaceChildren();
  const spacer=document.createElement('div');spacer.className='ios-wheel-spacer';spacer.setAttribute('aria-hidden','true');wheel.append(spacer);
- for(const option of optionsFor(wheel)){
+ for(const [index,option] of optionsFor(wheel).entries()){
   const el=document.createElement('div');el.className='ios-wheel-option';el.textContent=option.label;el.dataset.value=option.value;el.setAttribute('role','option');
-  el.addEventListener('click',()=>wheel.scrollTo({top:el.offsetTop-spacer.offsetTop-ROW*2,behavior:'smooth'}));
+  el.addEventListener('click',()=>wheel.scrollTo({top:index*ROW,behavior:'smooth'}));
   wheel.append(el);
  }
  const bottom=spacer.cloneNode();wheel.append(bottom);
@@ -141,12 +141,11 @@ $('pickStart').addEventListener('click',()=>openPicker('start'));
 $('pickEnd').addEventListener('click',()=>openPicker('end'));
 $('iosCancel').addEventListener('click',()=>picker.close());
 $('iosDone').addEventListener('click',()=>{
- // Snap to the currently visible rows, including a wheel still in motion.
- for(const wheel of wheels){
-  const index=Math.max(0,Math.min(wheel.querySelectorAll('.ios-wheel-option').length-1,Math.round(wheel.scrollTop/ROW)));
-  const day=indexFor(dayWheel,draft),hour=draft.getHours(),minute=draft.getMinutes();
-  draft=closestAllowed(selectedDate(wheel===dayWheel?index:day,wheel===hourWheel?index:hour,wheel===minuteWheel?index*15:minute));
- }
+ // Read all three wheels together before validating the resulting time.
+ const indexes=wheels.map(wheel=>Math.max(0,Math.min(
+  wheel.querySelectorAll('.ios-wheel-option').length-1,Math.round(wheel.scrollTop/ROW)
+ )));
+ draft=closestAllowed(selectedDate(indexes[0],indexes[1],indexes[2]*15));
  draft=closestAllowed(draft);
  setChoice(editing,draft);
  if(editing==='start'){
