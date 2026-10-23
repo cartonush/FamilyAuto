@@ -8,12 +8,13 @@ Hebrew RTL installable family-car booking application. Hosted on GitHub Pages an
 - Per-user Firestore profile (display name and optional phone number). The phone number is **not** a login factor or SMS verification.
 - Create houses, join via invitation code, approve members atomically, switch houses.
 - Owner-managed member role (`user` / `authorized`) and temporary booking-request suspension.
-- Pending booking requests in Firestore, scoped to a house and user, with real-time subscriptions and user cancellation.
+- Shared pending booking requests in Firestore visible to all members of the selected house, with real-time subscriptions and user cancellation.
+- Owner can approve or reject requests. Approvals use a Firestore transaction and a shared schedule document to check for overlaps. The home screen and calendar consume the same live data.
 - Responsive RTL layout, dark mode, PWA installation.
 
 ## Not yet production-ready
-- **No server-authoritative booking approvals or collision prevention.** The new Firestore request flow stores only `pending` requests; it deliberately does not approve or reserve the car.
-- The older booking demo in the UI still uses localStorage and must not be mistaken for real shared reservations.
+- **Booking approval is an experimental client-side transaction.** It checks overlaps atomically for ordinary clients, but Firestore security rules cannot yet independently verify all non-overlapping schedule entries. Do not rely on this preview for real car allocation.
+- The older booking demo under Settings still uses localStorage and must not be mistaken for shared reservations.
 - No offline request queue, push delivery, 7-day house recovery, account deletion, multi-car management, audit log, automated integration tests, or verified exact SwiftUI visual parity.
 - The house membership/role UI needs multi-account integration testing and rule emulator tests.
 - Client-side password checks can be bypassed unless Firebase Auth password policy is configured.
@@ -25,7 +26,9 @@ The file `firestore.rules` is **not deployed automatically** by GitHub Pages.
 2. Copy the **complete** contents of [firestore.rules](./firestore.rules).
 3. Replace existing rules, then **Publish**.
 4. Verify a test account can save its own profile, create a house, request membership and submit a pending booking.
-5. Test with two accounts: member should not be able to change another user's role or access another house.
+5. In a two-account test, submit a request as a member, approve as owner, confirm both devices display the same reservation, then try an overlapping request.
+6. If the UI says `permission-denied`, the latest Firestore rules have not been published or the signed-in user is not a member of the active house.
+7. Test with two accounts: member should not be able to change another user's role or access another house.
 
 ### Password policy
 In Firebase Console → Authentication → Settings → Password policy, configure a strong policy to match the registration UI (minimum 12, letters and numbers). Availability and settings may vary.
@@ -34,6 +37,6 @@ In Firebase Console → Authentication → Settings → Password policy, configu
 Settings → Pages → Deploy from a branch → main / root. iPhone: Safari → Share → Add to Home Screen.
 
 ## Planned security work
-Transactional server-authoritative booking approvals, permission checks on every write, overlap protection under concurrency, per-house notification delivery, offline queue with explicit pending/sent states, recoverable deletion, comprehensive rule emulator and device tests.
+Server-authoritative overlap verification and tamper-proof approval invariants, per-house notification delivery, offline queue with explicit pending/sent states, recoverable deletion, comprehensive rule emulator and device tests.
 
 No private credentials, Firebase Admin service account keys, or private VAPID keys should ever be committed.
