@@ -106,11 +106,22 @@ service cloud.firestore {
           && request.resource.data.status == 'pending'
           && request.resource.data.createdAt == request.time;
         allow get, list: if signedIn() && (uid == request.auth.uid || owner(hid));
-        allow update: if owner(hid)
+        allow update: if (
+          owner(hid)
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
           && request.resource.data.status in ['accepted','rejected']
-          && (request.resource.data.status == 'rejected' || uid in getAfter(/databases/$(database)/documents/houses/$(hid)).data.memberIds);
+          && (request.resource.data.status == 'rejected' || uid in getAfter(/databases/$(database)/documents/houses/$(hid)).data.memberIds)
+        ) || (
+          signedIn() && uid == request.auth.uid && !member(hid)
+          && resource.data.status in ['rejected','accepted']
+          && request.resource.data.keys().hasOnly(['uid','displayName','status','createdAt'])
+          && request.resource.data.uid == uid
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 60
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time
+        );
         allow delete: if false;
       }
     }
