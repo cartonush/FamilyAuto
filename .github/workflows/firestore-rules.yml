@@ -22,4 +22,11 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm install --no-audit --no-fund
+      - name: Check JavaScript syntax
+        run: |
+          node --check firebase-requests.js
+          node --check firebase-members.js
+          node --check firebase-homes.js
+          node --check firebase-auth.js
+          node --check tests/firestore.rules.test.mjs
       - run: npm run test:rules
