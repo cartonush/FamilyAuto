@@ -96,6 +96,8 @@ test('member cannot delete the house',async()=>{
 });
 test('instant-use booking and schedule must be created atomically',async()=>{
  const db=env.authenticatedContext('member').firestore();
+ const ownerDb=env.authenticatedContext('owner').firestore();
+ await assertSucceeds(updateDoc(doc(ownerDb,'houses',HID,'memberSettings','member'),{canTakeCar:true,updatedAt:serverTimestamp()}));
  const start=Timestamp.fromDate(new Date(Date.now()+60_000));
  const end=Timestamp.fromDate(new Date(Date.now()+3600_000));
  const booking=doc(collection(db,'houses',HID,'bookingRequests'));
@@ -110,4 +112,38 @@ test('instant-use booking and schedule must be created atomically',async()=>{
 test('non-member cannot view household bookings',async()=>{
  const db=env.authenticatedContext('outsider').firestore();
  await assertFails(getDocs(collection(db,'houses',HID,'bookingRequests')));
+});
+
+test('member without instant permission cannot create an approved instant booking',async()=>{
+ const memberDb=env.authenticatedContext('member').firestore();
+ const ownerDb=env.authenticatedContext('owner').firestore();
+ await assertSucceeds(updateDoc(doc(ownerDb,'houses',HID,'memberSettings','member'),{canTakeCar:false,updatedAt:serverTimestamp()}));
+ const start=Timestamp.fromDate(new Date(Date.now()+60_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const booking=doc(collection(memberDb,'houses',HID,'bookingRequests'));
+ await assertFails(setDoc(booking,{createdBy:'member',displayName:'Member',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()}));
+});
+test('ordinary member with instant permission can use the car immediately',async()=>{
+ const ownerDb=env.authenticatedContext('owner').firestore();
+ const db=env.authenticatedContext('member').firestore();
+ await assertSucceeds(updateDoc(doc(ownerDb,'houses',HID,'memberSettings','member'),{role:'user',canTakeCar:true,updatedAt:serverTimestamp()}));
+ const start=Timestamp.fromDate(new Date(Date.now()+60_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const booking=doc(collection(db,'houses',HID,'bookingRequests'));
+ const schedule=doc(db,'houses',HID,'system','schedule');
+ await assertSucceeds(runTransaction(db,async tx=>{
+  const snap=await tx.get(schedule);
+  const entries=snap.exists()?snap.data().reservations||[]:[];
+  tx.set(booking,{createdBy:'member',displayName:'Member',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()});
+  tx.set(schedule,{reservations:[...entries,{id:booking.id,createdBy:'member',startAt:start,endAt}],updatedAt:serverTimestamp()});
+ }));
+});
+test('authorized role without instant permission cannot use the car immediately',async()=>{
+ const ownerDb=env.authenticatedContext('owner').firestore();
+ const db=env.authenticatedContext('member').firestore();
+ await assertSucceeds(updateDoc(doc(ownerDb,'houses',HID,'memberSettings','member'),{role:'authorized',canTakeCar:false,updatedAt:serverTimestamp()}));
+ const start=Timestamp.fromDate(new Date(Date.now()+60_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const booking=doc(collection(db,'houses',HID,'bookingRequests'));
+ await assertFails(setDoc(booking,{createdBy:'member',displayName:'Member',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()}));
 });
