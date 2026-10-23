@@ -6,47 +6,91 @@ const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('reque
 root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.8</span></div>
 <p id="requestStatus" aria-live="polite">התחבר ובחר בית כדי להתחיל.</p>
 <form id="requestForm" hidden>
-<label>תחילת שימוש<input type="datetime-local" name="start" step="900" required></label>
-<button type="button" id="startNowBtn" class="text-action">הרבע שעה הקרובה</button>
-<label>סיום שימוש<input type="datetime-local" name="end" step="900" required></label>
-<small>משך הזמנה מינימלי: 15 דקות.</small>
+<label>תחילת שימוש<button type="button" class="slot-display" id="pickStart">בחר תאריך ושעה <span>▾</span></button><input type="hidden" name="start"></label>
+<label>סיום שימוש<button type="button" class="slot-display" id="pickEnd">בחר תאריך ושעה <span>▾</span></button><input type="hidden" name="end"></label>
+<small>בחירת דקות ברבעי שעה בלבד. מינימום 15 דקות.</small>
 <label>הערה (לא חובה)<input name="note" maxlength="200" placeholder="לאן נוסעים?"></label>
 <button class="primary" type="submit">שליחת בקשה</button>
 </form>
-<div id="requestList"></div>
+<dialog id="slotPicker" class="slot-picker" aria-labelledby="slotPickerTitle">
+<div class="slot-head"><h2 id="slotPickerTitle">בחירת תאריך ושעה</h2><button type="button" id="slotClose" aria-label="סגור">✕</button></div>
+<label>תאריך<input type="date" id="slotDate" required></label>
+<div class="slot-wheel-row"><label>שעה<select id="slotHour" aria-label="שעה"></select></label><label>דקות<select id="slotMinute" aria-label="דקות"></select></label></div>
+<p class="slot-note">בדקות אפשר לבחור רק 00, 15, 30 או 45.</p>
+<p id="slotError" role="alert" class="slot-error"></p>
+<button type="button" class="primary slot-confirm" id="slotConfirm">אישור</button>
+</dialog><div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
 const startInput=form.elements.start,endInput=form.elements.end;
+const SLOT_MS=15*60*1000;
 const localDateTime=date=>{
  const d=new Date(date.getTime()-date.getTimezoneOffset()*60000);
  return d.toISOString().slice(0,16);
 };
-const SLOT_MS=15*60*1000;
 const nextQuarter=()=>new Date(Math.ceil((Date.now()+1000)/SLOT_MS)*SLOT_MS);
 const isQuarter=date=>date.getMinutes()%15===0&&date.getSeconds()===0;
-function updateBounds(){
- startInput.min=localDateTime(nextQuarter());
- if(startInput.value){
-  const start=new Date(startInput.value);
-  if(Number.isFinite(start.getTime()))endInput.min=localDateTime(new Date(start.getTime()+SLOT_MS));
- }
+const pad=n=>String(n).padStart(2,'0');
+const picker=$('slotPicker'),dateField=$('slotDate'),hourField=$('slotHour'),minuteField=$('slotMinute');
+const errorField=$('slotError');
+let editing='start';
+for(let h=0;h<24;h++)hourField.add(new Option(pad(h),pad(h)));
+for(const m of [0,15,30,45])minuteField.add(new Option(pad(m),pad(m)));
+const fmt=new Intl.DateTimeFormat('he-IL',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+function showChoice(which){
+ const input=which==='start'?startInput:endInput;
+ const button=$(which==='start'?'pickStart':'pickEnd');
+ const date=input.value?new Date(input.value):null;
+ button.replaceChildren();
+ const label=document.createElement('span');
+ label.textContent=date&&Number.isFinite(date.getTime())?fmt.format(date):'בחר תאריך ושעה';
+ const arrow=document.createElement('span');arrow.textContent='▾';
+ button.append(label,arrow);
 }
-startInput.addEventListener('change',()=>{
- updateBounds();
- const start=new Date(startInput.value),end=new Date(endInput.value);
- if(Number.isFinite(start.getTime())&&(!Number.isFinite(end.getTime())||end<=start)){
-  endInput.value=localDateTime(new Date(start.getTime()+SLOT_MS));
- }
-});
-$('startNowBtn').addEventListener('click',()=>{
+function assign(which,date){
+ const input=which==='start'?startInput:endInput;
+ input.value=localDateTime(date);
+ showChoice(which);
+}
+function initialChoices(){
  const start=nextQuarter();
- startInput.value=localDateTime(start);
- endInput.value=localDateTime(new Date(start.getTime()+SLOT_MS));
- updateBounds();
- say('נבחרה רבע השעה הקרובה. אפשר לשנות את התאריך והשעה בגלגל הבחירה של האייפון.');
+ assign('start',start);
+ assign('end',new Date(start.getTime()+SLOT_MS));
+}
+function openPicker(which){
+ editing=which;
+ const input=which==='start'?startInput:endInput;
+ const existing=input.value?new Date(input.value):null;
+ const start=startInput.value?new Date(startInput.value):nextQuarter();
+ const fallback=which==='end'?new Date(start.getTime()+SLOT_MS):nextQuarter();
+ const date=existing&&Number.isFinite(existing.getTime())?existing:fallback;
+ const iso=localDateTime(date);
+ dateField.value=iso.slice(0,10);
+ dateField.min=localDateTime(which==='end'?start:nextQuarter()).slice(0,10);
+ hourField.value=iso.slice(11,13);
+ minuteField.value=iso.slice(14,16);
+ errorField.textContent='';
+ $('slotPickerTitle').textContent=which==='start'?'תחילת שימוש':'סיום שימוש';
+ picker.showModal();
+}
+$('pickStart').addEventListener('click',()=>openPicker('start'));
+$('pickEnd').addEventListener('click',()=>openPicker('end'));
+$('slotClose').addEventListener('click',()=>picker.close());
+picker.addEventListener('click',e=>{if(e.target===picker)picker.close()});
+$('slotConfirm').addEventListener('click',()=>{
+ const date=new Date(dateField.value+'T'+hourField.value+':'+minuteField.value+':00');
+ if(!dateField.value||!Number.isFinite(date.getTime())){errorField.textContent='יש לבחור תאריך תקין.';return}
+ const start=startInput.value?new Date(startInput.value):nextQuarter();
+ if(editing==='start'&&date<=Date.now()){errorField.textContent='בחר שעה עתידית.';return}
+ if(editing==='end'&&date.getTime()<start.getTime()+SLOT_MS){errorField.textContent='הסיום חייב להיות לפחות 15 דקות אחרי ההתחלה.';return}
+ assign(editing,date);
+ if(editing==='start'){
+  const end=endInput.value?new Date(endInput.value):null;
+  if(!end||end.getTime()<date.getTime()+SLOT_MS)assign('end',new Date(date.getTime()+SLOT_MS));
+ }
+ picker.close();
 });
-startInput.addEventListener('focus',updateBounds);
-updateBounds();
+initialChoices();
 let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0;
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
@@ -174,7 +218,7 @@ form.addEventListener('submit',async e=>{
    startAt:Timestamp.fromDate(start),endAt:Timestamp.fromDate(end),
    note:String(data.get('note')||'').trim(),status:'pending',createdAt:serverTimestamp()
   });
-  form.reset();updateBounds();say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
+  form.reset();initialChoices();say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
  }catch(err){say('שליחת הבקשה נכשלה: '+friendlyError(err),true)}
  finally{submit.disabled=false}
 });
