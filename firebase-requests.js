@@ -3,11 +3,11 @@ import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.
 import {getFirestore,collection,doc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('requestsRoot');
-root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.5</span></div>
+root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.7</span></div>
 <p id="requestStatus" aria-live="polite">התחבר ובחר בית כדי להתחיל.</p>
 <form id="requestForm" hidden>
-<label>תחילת שימוש<input type="datetime-local" name="start" required></label><button type="button" id="startNowBtn" class="text-action">התחל עכשיו</button><small id="startHint">אפשר לבחור שעה עתידית או ללחוץ על ״התחל עכשיו״.</small>
-<label>סיום שימוש<input type="datetime-local" name="end" required></label>
+<label>תחילת שימוש<input type="datetime-local" name="start" step="900" required></label><button type="button" id="startNowBtn" class="text-action">הרבע שעה הקרובה</button><small id="startHint">השעות בקפיצות של 15 דקות: 09:00, 09:15, 09:30, 09:45.</small>
+<label>סיום שימוש<input type="datetime-local" name="end" step="900" required></label><small>משך הזמנה מינימלי: 15 דקות.</small>
 <label>הערה (לא חובה)<input name="note" maxlength="200" placeholder="לאן נוסעים?"></label>
 <button class="primary" type="submit">שליחת בקשה</button>
 </form>
@@ -19,23 +19,36 @@ const localDateTime=date=>{
  const d=new Date(date.getTime()-date.getTimezoneOffset()*60000);
  return d.toISOString().slice(0,16);
 };
-const minStart=()=>new Date(Date.now()+2*60000);
+const SLOT_MS=15*60*1000;
+const nextQuarter=()=>new Date(Math.ceil((Date.now()+1000)/SLOT_MS)*SLOT_MS);
+const isQuarter=date=>date.getMinutes()%15===0&&date.getSeconds()===0;
 function updateStartMin(){
- startInput.min=localDateTime(minStart());
+ startInput.min=localDateTime(nextQuarter());
+}
+function updateEndMin(){
+ const start=new Date(startInput.value);
+ if(Number.isFinite(start.getTime())){
+  endInput.min=localDateTime(new Date(start.getTime()+SLOT_MS));
+ }
+}
+function suggestEnd(){
+ const start=new Date(startInput.value),end=new Date(endInput.value);
+ if(Number.isFinite(start.getTime())&&(!Number.isFinite(end.getTime())||end<=start)){
+  endInput.value=localDateTime(new Date(start.getTime()+SLOT_MS));
+ }
+ updateEndMin();
 }
 $('startNowBtn').addEventListener('click',()=>{
- const start=minStart();
+ const start=nextQuarter();
  startInput.value=localDateTime(start);
- const currentEnd=new Date(endInput.value);
- if(!endInput.value||!Number.isFinite(currentEnd.getTime())||currentEnd<=start){
-  endInput.value=localDateTime(new Date(start.getTime()+24*3600000));
- }
- say('שעת ההתחלה נקבעה לעוד שתי דקות, כדי לאפשר שליחה תקינה לשרת.');
+ endInput.value=localDateTime(new Date(start.getTime()+SLOT_MS));
+ updateStartMin();updateEndMin();
+ say('נבחרה רבע השעה הקרובה, למשך 15 דקות. אפשר לשנות את שעת הסיום.');
 });
+startInput.addEventListener('change',suggestEnd);
 startInput.addEventListener('focus',updateStartMin);
 form.addEventListener('focusin',updateStartMin);
 updateStartMin();
-
 let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0;
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
@@ -151,8 +164,9 @@ form.addEventListener('submit',async e=>{
  const data=new FormData(form),start=new Date(String(data.get('start'))),end=new Date(String(data.get('end')));
  if(!Number.isFinite(start.getTime()))return say('לא נבחרו תאריך ושעת התחלה תקינים.',true);
  if(!Number.isFinite(end.getTime()))return say('לא נבחרו תאריך ושעת סיום תקינים.',true);
- if(start.getTime()<=Date.now()+10000)return say('שעת ההתחלה חייבת להיות בעתיד. להזמנה מהיום למחר לחץ על ״התחל עכשיו״, או בחר שעה מאוחרת יותר היום.',true);
- if(end.getTime()<=start.getTime())return say('שעת הסיום חייבת להיות אחרי שעת ההתחלה.',true);
+ if(!isQuarter(start)||!isQuarter(end))return say('יש לבחור שעות בקפיצות של רבע שעה בלבד: 00, 15, 30 או 45 דקות.',true);
+ if(start.getTime()<=Date.now())return say('שעת ההתחלה כבר עברה. בחר את רבע השעה הקרובה או שעה מאוחרת יותר.',true);
+ if(end.getTime()-start.getTime()<SLOT_MS)return say('משך ההזמנה חייב להיות לפחות 15 דקות. למשל 09:00 עד 09:15.',true);
  if(end.getTime()-start.getTime()>30*86400000)return say('משך ההזמנה לא יכול לעלות על 30 ימים.',true);
  if(!navigator.onLine)return say('אין אינטרנט. הבקשה לא נשלחה; אפשר לנסות שוב כשהחיבור חוזר.',true);
  const submit=form.querySelector('button[type=submit]');submit.disabled=true;say('שולח את הבקשה ל־Firestore...');
@@ -162,7 +176,7 @@ form.addEventListener('submit',async e=>{
    startAt:Timestamp.fromDate(start),endAt:Timestamp.fromDate(end),
    note:String(data.get('note')||'').trim(),status:'pending',createdAt:serverTimestamp()
   });
-  form.reset();say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
+  form.reset();updateStartMin();endInput.removeAttribute('min');say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
  }catch(err){say('שליחת הבקשה נכשלה: '+friendlyError(err),true)}
  finally{submit.disabled=false}
 });
