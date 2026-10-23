@@ -2,32 +2,45 @@ const mainPages=['home','calendar','requests','settings'];
 const subs=['profile','houses','members','appearance','account','preview'];
 let activePage='home',activeSub=null,activeHouse=null,requestItems=[],myUid=null,selectedDate=new Date(),calendarCursor=new Date();
 const $=id=>document.getElementById(id);
+for(const sub of subs){
+ const button=document.querySelector('.settings-link[data-goto="settings-'+sub+'"]');
+ const panel=$('sub-'+sub);
+ if(button&&panel){
+  panel.querySelector('.back-link')?.remove();
+  button.insertAdjacentElement('afterend',panel);
+  button.setAttribute('aria-controls','sub-'+sub);
+  button.setAttribute('aria-expanded','false');
+ }
+}
+
 function navigate(target,replace=false){
   const parts=target.split('-');
   const sub=parts[0]==='settings'&&parts.length>1?parts.slice(1).join('-'):null;
   const page=sub?'settings':mainPages.includes(target)?target:'home';
   if(sub&&!subs.includes(sub))return navigate('settings',replace);
-  activePage=page;activeSub=sub;
+  const expanded=sub&&page==='settings'&&activePage==='settings'&&activeSub===sub;
+  activePage=page;activeSub=expanded?null:sub;
   document.querySelectorAll('.app-page').forEach(el=>el.hidden=el.dataset.page!==page);
-  $('settingsMenu').hidden=!!sub;
-  document.querySelectorAll('.settings-subpage').forEach(el=>el.hidden=el.dataset.subpage!==sub);
+  $('settingsMenu').hidden=false;
+  document.querySelectorAll('.settings-subpage').forEach(el=>el.hidden=el.dataset.subpage!==activeSub);
+  document.querySelectorAll('.settings-link').forEach(el=>{const open=el.dataset.goto==='settings-'+activeSub;el.classList.toggle('expanded',open);el.setAttribute('aria-expanded',String(open));});
   document.querySelectorAll('.nav-item').forEach(el=>{
     const on=el.dataset.goto===page;
     el.classList.toggle('active',on);
     if(on)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')
   });
-  const hash='#'+(sub?'settings-'+sub:page);
+  const hash='#'+(activeSub?'settings-'+activeSub:page);
   if(location.hash!==hash){
     if(replace)history.replaceState(null,'',hash);else history.pushState(null,'',hash)
   }
-  window.scrollTo({top:0,behavior:'instant'});
+  if(page==='settings'&&activeSub){document.querySelector('.settings-link[data-goto="settings-'+activeSub+'"]').scrollIntoView({block:'nearest',behavior:'smooth'})}else window.scrollTo({top:0,behavior:'instant'});
 }
 document.addEventListener('click',e=>{
   const btn=e.target.closest('[data-goto]');
   if(btn){e.preventDefault();navigate(btn.dataset.goto)}
 });
-window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'home',true));
-window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)||'home',true));
+window.addEventListener('popstate',()=>{activeSub=null;navigate(location.hash.slice(1)||'home',true)});
+window.addEventListener('hashchange',()=>{activeSub=null;navigate(location.hash.slice(1)||'home',true)});
 navigate(location.hash.slice(1)||'home',true);
 $('appearanceToggle').addEventListener('click',()=>$('themeBtn').click());
 function home(){
