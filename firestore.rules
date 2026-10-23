@@ -74,6 +74,7 @@ service cloud.firestore {
       match /system/{docId} {
         function reservationApproved(item) {
           return item.keys().hasOnly(['id','createdBy','startAt','endAt'])
+            && !exists(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id))
             && item.createdBy == request.auth.uid
             && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.createdBy == request.auth.uid
             && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'approved'
