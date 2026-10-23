@@ -53,7 +53,7 @@ service cloud.firestore {
         allow get, list: if member(hid);
         allow create, update: if owner(hid)
           && uid != request.auth.uid
-          && uid in house(hid).data.memberIds
+          && uid in getAfter(/databases/$(database)/documents/houses/$(hid)).data.memberIds
           && request.resource.data.keys().hasOnly(['displayName','role','suspendedUntil','updatedAt'])
           && request.resource.data.displayName is string
           && request.resource.data.displayName.size() <= 60
