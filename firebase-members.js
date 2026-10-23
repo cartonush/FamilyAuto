@@ -1,8 +1,8 @@
-import {getApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+import {app} from './firebase-config.js';
 import {getAuth} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,collection,doc,onSnapshot,setDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
-const auth=getAuth(getApp()),db=getFirestore(getApp()),root=document.getElementById('membersRoot');
+const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('membersRoot');
 root.innerHTML='<div class="section-title"><h2>חברי הבית והרשאות</h2><span class="pill">ניהול</span></div><p id="membersStatus">בחר בית כדי לראות את חבריו.</p><div id="membersList"></div>';
 const list=document.getElementById('membersList'),status=document.getElementById('membersStatus');
 let unsubscribe=null,selected=null,settings={};
