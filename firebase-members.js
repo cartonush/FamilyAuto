@@ -17,7 +17,7 @@ function render(){
   for(const uid of selected.memberIds||[]){
     const setting=settings[uid],isOwner=uid===selected.ownerUid;
     const row=document.createElement('div');row.className='member-row';
-    const title=document.createElement('strong');title.textContent=isOwner?'בעל הבית (אתה)':label(uid,setting);
+    const title=document.createElement('strong');title.textContent=isOwner?(owner?'בעל הבית (אתה)':'בעל הבית'):label(uid,setting);
     const summary=document.createElement('small');summary.textContent=isOwner?'בעל הבית · הרשאות מלאות':setting?.role==='authorized'?'מורשה לשימוש ברכב':'משתמש רגיל';
     row.append(title,summary);
     if(setting?.suspendedUntil){
