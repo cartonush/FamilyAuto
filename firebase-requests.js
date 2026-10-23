@@ -202,7 +202,7 @@ function render(){
   if(r.status==='approved'&&r.instantMode&&(r.createdBy===currentUser?.uid||isOwner)){
    const finish=document.createElement('button');finish.type='button';finish.className='primary';finish.textContent='סיימתי — החזרתי את הרכב';finish.onclick=()=>perform(finish,()=>finishInstant(r));actions.append(finish);
   }
-  if((r.status==='pending'&&r.createdBy===currentUser?.uid)||(r.status==='approved'&&isOwner&&!r.instantMode)){
+  if((r.status==='pending'&&r.createdBy===currentUser?.uid)||(r.status==='approved'&&!r.instantMode&&(isOwner||r.createdBy===currentUser?.uid))){
    const cancel=document.createElement('button');cancel.type='button';cancel.textContent=r.status==='approved'?'ביטול הזמנה':'ביטול בקשה';
    cancel.onclick=()=>perform(cancel,()=>r.status==='approved'?cancelApproved(r):updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'cancelled'}));
    actions.append(cancel)
@@ -235,7 +235,7 @@ async function approveBooking(record){
  });
 }
 async function cancelApproved(record){
- if(!selected||selected.ownerUid!==currentUser?.uid)throw Error('רק בעל הבית יכול לבטל הזמנה מאושרת.');
+ if(!selected||!(selected.ownerUid===currentUser?.uid||record.createdBy===currentUser?.uid))throw Error('אין הרשאה לבטל הזמנה זו.');
  const hid=selected.id,bookingRef=doc(db,'houses',hid,'bookingRequests',record.id),scheduleRef=doc(db,'houses',hid,'system','schedule');
  await runTransaction(db,async tx=>{
   const [bookingSnap,scheduleSnap]=await Promise.all([tx.get(bookingRef),tx.get(scheduleRef)]);
@@ -282,6 +282,16 @@ async function finishInstant(record){
   tx.set(scheduleRef,{reservations:entries.filter(r=>r.id!==record.id),updatedAt:serverTimestamp()});
  });
 }
+function canBookDirectly(){
+ if(!selected||!currentUser||selected.deletedAt)return false;
+ if(selected.ownerUid===currentUser.uid)return true;
+ const p=permissions[currentUser.uid];
+ return p?.role==='authorized'&&(!p.suspendedUntil||p.suspendedUntil.toMillis()<=Date.now());
+}
+function updateBookingMode(){
+ const submit=form.querySelector('button[type=submit]');
+ if(submit)submit.textContent=canBookDirectly()?'שמירת הזמנה מאושרת':'שליחת בקשה לאישור';
+}
 function canInstant(){
  if(!selected||!currentUser||selected.deletedAt)return false;
  if(selected.ownerUid===currentUser.uid)return true;
@@ -297,7 +307,7 @@ window.addEventListener('familyauto:permissions',e=>{
  if(!e.detail?.houseId)return;
  permissionCache[e.detail.houseId]=e.detail.settings||{};
  if(e.detail.houseId!==selected?.id)return;
- permissions=permissionCache[selected.id];updateInstant()
+ permissions=permissionCache[selected.id];updateInstant();updateBookingMode()
 });
 window.addEventListener('familyauto:instant-open',()=>{
  if(!canInstant())return;
@@ -307,13 +317,13 @@ function clear(){
  ++epoch;
  if(stopRequests){stopRequests();stopRequests=null}
  if(stopSchedule){stopSchedule();stopSchedule=null}
- selected=null;records=[];schedule=[];permissions={};form.hidden=true;list.replaceChildren();updateInstant();publish()
+ selected=null;records=[];schedule=[];permissions={};form.hidden=true;list.replaceChildren();updateInstant();updateBookingMode();publish()
 }
 function subscribe(house){
  clear();selected=house;permissions=house?permissionCache[house.id]||{}:{};
  if(!house||!currentUser){say('התחבר ובחר בית כדי ליצור בקשות.');return}
  const generation=epoch;
- form.hidden=false;updateInstant();say('טוען נתונים משותפים של '+house.name+'...');
+ form.hidden=false;updateInstant();updateBookingMode();say('טוען נתונים משותפים של '+house.name+'...');
  stopRequests=onSnapshot(collection(db,'houses',house.id,'bookingRequests'),snap=>{
   if(generation!==epoch)return;
   records=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -346,12 +356,29 @@ form.addEventListener('submit',async e=>{
  if(!navigator.onLine)return say('אין אינטרנט. הבקשה לא נשלחה; אפשר לנסות שוב כשהחיבור חוזר.',true);
  const submit=form.querySelector('button[type=submit]');submit.disabled=true;say('שולח את הבקשה ל־Firestore...');
  try{
-  await addDoc(collection(db,'houses',houseId,'bookingRequests'),{
+  const bookingData={
    createdBy:userId,displayName:(currentUser.displayName||currentUser.email||'חבר בית').slice(0,60),
    startAt:Timestamp.fromDate(start),endAt:Timestamp.fromDate(end),
-   note:String(data.get('note')||'').trim(),status:'pending',createdAt:serverTimestamp()
-  });
-  form.reset();initTimes();say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
+   note:String(data.get('note')||'').trim(),createdAt:serverTimestamp()
+  };
+  if(canBookDirectly()){
+   const scheduleRef=doc(db,'houses',houseId,'system','schedule');
+   const bookingRef=doc(collection(db,'houses',houseId,'bookingRequests'));
+   await runTransaction(db,async tx=>{
+    const scheduleSnap=await tx.get(scheduleRef);
+    const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
+    const active=entries.filter(r=>r.endAt.toMillis()>Date.now());
+    if(active.some(r=>overlaps(r,bookingData)))throw Error('הרכב כבר מוזמן בטווח הזמן הזה.');
+    if(active.length>=80)throw Error('לוח ההזמנות מלא.');
+    tx.set(bookingRef,{...bookingData,status:'approved',approvedBy:userId,approvedAt:serverTimestamp()});
+    tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:userId,startAt:bookingData.startAt,endAt:bookingData.endAt}],updatedAt:serverTimestamp()});
+   });
+   say('ההזמנה אושרה ונשמרה ביומן המשותף.');
+  }else{
+   await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
+   say('הבקשה נשלחה לאישור בעל הבית ותופיע אצל חברי הבית.');
+  }
+  form.reset();initTimes();
  }catch(err){say('שליחת הבקשה נכשלה: '+friendlyError(err),true)}
  finally{submit.disabled=false}
 });
