@@ -65,11 +65,22 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
         allow delete: if false;
       }
+      match /system/{docId} {
+        allow get: if docId == 'schedule' && member(hid);
+        allow list: if false;
+        allow create, update: if docId == 'schedule' && owner(hid)
+          && request.resource.data.keys().hasOnly(['reservations','updatedAt'])
+          && request.resource.data.reservations is list
+          && request.resource.data.reservations.size() <= 80
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
       match /bookingRequests/{requestId} {
         function validRequest() {
           return request.resource.data.keys().hasOnly(['createdBy','displayName','startAt','endAt','note','status','createdAt'])
             && request.resource.data.createdBy == request.auth.uid
             && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() > 0
             && request.resource.data.displayName.size() <= 60
             && request.resource.data.note is string
             && request.resource.data.note.size() <= 200
@@ -78,7 +89,7 @@ service cloud.firestore {
             && request.resource.data.endAt is timestamp
             && request.resource.data.startAt > request.time
             && request.resource.data.endAt > request.resource.data.startAt
-            && request.resource.data.endAt < request.resource.data.startAt + duration.value(30, 'd')
+            && request.resource.data.endAt <= request.resource.data.startAt + duration.value(30, 'd')
             && request.resource.data.createdAt == request.time;
         }
         function notSuspended() {
@@ -86,13 +97,33 @@ service cloud.firestore {
             || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null
             || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time;
         }
+        function ownerDecision() {
+          return owner(hid)
+            && resource.data.status == 'pending'
+            && (
+              (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                && request.resource.data.status == 'rejected')
+              ||
+              (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','approvedBy','approvedAt'])
+                && request.resource.data.status == 'approved'
+                && request.resource.data.approvedBy == request.auth.uid
+                && request.resource.data.approvedAt == request.time)
+            );
+        }
+        function ownerCancellation() {
+          return owner(hid) && resource.data.status == 'approved'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+            && request.resource.data.status == 'cancelled';
+        }
         allow create: if signedIn() && member(hid) && notSuspended() && validRequest();
-        allow get, list: if signedIn() && (owner(hid) || (member(hid) && resource.data.createdBy == request.auth.uid));
-        allow update: if signedIn() && member(hid)
-          && resource.data.createdBy == request.auth.uid
+        // All household members can view requests so the shared calendar and status are consistent.
+        allow get, list: if member(hid);
+        allow update: if (
+          member(hid) && resource.data.createdBy == request.auth.uid
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-          && request.resource.data.status == 'cancelled';
+          && request.resource.data.status == 'cancelled'
+        ) || ownerDecision() || ownerCancellation();
         allow delete: if false;
       }
       match /joinRequests/{uid} {
