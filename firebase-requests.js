@@ -3,11 +3,11 @@ import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.
 import {getFirestore,collection,doc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('requestsRoot');
-root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.7</span></div>
+root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">גרסה 1.8</span></div>
 <p id="requestStatus" aria-live="polite">התחבר ובחר בית כדי להתחיל.</p>
 <form id="requestForm" hidden>
-<label>תחילת שימוש<input type="datetime-local" name="start" step="900" required></label><button type="button" id="startNowBtn" class="text-action">הרבע שעה הקרובה</button><small id="startHint">השעות בקפיצות של 15 דקות: 09:00, 09:15, 09:30, 09:45.</small>
-<label>סיום שימוש<input type="datetime-local" name="end" step="900" required></label><small>משך הזמנה מינימלי: 15 דקות.</small>
+<fieldset class="time-field"><legend>תחילת שימוש</legend><div class="time-pickers"><label>תאריך<input type="date" id="startDate" required></label><label>שעה<select id="startHour" aria-label="שעת התחלה"></select></label><label>דקות<select id="startMinute" aria-label="דקות התחלה"></select></label></div><input type="hidden" name="start"></fieldset><button type="button" id="startNowBtn" class="text-action">הרבע שעה הקרובה</button>
+<fieldset class="time-field"><legend>סיום שימוש</legend><div class="time-pickers"><label>תאריך<input type="date" id="endDate" required></label><label>שעה<select id="endHour" aria-label="שעת סיום"></select></label><label>דקות<select id="endMinute" aria-label="דקות סיום"></select></label></div><input type="hidden" name="end"></fieldset><small>אפשר לבחור רק 00, 15, 30 או 45 דקות. מינימום 15 דקות.</small>
 <label>הערה (לא חובה)<input name="note" maxlength="200" placeholder="לאן נוסעים?"></label>
 <button class="primary" type="submit">שליחת בקשה</button>
 </form>
@@ -22,33 +22,55 @@ const localDateTime=date=>{
 const SLOT_MS=15*60*1000;
 const nextQuarter=()=>new Date(Math.ceil((Date.now()+1000)/SLOT_MS)*SLOT_MS);
 const isQuarter=date=>date.getMinutes()%15===0&&date.getSeconds()===0;
-function updateStartMin(){
- startInput.min=localDateTime(nextQuarter());
+const pad=n=>String(n).padStart(2,'0');
+const parts={start:{date:$('startDate'),hour:$('startHour'),minute:$('startMinute'),input:startInput},
+ end:{date:$('endDate'),hour:$('endHour'),minute:$('endMinute'),input:endInput}};
+for(const controls of Object.values(parts)){
+ for(let h=0;h<24;h++)controls.hour.add(new Option(pad(h),pad(h)));
+ for(const m of [0,15,30,45])controls.minute.add(new Option(pad(m),pad(m)));
 }
-function updateEndMin(){
- const start=new Date(startInput.value);
- if(Number.isFinite(start.getTime())){
-  endInput.min=localDateTime(new Date(start.getTime()+SLOT_MS));
- }
+function chosen(which){
+ const p=parts[which];
+ if(!p.date.value)return null;
+ const date=new Date(p.date.value+'T'+p.hour.value+':'+p.minute.value+':00');
+ return Number.isFinite(date.getTime())?date:null;
 }
-function suggestEnd(){
- const start=new Date(startInput.value),end=new Date(endInput.value);
- if(Number.isFinite(start.getTime())&&(!Number.isFinite(end.getTime())||end<=start)){
-  endInput.value=localDateTime(new Date(start.getTime()+SLOT_MS));
+function sync(which){
+ const date=chosen(which);
+ parts[which].input.value=date?localDateTime(date):'';
+ return date;
+}
+function setChoice(which,date){
+ const p=parts[which],value=localDateTime(date);
+ p.date.value=value.slice(0,10);
+ p.hour.value=value.slice(11,13);
+ p.minute.value=value.slice(14,16);
+ sync(which);
+}
+function adjustEnd(){
+ const start=sync('start'),end=sync('end');
+ if(start&&(!end||end<=start))setChoice('end',new Date(start.getTime()+SLOT_MS));
+}
+function initTimes(){
+ const start=nextQuarter();
+ setChoice('start',start);
+ setChoice('end',new Date(start.getTime()+SLOT_MS));
+ parts.start.date.min=localDateTime(new Date()).slice(0,10);
+ parts.end.date.min=parts.start.date.value;
+}
+for(const [which,p] of Object.entries(parts)){
+ for(const el of [p.date,p.hour,p.minute]){
+  el.addEventListener('change',()=>{
+   if(which==='start'){adjustEnd();parts.end.date.min=parts.start.date.value}
+   else sync('end');
+  });
  }
- updateEndMin();
 }
 $('startNowBtn').addEventListener('click',()=>{
- const start=nextQuarter();
- startInput.value=localDateTime(start);
- endInput.value=localDateTime(new Date(start.getTime()+SLOT_MS));
- updateStartMin();updateEndMin();
+ initTimes();
  say('נבחרה רבע השעה הקרובה, למשך 15 דקות. אפשר לשנות את שעת הסיום.');
 });
-startInput.addEventListener('change',suggestEnd);
-startInput.addEventListener('focus',updateStartMin);
-form.addEventListener('focusin',updateStartMin);
-updateStartMin();
+initTimes();
 let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0;
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
@@ -176,7 +198,7 @@ form.addEventListener('submit',async e=>{
    startAt:Timestamp.fromDate(start),endAt:Timestamp.fromDate(end),
    note:String(data.get('note')||'').trim(),status:'pending',createdAt:serverTimestamp()
   });
-  form.reset();updateStartMin();endInput.removeAttribute('min');say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
+  form.reset();initTimes();say('הבקשה נשלחה ונשמרה ב־Firestore. היא תופיע אצל חברי הבית.')
  }catch(err){say('שליחת הבקשה נכשלה: '+friendlyError(err),true)}
  finally{submit.disabled=false}
 });
