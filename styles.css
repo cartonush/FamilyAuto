@@ -135,3 +135,15 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 :root.dark .ios-wheel-option.ios-wheel-unavailable{color:#6f8095}
 @media(min-width:600px){.ios-picker{left:50%;right:auto;transform:translateX(-50%);width:min(100%,430px);border-radius:20px 20px 0 0}}
 @media(max-width:360px){.ios-wheel-option{font-size:18px}#iosDay .ios-wheel-option{font-size:14px}}
+
+/* 1.10 instant car use and household recovery */
+.instant-panel{margin:16px 0;padding:16px;border:1px solid #b8d0ee;border-radius:18px;background:#f1f6fd}
+.instant-panel h3{margin:0 0 8px}
+.instant-option{display:flex;align-items:center;gap:10px;padding:12px 8px;font-size:15px}
+.instant-option input{width:20px;height:20px;flex:none}
+.member-permission{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}
+.member-permission input{width:19px;height:19px}
+.house-deletion{margin-top:20px;padding:12px;border:1px solid #f0d2d2;border-radius:12px}
+.danger-action{color:#ad2634;border:1px solid #dfb3b8;background:transparent}
+:root.dark .instant-panel{background:#213852;border-color:#45668a}
+:root.dark .house-deletion{border-color:#875560}
