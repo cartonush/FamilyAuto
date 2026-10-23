@@ -162,7 +162,7 @@ picker.addEventListener('click',event=>{
  if(event.target===picker)picker.close();
 });
 initTimes();
-let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0,permissions={};
+let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],currentUser=null,epoch=0,permissions={},permissionCache={};
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
  const code=e?.code||'';
@@ -185,7 +185,7 @@ function render(){
   const card=document.createElement('div');card.className='booking request-entry';
   const details=document.createElement('div');details.className='request-details';
   const name=document.createElement('strong');name.textContent=r.displayName||'חבר בית';
-  const range=document.createElement('small');range.textContent=dateOf(r.startAt).toLocaleString('he-IL')+' – '+dateOf(r.endAt).toLocaleString('he-IL');
+  const range=document.createElement('small');range.textContent=dateOf(r.startAt).toLocaleString('he-IL')+' – '+(r.instantMode==='untilDone'&&r.status==='approved'?'עד שאסיים (יש לסיים ידנית)':dateOf(r.endAt).toLocaleString('he-IL'));
   const state=document.createElement('small');state.className='request-state '+r.status;
   state.textContent=({pending:'ממתינה לאישור',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה'})[r.status]||r.status;
   details.append(name,range,state);
@@ -295,7 +295,7 @@ function updateInstant(){
 $('instantSubmit').addEventListener('click',()=>perform($('instantSubmit'),startInstant));
 window.addEventListener('familyauto:permissions',e=>{
  if(e.detail?.houseId!==selected?.id)return;
- permissions=e.detail.settings||{};updateInstant()
+ permissions=e.detail.settings||{};permissionCache[selected.id]=permissions;updateInstant()
 });
 window.addEventListener('familyauto:instant-open',()=>{
  if(!canInstant())return;
@@ -308,7 +308,7 @@ function clear(){
  selected=null;records=[];schedule=[];permissions={};form.hidden=true;list.replaceChildren();updateInstant();publish()
 }
 function subscribe(house){
- clear();selected=house;
+ clear();selected=house;permissions=house?permissionCache[house.id]||{}:{};
  if(!house||!currentUser){say('התחבר ובחר בית כדי ליצור בקשות.');return}
  const generation=epoch;
  form.hidden=false;updateInstant();say('טוען נתונים משותפים של '+house.name+'...');
@@ -326,8 +326,9 @@ function subscribe(house){
 }
 window.addEventListener('familyauto:house',e=>subscribe(e.detail));
 onAuthStateChanged(auth,user=>{
+ const changed=currentUser?.uid!==user?.uid;
  currentUser=user;
- if(!user){clear();say('יש להתחבר כדי לשלוח בקשות.')}
+ if(!user){permissionCache={};clear();say('יש להתחבר כדי לשלוח בקשות.')}else if(changed&&selected){subscribe(selected)}
 });
 form.addEventListener('submit',async e=>{
  e.preventDefault();
