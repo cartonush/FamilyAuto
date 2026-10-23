@@ -135,7 +135,7 @@ test('ordinary member with instant permission can use the car immediately',async
   const snap=await tx.get(schedule);
   const entries=snap.exists()?snap.data().reservations||[]:[];
   tx.set(booking,{createdBy:'member',displayName:'Member',startAt:start,endAt:end,note:'',status:'approved',instantMode:'fixed',createdAt:serverTimestamp()});
-  tx.set(schedule,{reservations:[...entries,{id:booking.id,createdBy:'member',startAt:start,endAt}],updatedAt:serverTimestamp()});
+  tx.set(schedule,{reservations:[...entries,{id:booking.id,createdBy:'member',startAt:start,endAt:end}],updatedAt:serverTimestamp()});
  }));
 });
 test('authorized role without instant permission cannot use the car immediately',async()=>{
