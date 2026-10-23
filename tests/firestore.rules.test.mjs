@@ -266,3 +266,42 @@ test('suspended authorized member cannot create direct approved booking',async()
   tx.set(schedule,{reservations:[{id:booking.id,createdBy:'suspended',startAt:start,endAt:end}],updatedAt:serverTimestamp()});
  }));
 });
+
+
+test('house owner can create and cancel a future reservation without approval',async()=>{
+ const hid='30000000000000000000000000000007';
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const db=ctx.firestore();
+  await setDoc(doc(db,'houses',hid),{name:'Owner Direct',ownerUid:'owner',memberIds:['owner'],createdAt:Timestamp.now()});
+ });
+ const db=env.authenticatedContext('owner').firestore();
+ const booking=doc(collection(db,'houses',hid,'bookingRequests'));
+ const schedule=doc(db,'houses',hid,'system','schedule');
+ const start=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+7_200_000));
+ await assertSucceeds(runTransaction(db,async tx=>{
+  await tx.get(schedule);
+  tx.set(booking,{createdBy:'owner',displayName:'Owner',startAt:start,endAt:end,note:'',status:'approved',approvedBy:'owner',approvedAt:serverTimestamp(),createdAt:serverTimestamp()});
+  tx.set(schedule,{reservations:[{id:booking.id,createdBy:'owner',startAt:start,endAt:end}],updatedAt:serverTimestamp()});
+ }));
+ await assertSucceeds(runTransaction(db,async tx=>{
+  const [bookingSnap,scheduleSnap]=await Promise.all([tx.get(booking),tx.get(schedule)]);
+  assert.equal(bookingSnap.data().status,'approved');
+  tx.update(booking,{status:'cancelled'});
+  tx.set(schedule,{reservations:scheduleSnap.data().reservations.filter(x=>x.id!==booking.id),updatedAt:serverTimestamp()});
+ }));
+});
+test('direct booking cancellation must free the schedule in the same transaction',async()=>{
+ const hid='30000000000000000000000000000008';
+ const start=Timestamp.fromDate(new Date(Date.now()+3_600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+7_200_000));
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const db=ctx.firestore();
+  await setDoc(doc(db,'houses',hid),{name:'Atomic Cancel',ownerUid:'owner',memberIds:['owner','authorized'],createdAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'memberSettings','authorized'),{displayName:'Authorized',role:'authorized',canTakeCar:false,suspendedUntil:null,updatedAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'bookingRequests','booking'),{createdBy:'authorized',displayName:'Authorized',startAt:start,endAt:end,note:'',status:'approved',approvedBy:'authorized',approvedAt:Timestamp.now(),createdAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'system','schedule'),{reservations:[{id:'booking',createdBy:'authorized',startAt:start,endAt:end}],updatedAt:Timestamp.now()});
+ });
+ const db=env.authenticatedContext('authorized').firestore();
+ await assertFails(updateDoc(doc(db,'houses',hid,'bookingRequests','booking'),{status:'cancelled'}));
+});
