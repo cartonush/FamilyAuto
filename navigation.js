@@ -1,6 +1,6 @@
 const mainPages=['home','calendar','requests','settings'];
 const subs=['profile','houses','members','appearance','account','preview'];
-let activePage='home',activeSub=null,activeHouse=null,requestItems=[],myUid=null,selectedDate=new Date(),calendarCursor=new Date();
+let activePage='home',activeSub=null,activeHouse=null,requestItems=[],reservations=[],myUid=null,selectedDate=new Date(),calendarCursor=new Date();
 const $=id=>document.getElementById(id);
 // Navigation must not depend on Firebase loading: settings always works offline.
 const knownTargets=new Set([...mainPages,...subs.map(s=>'settings-'+s)]);
@@ -53,22 +53,36 @@ document.addEventListener('click',event=>{
 window.addEventListener('popstate',()=>navigate(location.hash.slice(1)||'home',{replace:true}));
 window.addEventListener('familyauto:auth',event=>{
   myUid=event.detail?.uid||null;
-  if(!myUid){activeHouse=null;requestItems=[]}
+  if(!myUid){activeHouse=null;requestItems=[];reservations=[]}
   home();drawCalendar();
 });
-window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];myUid=null;home();drawCalendar()});
+window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];reservations=[];myUid=null;home();drawCalendar()});
 navigate(location.hash.slice(1)||'home',{replace:true});
 $('appearanceToggle')?.addEventListener('click',()=>$('themeBtn')?.click());
 function home(){
  $('homeHouseName').textContent=activeHouse?'משפחת '+activeHouse.name:'בחר בית בהגדרות כדי להתחיל.';
  $('homeHouseSummary').textContent=activeHouse?activeHouse.name+' · '+(activeHouse.memberIds?.length||0)+' חברים':'עדיין לא נבחר בית. אפשר ליצור בית בהגדרות.';
  $('homeHouseRole').textContent=!activeHouse?'—':activeHouse.ownerUid===myUid?'בעל בית':'חבר בית';
+ const active=reservations.find(r=>r.startAt?.toMillis&&r.endAt?.toMillis&&r.startAt.toMillis()<=Date.now()&&r.endAt.toMillis()>Date.now());
+ const next=reservations.filter(r=>r.startAt?.toMillis&&r.startAt.toMillis()>Date.now()).sort((a,b)=>a.startAt.toMillis()-b.startAt.toMillis())[0];
+ const badge=$('liveCarBadge'),message=$('liveCarText');
+ if(badge&&message){
+  badge.textContent=!activeHouse?'בחר בית':active?'בשימוש':'אין שימוש פעיל';
+  badge.className='pill '+(active?'busy':'neutral');
+  message.textContent=!activeHouse?'בחר בית כדי לראות זמינות.':active?'הרכב משוריין כעת בהזמנה מאושרת.':next?'ההזמנה המאושרת הבאה: '+next.startAt.toDate().toLocaleString('he-IL'):'לא נמצאה הזמנה מאושרת פעילה בלוח הבית.';
+ }
  const own=requestItems.filter(x=>x.createdBy===myUid);
  $('homePendingCount').textContent=activeHouse?own.filter(x=>x.status==='pending').length:'—';
  $('homeRequestsMessage').textContent=!activeHouse?'בחר בית כדי להציג את הבקשות שלך.':own.length?'בקשה אחרונה: '+new Date((own[0].startAt?.seconds||0)*1000).toLocaleString('he-IL'):'אין בקשות שהגשת בבית הזה.';
 }
-window.addEventListener('familyauto:house',e=>{activeHouse=e.detail;requestItems=[];home();drawCalendar()});
-window.addEventListener('familyauto:requests',e=>{requestItems=e.detail||[];home();drawCalendar()});
+window.addEventListener('familyauto:house',e=>{activeHouse=e.detail;requestItems=[];reservations=[];home();drawCalendar()});
+window.addEventListener('familyauto:requests',e=>{
+ const payload=e.detail||{};
+ if(payload.houseId&&activeHouse?.id!==payload.houseId)return;
+ requestItems=payload.records||[];
+ reservations=payload.schedule||[];
+ home();drawCalendar()
+});
 
 const fmt=new Intl.DateTimeFormat('he-IL',{month:'long',year:'numeric'});
 const dayFmt=new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long'});
@@ -82,9 +96,9 @@ function drawCalendar(){
  for(let day=1;day<=days;day++){
   const date=new Date(first.getFullYear(),first.getMonth(),day);
   const next=new Date(first.getFullYear(),first.getMonth(),day+1);
-  const relevant=requestItems.filter(r=>r.createdBy===myUid&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>date.getTime());
+  const relevant=requestItems.filter(r=>r.status!=='cancelled'&&r.status!=='rejected'&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>date.getTime());
   const btn=document.createElement('button');btn.type='button';btn.className='calendar-day';btn.textContent=String(day);
-  if(relevant.length){btn.classList.add('has-request');btn.setAttribute('aria-label',day+' בחודש, '+relevant.length+' בקשות')}
+  if(relevant.length){btn.classList.add(relevant.some(r=>r.status==='approved')?'has-approved':'has-request');btn.setAttribute('aria-label',day+' בחודש, '+relevant.length+' בקשות')}
   if(date.toDateString()===new Date().toDateString())btn.classList.add('today');
   btn.onclick=()=>{selectedDate=date;document.querySelectorAll('.calendar-day').forEach(x=>x.classList.remove('selected'));btn.classList.add('selected');dayDetails()};
   if(date.toDateString()===selectedDate.toDateString())btn.classList.add('selected');
@@ -94,11 +108,11 @@ function drawCalendar(){
 }
 function dayDetails(){
  const day=selectedDate,next=new Date(day.getFullYear(),day.getMonth(),day.getDate()+1);
- const relevant=requestItems.filter(r=>r.createdBy===myUid&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>day.getTime());
+ const relevant=requestItems.filter(r=>r.status!=='cancelled'&&r.status!=='rejected'&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>day.getTime());
  const root=$('calendarDayDetails');root.replaceChildren();
  const title=document.createElement('h3');title.textContent=dayFmt.format(day);root.append(title);
  if(!relevant.length){const p=document.createElement('p');p.textContent='אין בקשות שלך בתאריך הזה.';root.append(p);return}
- for(const r of relevant){const p=document.createElement('p');p.textContent=new Date(r.startAt.seconds*1000).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' · '+(r.status==='pending'?'ממתינה לאישור':'בוטלה');root.append(p)}
+ for(const r of relevant){const p=document.createElement('p');p.textContent=new Date(r.startAt.seconds*1000).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' · '+(r.status==='approved'?'מאושרת':r.status==='pending'?'ממתינה לאישור':r.status);root.append(p)}
 }
 $('calPrev').addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()-1,1);drawCalendar()});
 $('calNext').addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+1,1);drawCalendar()});
