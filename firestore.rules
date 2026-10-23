@@ -6,6 +6,7 @@ service cloud.firestore {
     function owner(hid) { return signedIn() && house(hid).data.ownerUid == request.auth.uid; }
     function member(hid) { return signedIn() && request.auth.uid in house(hid).data.memberIds; }
     function activeHouse(hid) { return member(hid) && (!('deletedAt' in house(hid).data) || house(hid).data.deletedAt == null); }
+    function authorizedBookingAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.role == 'authorized' && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
     function instantAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.canTakeCar == true && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
     match /profiles/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
@@ -83,6 +84,16 @@ service cloud.firestore {
           return item.createdBy == request.auth.uid
             && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'ended';
         }
+        function reservationCancelled(item) {
+          return item.createdBy == request.auth.uid
+            && !('instantMode' in getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data)
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'cancelled';
+        }
+        function directCreate() {
+          return authorizedBookingAllowed(hid)
+            && request.resource.data.reservations.size() == 1
+            && reservationApproved(request.resource.data.reservations[0]);
+        }
         function instantCreate() {
           return instantAllowed(hid)
             && request.resource.data.reservations.size() == 1
@@ -94,7 +105,9 @@ service cloud.firestore {
           return activeHouse(hid)
             && (
               (instantAllowed(hid) && added.size() == 1 && removed.size() == 0 && reservationApproved(added[0]))
+              || (authorizedBookingAllowed(hid) && added.size() == 1 && removed.size() == 0 && reservationApproved(added[0]))
               || (added.size() == 0 && removed.size() == 1 && reservationEnded(removed[0]))
+              || (added.size() == 0 && removed.size() == 1 && reservationCancelled(removed[0]))
             );
         }
         allow get: if docId == 'schedule' && member(hid);
@@ -104,7 +117,7 @@ service cloud.firestore {
           && request.resource.data.reservations is list
           && request.resource.data.reservations.size() <= 80
           && request.resource.data.updatedAt == request.time
-          && (owner(hid) || instantCreate());
+          && (owner(hid) || instantCreate() || directCreate());
         allow update: if docId == 'schedule'
           && request.resource.data.keys().hasOnly(['reservations','updatedAt'])
           && request.resource.data.reservations is list
@@ -179,6 +192,38 @@ service cloud.firestore {
               'startAt': request.resource.data.startAt, 'endAt': request.resource.data.endAt
             }]);
         }
+        function validDirect() {
+          return activeHouse(hid) && authorizedBookingAllowed(hid)
+            && request.resource.data.keys().hasOnly(['createdBy','displayName','startAt','endAt','note','status','createdAt','approvedBy','approvedAt'])
+            && request.resource.data.createdBy == request.auth.uid
+            && request.resource.data.displayName is string
+            && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 60
+            && request.resource.data.note is string && request.resource.data.note.size() <= 200
+            && request.resource.data.status == 'approved'
+            && request.resource.data.approvedBy == request.auth.uid
+            && request.resource.data.approvedAt == request.time
+            && request.resource.data.startAt is timestamp && request.resource.data.endAt is timestamp
+            && request.resource.data.startAt > request.time
+            && request.resource.data.endAt > request.resource.data.startAt
+            && request.resource.data.endAt <= request.resource.data.startAt + duration.value(30, 'd')
+            && request.resource.data.createdAt == request.time
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/system/schedule).data.reservations.hasAny([{
+              'id': requestId, 'createdBy': request.auth.uid,
+              'startAt': request.resource.data.startAt, 'endAt': request.resource.data.endAt
+            }]);
+        }
+        function directCancellation() {
+          return activeHouse(hid)
+            && resource.data.status == 'approved'
+            && !('instantMode' in resource.data)
+            && resource.data.createdBy == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+            && request.resource.data.status == 'cancelled'
+            && !getAfter(/databases/$(database)/documents/houses/$(hid)/system/schedule).data.reservations.hasAny([{
+              'id': requestId, 'createdBy': resource.data.createdBy,
+              'startAt': resource.data.startAt, 'endAt': resource.data.endAt
+            }]);
+        }
         function finishInstant() {
           return activeHouse(hid)
             && resource.data.status == 'approved'
@@ -191,7 +236,7 @@ service cloud.firestore {
               'startAt': resource.data.startAt, 'endAt': resource.data.endAt
             }]);
         }
-        allow create: if (activeHouse(hid) && notSuspended() && validRequest()) || validInstant();
+        allow create: if (activeHouse(hid) && notSuspended() && validRequest()) || validInstant() || validDirect();
         // All household members can view requests so the shared calendar and status are consistent.
         allow get, list: if member(hid);
         allow update: if (
@@ -199,7 +244,7 @@ service cloud.firestore {
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
           && request.resource.data.status == 'cancelled'
-        ) || ownerDecision() || ownerCancellation() || finishInstant();
+        ) || ownerDecision() || ownerCancellation() || directCancellation() || finishInstant();
         allow delete: if false;
       }
       match /joinRequests/{uid} {
