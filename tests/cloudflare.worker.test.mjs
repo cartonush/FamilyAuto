@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import worker from '../cloudflare/worker.js';
 
 test('Cloudflare Worker health endpoint does not require secrets',async()=>{
@@ -19,4 +20,11 @@ test('Cloudflare Worker refuses unauthenticated push dispatch',async()=>{
 test('Cloudflare Worker rejects unrecognized endpoints',async()=>{
  const response=await worker.fetch(new Request('https://example.workers.dev/unknown'),{});
  assert.equal(response.status,404);
+});
+
+test('Cloudflare Worker configuration uses the existing familyauto domain',()=>{
+ const config=readFileSync(new URL('../cloudflare/wrangler.toml',import.meta.url),'utf8');
+ assert.match(config,/^name\s*=\s*"familyauto"\s*$/m);
+ assert.match(config,/^workers_dev\s*=\s*true\s*$/m);
+ assert.match(config,/^crons\s*=\s*\["\* \* \* \* \*"\]\s*$/m);
 });
