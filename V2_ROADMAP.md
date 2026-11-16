@@ -22,8 +22,10 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 - Added a configured Worker endpoint (`https://familyauto.roisuissa6.workers.dev`) to the v2 client queue. Cloudflare reports a Ready deployment, but authenticated push delivery has not yet been tested.
 - Kept Firebase Cloud Functions implementations for account ownership transfer/deletion and activity logging as separate, not-yet-deployable items on Spark.
 - Added callable Cloud Functions for owner transfer, sole-member house deletion and guarded account deletion.
-- Added immutable Cloud Function activity events for request creation, approval, rejection, cancellation and end-of-use; added activity history page with fallback for bookings created before v2.
+- Added immutable Cloud Function activity events for request creation, approval, rejection, cancellation and end-of-use; added activity history page with fallback for bookings created before v2. The free Cloudflare Worker now also records deterministic append-only activity entries from queued booking notifications (with separate unit tests), so the activity page does not require Blaze when the notification queue is functioning.
 - Added syntax checks for new JavaScript and rules tests for private push token storage.
+- Added push-token cleanup before logout/account deletion, persisted opt-in state on the device, and clearly labeled 2.0-preview app shell/cache on the feature branch. No production deployment yet.
+- Added PR-triggered CI checks and isolated Worker activity-history tests.
 
 ## Required before live push test
 1. Firebase project `familyauto-s` remains on Spark; Cloudflare Worker is the selected free notification backend. The public VAPID key is configured in `push-config.js`.
@@ -32,7 +34,7 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 4. The v2 PWA client is not on GitHub Pages `main` yet. Test push in a controlled release/preview with authenticated test users; never claim live push works from Cloudflare's Ready status alone.
 5. On iPhone, install the PWA via Safari -> Add to Home Screen, launch from the Home Screen and grant notifications. Confirm FCM supports this browser/runtime in a live device test; if not, evaluate a standards-based Web Push alternative.
 6. Verify notification recipients with all four test accounts and at least two devices. Test foreground, background, denied permission, logout and multiple homes.
-7. Account ownership/deletion and activity logging still use undeployed Firebase Cloud Functions; either implement and validate a free secure backend alternative or obtain explicit consent for Blaze billing. Do not silently deploy billing-dependent features.
+7. Account ownership transfer, permanent house deletion, and account deletion still use undeployed Firebase Cloud Functions; either implement and validate a free secure backend alternative or obtain explicit consent for Blaze billing. Do not silently deploy billing-dependent features. Activity history has a Cloudflare alternative, pending live validation.
 
 ## Required before 2.0 release
 - Implement server-authoritative reservation operations for instant, direct, owner approval and cancellation. Client-only overlap checks are not a sufficient security boundary.
