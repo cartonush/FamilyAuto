@@ -208,17 +208,47 @@ async function verifyFirebaseIdToken(jwt){
  if(!valid)throw Error('Invalid Firebase token signature');
  return payload.sub;
 }
+// Atomic ownership transfer via Firestore REST commit. This runs on Workers
+// Free and does not require Firebase Cloud Functions / Blaze.
+async function transferOwnership(uid,houseId,successorUid,token){
+ if(typeof houseId!=='string'||!/^[a-f0-9]{32}$/.test(houseId)||
+    typeof successorUid!=='string'||successorUid.length>128||!successorUid||successorUid===uid)
+  return jsonResponse({error:'Invalid house or successor'},400);
+ const house=await firestore('houses/'+houseId,token);
+ if(!house)return jsonResponse({error:'House not found'},404);
+ if(str(house,'ownerUid')!==uid)return jsonResponse({error:'Only owner may transfer'},403);
+ if(field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'Restore house before transfer'},409);
+ if(!arr(house,'memberIds').includes(successorUid))return jsonResponse({error:'Successor must be an approved member'},409);
+ const memberName='projects/'+PROJECT+'/databases/(default)/documents/houses/'+houseId+'/memberSettings/'+encodeURIComponent(uid);
+ const response=await fetch(BASE+':commit',{
+  method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+  body:JSON.stringify({writes:[
+   {update:{name:house.name,fields:{ownerUid:{stringValue:successorUid}}},
+    updateMask:{fieldPaths:['ownerUid']},currentDocument:{updateTime:house.updateTime}},
+   {update:{name:memberName,fields:{role:{stringValue:'user'},canTakeCar:{booleanValue:false},
+     updatedAt:{timestampValue:new Date().toISOString()}}},
+    updateMask:{fieldPaths:['role','canTakeCar','updatedAt']}}
+  ]})
+ });
+ if(response.status===409||response.status===412)return jsonResponse({error:'House changed; retry'},409);
+ if(!response.ok)throw Error('Ownership transfer '+response.status);
+ return jsonResponse({success:true});
+}
 export default {
  async fetch(request,env){
   const url=new URL(request.url);
-  if(request.method==='OPTIONS'&&url.pathname==='/dispatch')return new Response(null,{status:204,headers:CORS});
+  if(request.method==='OPTIONS'&&['/dispatch','/account/transfer'].includes(url.pathname))return new Response(null,{status:204,headers:CORS});
   if(url.pathname==='/health'&&request.method==='GET')return jsonResponse({ok:true,service:'FamilyAuto push'});
-  if(url.pathname!=='/dispatch'||request.method!=='POST')return jsonResponse({error:'Not found'},404);
+  if(!['/dispatch','/account/transfer'].includes(url.pathname)||request.method!=='POST')return jsonResponse({error:'Not found'},404);
   try{
    const bearer=request.headers.get('Authorization')||'';
    if(!bearer.startsWith('Bearer '))return jsonResponse({error:'Unauthorized'},401);
    const uid=await verifyFirebaseIdToken(bearer.slice(7));
    const data=await request.json();
+   if(url.pathname==='/account/transfer'){
+    const token=await googleAccessToken(env);
+    return transferOwnership(uid,data?.houseId,data?.successorUid,token);
+   }
    if(typeof data.eventId!=='string')return jsonResponse({error:'Bad request'},400);
    const token=await googleAccessToken(env);
    const event=await firestore('notificationEvents/'+encodeURIComponent(data.eventId),token);
@@ -234,4 +264,4 @@ export default {
 };
 
 // Exposed for isolated unit tests; not an HTTP endpoint.
-export {recordActivity};
+export {recordActivity,transferOwnership};
