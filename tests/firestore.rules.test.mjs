@@ -305,3 +305,22 @@ test('direct booking cancellation must free the schedule in the same transaction
  const db=env.authenticatedContext('authorized').firestore();
  await assertFails(updateDoc(doc(db,'houses',hid,'bookingRequests','booking'),{status:'cancelled'}));
 });
+
+
+test('user can register own Web Push device token but not another user token',async()=>{
+ const tokenId='a'.repeat(64);
+ const tokenData={token:'test-fcm-device-token-long-enough-for-validation',enabled:true,platform:'web',updatedAt:serverTimestamp()};
+ const mine=env.authenticatedContext('push-user').firestore();
+ await assertSucceeds(setDoc(doc(mine,'users','push-user','pushTokens',tokenId),tokenData));
+ await assertFails(setDoc(doc(mine,'users','another-user','pushTokens',tokenId),tokenData));
+ await assertFails(getDoc(doc(mine,'users','another-user','pushTokens',tokenId)));
+});
+test('push tokens reject malformed registration and cannot be read by strangers',async()=>{
+ const tokenId='b'.repeat(64);
+ const mine=env.authenticatedContext('push-user').firestore();
+ await assertFails(setDoc(doc(mine,'users','push-user','pushTokens',tokenId),{
+  token:'short',enabled:true,platform:'web',updatedAt:serverTimestamp()
+ }));
+ const outsider=env.authenticatedContext('outsider').firestore();
+ await assertFails(getDoc(doc(outsider,'users','push-user','pushTokens','a'.repeat(64))));
+});
