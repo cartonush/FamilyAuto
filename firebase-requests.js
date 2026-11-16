@@ -25,7 +25,9 @@ root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><sp
 <p id="iosPickerHint" class="ios-picker-hint" aria-live="polite"></p>
 </dialog>
 <section id="instantPanel" class="instant-panel" hidden><h3>הרכב אצלי</h3><p>שימוש מיידי ברכב, בהתאם להרשאה שבעל הבית העניק לך.</p>
-<p class="muted">הלחיצה תשריין את הרכב למשך 24 שעות מרגע ההתחלה. אפשר לסיים מוקדם באמצעות ״סיימתי — החזרתי את הרכב״, ואז הרכב יהיה פנוי שוב. לא ניתן ליצור בקשה לשעות החופפות לשריון.</p>
+<label class="instant-option"><input type="radio" name="instantMode" value="untilDone" checked> עד שאני מסיים — אסיים ידנית באפליקציה</label>
+<label class="instant-option"><input type="radio" name="instantMode" value="fixed"> עד שעת הסיום שבחרתי למעלה</label>
+<p class="muted">במצב ״עד שאני מסיים״ הרכב משוריין ל־24 שעות בלבד מרגע הלחיצה, ולא ל־30 יום. אפשר ללחוץ על ״סיימתי״ מוקדם יותר כדי לשחרר אותו. במצב ״עד שעת הסיום״ השריון מסתיים בשעה שנבחרה. בקשות החופפות לשריון לא יתאפשרו.</p>
 <button type="button" class="primary wide" id="instantSubmit">הרכב אצלי — התחל שימוש</button></section><div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
@@ -251,10 +253,15 @@ async function startInstant(){
  const hid=selected.id,uid=currentUser.uid;
  if(!canInstant())throw Error('אין לך הרשאה לשימוש מיידי ברכב.');
  if(!navigator.onLine)throw Error('יש צורך בחיבור לאינטרנט כדי לתפוס את הרכב.');
- const mode='untilDone';
+ const mode=document.querySelector('input[name="instantMode"]:checked')?.value||'untilDone';
  const start=new Date();
- // Instant use always expires exactly 24 hours after it begins (not 30 days).
- const end=new Date(start.getTime()+DAY_MS);
+ const chosenEnd=new Date(endInput.value);
+ // Open-ended use expires after 24 hours, rather than blocking 30 days.
+ const end=mode==='untilDone'?new Date(start.getTime()+DAY_MS):chosenEnd;
+ if(!Number.isFinite(end.getTime())||end.getTime()<=start.getTime()+SLOT_MS)
+  throw Error('בחר שעת סיום מאוחרת בלפחות 15 דקות.');
+ if(end.getTime()>start.getTime()+30*DAY_MS)
+  throw Error('הזמנה מוגבלת ל־30 ימים.');
  const scheduleRef=doc(db,'houses',hid,'system','schedule');
  const bookingRef=doc(collection(db,'houses',hid,'bookingRequests'));
  const startAt=Timestamp.fromDate(start),endAt=Timestamp.fromDate(end);
