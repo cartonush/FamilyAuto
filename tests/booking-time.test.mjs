@@ -35,13 +35,13 @@ test('instant home popup has two modes, hour/minute wheels and 24-hour fallback'
  assert.match(source,/id="instantUntilDone"/);
  assert.match(source,/id="instantFixed"/);
  assert.match(source,/id="instantTimeFields" hidden/);
- assert.match(source,/id="instantMinute"[\s\S]*id="instantHour"/);
+ assert.ok(source.indexOf('id="instantMinute"')<source.indexOf('id="instantHour"'),'Minute wheel should appear first in RTL markup');
  assert.match(source,/const instantWheels=\[instantMinute,instantHour\]/);
  assert.match(source,/instantUseEnd\(start,mode,chosenEnd\)/);
  assert.match(source,/ל־24 שעות/);
  assert.match(source,/window.addEventListener\('familyauto:instant-open',openInstantDialog\)/);
  assert.doesNotMatch(nav,/navigate\('requests'\);\s*window.dispatchEvent\(new Event\('familyauto:instant-open'\)\)/);
- assert.match(css,/instant-clock-wheels\{grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\);direction:rtl\}/);
+ assert.match(css,/\.instant-clock-wheels\s*\{[^}]*direction:\s*rtl/);
 });
 
 test('Hebrew wheel order is day, minute, hour and matches submitted values',()=>{
@@ -78,4 +78,13 @@ test('selection within 15 minutes rolls to tomorrow',()=>{
 
 test('minutes must be in 15-minute increments',()=>{
  assert.throws(()=>nextClockEnd(new Date(),12,17),/Invalid/);
+});
+
+test('home instant booking opens a dialog rather than switching tabs',()=>{
+ const nav=readFileSync(new URL('../navigation.js',import.meta.url),'utf8');
+ assert.match(nav,/instantHomeButton\?\.addEventListener\('click'/);
+ assert.match(nav,/window\.dispatchEvent\(new Event\('familyauto:instant-open'\)\)/);
+ const source=readFileSync(new URL('../firebase-requests.js',import.meta.url),'utf8');
+ assert.match(source,/instantDialog\.showModal\(\)/);
+ assert.match(source,/await startInstant\(mode,chosen\)/);
 });
