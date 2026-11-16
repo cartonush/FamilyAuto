@@ -86,6 +86,33 @@ async function sendFCM(token,target,body,eventId,destination){
  const result=await response.json().catch(()=>({}));
  if(!response.ok)throw Error('FCM '+response.status+' '+(result?.error?.status||''));
 }
+// Append-only activity history on the free Cloudflare backend. An event ID is
+// deterministic, so scheduled retries cannot create duplicate history entries.
+async function recordActivity(event,booking,token){
+ const eventId=event.name.split('/').pop();
+ const houseId=str(event,'houseId'),actorUid=str(event,'actorUid'),status=str(event,'status');
+ const titles={pending:'בקשה חדשה',approved:'הרכב הוזמן',rejected:'הבקשה נדחתה',cancelled:'ההזמנה בוטלה',ended:'השימוש הסתיים'};
+ const member=await firestore('houses/'+houseId+'/memberSettings/'+encodeURIComponent(actorUid),token);
+ const displayName=str(member,'displayName')||'חבר בית';
+ const startAt=field(booking,'startAt')?.timestampValue;
+ const endAt=field(booking,'endAt')?.timestampValue;
+ const createdAt=field(event,'createdAt')?.timestampValue;
+ const payload={fields:{
+  bookingId:{stringValue:str(event,'bookingId')},
+  eventType:{stringValue:status},
+  title:{stringValue:titles[status]},
+  displayName:{stringValue:displayName.slice(0,60)},
+  actorUid:{stringValue:actorUid},
+  createdBy:{stringValue:str(booking,'createdBy')},
+  ...(startAt?{startAt:{timestampValue:startAt}}:{}),
+  ...(endAt?{endAt:{timestampValue:endAt}}:{}),
+  occurredAt:{timestampValue:createdAt||new Date().toISOString()}
+ }};
+ const url=BASE+'/houses/'+houseId+'/activity?documentId='+encodeURIComponent(eventId);
+ const response=await fetch(url,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+ if(response.status===409)return;
+ if(!response.ok)throw Error('Firestore activity '+response.status);
+}
 async function processEvent(event,token){
  const eventId=event.name.split('/').pop();
  const hid=str(event,'houseId'),bid=str(event,'bookingId'),status=str(event,'status');
@@ -105,6 +132,12 @@ async function processEvent(event,token){
  recipients=[...new Set(recipients)].filter(uid=>members.includes(uid));
  const claimed=await patchEvent(event,token,{state:'processing',leaseUntil:new Date(Date.now()+120000)});
  if(!claimed)return {skipped:true};
+ // Record the booking action even when no device has enabled notifications.
+ try{await recordActivity(event,booking,token)}
+ catch(error){
+  await patchEvent(claimed,token,{state:'queued',lastAttemptAt:new Date()});
+  throw error;
+ }
  const bodyFor=uid=>{
   if(status==='pending')return 'התקבלה בקשה חדשה לשימוש ברכב.';
   if(status==='approved')return uid===requester?'הבקשה שלך לשימוש ברכב אושרה!':'עדכון חדש על הרכב התקבל, בדקו!';
