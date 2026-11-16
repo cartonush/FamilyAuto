@@ -1,4 +1,5 @@
 import {app} from './firebase-config.js';
+import {queueBookingNotification} from './firebase-notification-queue.js';
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,collection,doc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
@@ -196,7 +197,7 @@ function render(){
    const approve=document.createElement('button');approve.type='button';approve.className='primary';approve.textContent='אישור';
    approve.onclick=()=>perform(approve,()=>approveBooking(r));
    const reject=document.createElement('button');reject.type='button';reject.textContent='דחייה';
-   reject.onclick=()=>perform(reject,()=>updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'rejected'}));
+   reject.onclick=()=>perform(reject,async()=>{await updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'rejected'});await queueBookingNotification(selected.id,r.id,'rejected')});
    actions.append(approve,reject)
   }
   if(r.status==='approved'&&r.instantMode&&(r.createdBy===currentUser?.uid||isOwner)){
@@ -204,7 +205,7 @@ function render(){
   }
   if((r.status==='pending'&&r.createdBy===currentUser?.uid)||(r.status==='approved'&&!r.instantMode&&(isOwner||r.createdBy===currentUser?.uid))){
    const cancel=document.createElement('button');cancel.type='button';cancel.textContent=r.status==='approved'?'ביטול הזמנה':'ביטול בקשה';
-   cancel.onclick=()=>perform(cancel,()=>r.status==='approved'?cancelApproved(r):updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'cancelled'}));
+   cancel.onclick=()=>perform(cancel,async()=>{if(r.status==='approved')await cancelApproved(r);else{await updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'cancelled'});await queueBookingNotification(selected.id,r.id,'cancelled')}});
    actions.append(cancel)
   }
   if(actions.childElementCount)card.append(actions);
@@ -233,6 +234,7 @@ async function approveBooking(record){
   tx.set(scheduleRef,{reservations:[...active,{id:record.id,createdBy:booking.createdBy,startAt:booking.startAt,endAt:booking.endAt}],updatedAt:serverTimestamp()});
   tx.update(bookingRef,{status:'approved',approvedBy:currentUser.uid,approvedAt:serverTimestamp()});
  });
+ await queueBookingNotification(hid,record.id,'approved');
 }
 async function cancelApproved(record){
  if(!selected||!(selected.ownerUid===currentUser?.uid||record.createdBy===currentUser?.uid))throw Error('אין הרשאה לבטל הזמנה זו.');
@@ -244,6 +246,7 @@ async function cancelApproved(record){
   tx.set(scheduleRef,{reservations:entries.filter(r=>r.id!==record.id&&r.endAt.toMillis()>Date.now()),updatedAt:serverTimestamp()});
   tx.update(bookingRef,{status:'cancelled'});
  });
+ await queueBookingNotification(hid,record.id,'cancelled');
 }
 async function startInstant(){
  if(!selected||!currentUser)throw Error('בחר בית והתחבר.');
@@ -269,6 +272,7 @@ async function startInstant(){
    startAt,endAt,note:'שימוש מיידי ברכב',status:'approved',instantMode:mode,createdAt:serverTimestamp()});
   tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:uid,startAt,endAt}],updatedAt:serverTimestamp()});
  });
+ await queueBookingNotification(hid,bookingRef.id,'approved');
 }
 async function finishInstant(record){
  const hid=selected.id,uid=currentUser.uid;
@@ -281,6 +285,7 @@ async function finishInstant(record){
   tx.update(bookingRef,{status:'ended',endedAt:serverTimestamp()});
   tx.set(scheduleRef,{reservations:entries.filter(r=>r.id!==record.id),updatedAt:serverTimestamp()});
  });
+ await queueBookingNotification(hid,record.id,'ended');
 }
 function canBookDirectly(){
  if(!selected||!currentUser||selected.deletedAt)return false;
@@ -374,15 +379,18 @@ form.addEventListener('submit',async e=>{
      tx.set(bookingRef,{...bookingData,status:'approved',approvedBy:userId,approvedAt:serverTimestamp()});
      tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:userId,startAt:bookingData.startAt,endAt:bookingData.endAt}],updatedAt:serverTimestamp()});
     });
+    await queueBookingNotification(houseId,bookingRef.id,'approved');
     say('ההזמנה אושרה ונשמרה ביומן המשותף.');
    }catch(err){
     if(err.code!=='permission-denied')throw err;
     // Until the new Firestore rules are published, retain the ability to request a booking.
-    await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
+    const pendingRef=await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
+    await queueBookingNotification(houseId,pendingRef.id,'pending');
     say('כללי Firestore החדשים עדיין לא מאפשרים הזמנה ישירה. נשלחה בקשה לאישור במקום הזמנה מאושרת; יש לפרסם את כללי הגרסה החדשה.',true);
    }
   }else{
-   await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
+   const pendingRef=await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
+   await queueBookingNotification(houseId,pendingRef.id,'pending');
    say('הבקשה נשלחה לאישור בעל הבית ותופיע אצל חברי הבית.');
   }
   form.reset();initTimes();
