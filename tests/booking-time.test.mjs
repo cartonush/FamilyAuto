@@ -35,13 +35,13 @@ test('instant home popup has two modes, hour/minute wheels and 24-hour fallback'
  assert.match(source,/id="instantUntilDone"/);
  assert.match(source,/id="instantFixed"/);
  assert.match(source,/id="instantTimeFields" hidden/);
- assert.match(source,/id="instantMinute"[\\s\\S]*id="instantHour"/);
- assert.match(source,/const instantWheels=\\[instantMinute,instantHour\\]/);
- assert.match(source,/instantUseEnd\\(start,mode,chosenEnd\\)/);
+ assert.match(source,/id="instantMinute"[\s\S]*id="instantHour"/);
+ assert.match(source,/const instantWheels=\[instantMinute,instantHour\]/);
+ assert.match(source,/instantUseEnd\(start,mode,chosenEnd\)/);
  assert.match(source,/ל־24 שעות/);
- assert.match(source,/window.addEventListener\\('familyauto:instant-open',openInstantDialog\\)/);
- assert.doesNotMatch(nav,/navigate\\('requests'\\);\\s*window.dispatchEvent\\(new Event\\('familyauto:instant-open'\\)\\)/);
- assert.match(css,/instant-clock-wheels\\{grid-template-columns:minmax\\(0,1fr\\) minmax\\(0,1fr\\);direction:rtl\\}/);
+ assert.match(source,/window.addEventListener\('familyauto:instant-open',openInstantDialog\)/);
+ assert.doesNotMatch(nav,/navigate\('requests'\);\s*window.dispatchEvent\(new Event\('familyauto:instant-open'\)\)/);
+ assert.match(css,/instant-clock-wheels\{grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\);direction:rtl\}/);
 });
 
 test('Hebrew wheel order is day, minute, hour and matches submitted values',()=>{
