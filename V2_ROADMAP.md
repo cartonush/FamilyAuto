@@ -26,6 +26,7 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 - Added syntax checks for new JavaScript and rules tests for private push token storage.
 - Added push-token cleanup before logout/account deletion, persisted opt-in state on the device, and clearly labeled 2.0-preview app shell/cache on the feature branch. No production deployment yet.
 - Added PR-triggered CI checks and isolated Worker activity-history tests.
+- Added atomic ownership transfer via Cloudflare Worker with Firebase ID-token verification and Firestore write preconditions; v2 UI now calls this endpoint instead of the undeployed Firebase callable. Unit tests cover owner authorization and atomic updates.
 
 ## Required before live push test
 1. Firebase project `familyauto-s` remains on Spark; Cloudflare Worker is the selected free notification backend. The public VAPID key is configured in `push-config.js`.
@@ -34,7 +35,7 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 4. The v2 PWA client is not on GitHub Pages `main` yet. Test push in a controlled release/preview with authenticated test users; never claim live push works from Cloudflare's Ready status alone.
 5. On iPhone, install the PWA via Safari -> Add to Home Screen, launch from the Home Screen and grant notifications. Confirm FCM supports this browser/runtime in a live device test; if not, evaluate a standards-based Web Push alternative.
 6. Verify notification recipients with all four test accounts and at least two devices. Test foreground, background, denied permission, logout and multiple homes.
-7. Account ownership transfer, permanent house deletion, and account deletion still use undeployed Firebase Cloud Functions; either implement and validate a free secure backend alternative or obtain explicit consent for Blaze billing. Do not silently deploy billing-dependent features. Activity history has a Cloudflare alternative, pending live validation.
+7. Ownership transfer has a Cloudflare Worker implementation but needs live deployment and testing. Permanent house deletion and account deletion still use undeployed Firebase Cloud Functions; either implement and validate a free secure backend alternative or obtain explicit consent for Blaze billing. Do not silently deploy billing-dependent features. Activity history has a Cloudflare alternative, pending live validation.
 
 ## Required before 2.0 release
 - Implement server-authoritative reservation operations for instant, direct, owner approval and cancellation. Client-only overlap checks are not a sufficient security boundary.
