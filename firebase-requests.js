@@ -1,5 +1,6 @@
 import {app} from './firebase-config.js';
 import {queueBookingNotification} from './firebase-notification-queue.js';
+import {instantUseEnd} from './booking-time.mjs';
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,collection,doc,getDoc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
@@ -257,7 +258,7 @@ async function startInstant(){
  const start=new Date();
  const chosenEnd=new Date(endInput.value);
  // Open-ended use expires after 24 hours, rather than blocking 30 days.
- const end=mode==='untilDone'?new Date(start.getTime()+DAY_MS):chosenEnd;
+ const end=instantUseEnd(start,mode,chosenEnd);
  if(!Number.isFinite(end.getTime())||end.getTime()<=start.getTime()+SLOT_MS)
   throw Error('בחר שעת סיום מאוחרת בלפחות 15 דקות.');
  if(end.getTime()>start.getTime()+30*DAY_MS)
