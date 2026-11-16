@@ -4,7 +4,7 @@ import {app} from './firebase-config.js';
 import {getAuth} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,doc,setDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 const db=getFirestore(app),auth=getAuth(app);
-const WORKER_URL=''; // Set after deploying the Cloudflare Worker.
+const WORKER_URL='https://familyauto.roisuissa6.workers.dev'; // Cloudflare Worker: push dispatcher only; PWA stays on GitHub Pages.
 export async function queueBookingNotification(houseId,bookingId,status){
  const user=auth.currentUser;
  if(!user||!houseId||!bookingId||!['pending','approved','rejected','cancelled','ended'].includes(status))return;
