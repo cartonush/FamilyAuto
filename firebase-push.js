@@ -7,6 +7,20 @@ import {getMessaging,isSupported,getToken,deleteToken,onMessage} from 'https://w
 const auth=getAuth(app),db=getFirestore(app);
 const root=document.getElementById('pushSettingsRoot');
 let user=null,messaging=null,tokenId=null,registeredToken=null;
+const tokenStorageKey=uid=>'familyauto-push-token-'+uid;
+// Remove the Firestore registration while the old Firebase session is still valid.
+// This prevents a signed-out device from receiving another household's updates.
+export async function unregisterPushForCurrentUser(){
+ const current=auth.currentUser;
+ const id=current&&(tokenId||localStorage.getItem(tokenStorageKey(current.uid)));
+ if(current&&id)await deleteDoc(doc(db,'users',current.uid,'pushTokens',id));
+ if(current)localStorage.removeItem(tokenStorageKey(current.uid));
+ if(await isSupported())await deleteToken(messaging||getMessaging(app));
+ tokenId=null;registeredToken=null;
+ document.getElementById('enablePushBtn')?.removeAttribute('hidden');
+ const disable=document.getElementById('disablePushBtn');if(disable)disable.hidden=true;
+}
+
 const say=(message,error=false)=>{const status=document.getElementById('pushStatus');if(status){status.textContent=message;status.style.color=error?'#b3261e':''}};
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
@@ -34,7 +48,7 @@ if(root){
   await setDoc(doc(db,'users',user.uid,'pushTokens',id),{
    token,enabled:true,updatedAt:serverTimestamp(),platform:isIOS?'ios':'web'
   });
-  tokenId=id;registeredToken=token;toggle(true);say('ההתראות הופעלו במכשיר הזה.');
+  tokenId=id;registeredToken=token;localStorage.setItem(tokenStorageKey(user.uid),id);toggle(true);say('ההתראות הופעלו במכשיר הזה.');
  };
  enable.addEventListener('click',async()=>{
   enable.disabled=true;
@@ -44,24 +58,21 @@ if(root){
  disable.addEventListener('click',async()=>{
   disable.disabled=true;
   try{
-   if(!user||!tokenId)throw Error('אין רישום פעיל במכשיר זה.');
-   await deleteDoc(doc(db,'users',user.uid,'pushTokens',tokenId));
-   if(messaging)await deleteToken(messaging);
-   tokenId=null;registeredToken=null;toggle(false);say('ההתראות בוטלו במכשיר הזה.');
+   if(!user)throw Error('יש להתחבר לחשבון.');
+   await unregisterPushForCurrentUser();
+   toggle(false);say('ההתראות בוטלו במכשיר הזה.');
   }catch(e){say('כיבוי ההתראות נכשל: '+(e.code||e.message),true)}
   finally{disable.disabled=false}
  });
  onAuthStateChanged(auth,u=>{
   // Never reuse a device token registered for a different signed-in account.
   if(user?.uid!==u?.uid){
-   const previousUid=user?.uid,previousTokenId=tokenId;
-   if(previousUid&&previousTokenId){
-    deleteDoc(doc(db,'users',previousUid,'pushTokens',previousTokenId)).catch(()=>{});
-    if(messaging)deleteToken(messaging).catch(()=>{});
-   }
    tokenId=null;registeredToken=null;toggle(false)
   }
   user=u;enable.disabled=!u;
+  if(u&&localStorage.getItem(tokenStorageKey(u.uid))&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
+   tokenId=localStorage.getItem(tokenStorageKey(u.uid));toggle(true);
+  }
   if(!u)say('יש להתחבר לחשבון כדי להפעיל התראות.');
   else if(isIOS&&!isStandalone)say('באייפון, פתח את האפליקציה ממסך הבית כדי להפעיל התראות.');
   else if(typeof Notification!=='undefined'&&Notification.permission==='denied')say('התראות חסומות בהגדרות הדפדפן.',true);
