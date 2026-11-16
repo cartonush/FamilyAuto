@@ -8,7 +8,8 @@ const GOOGLE_TOKEN='https://oauth2.googleapis.com/token';
 const encoder=new TextEncoder();
 const b64url=bytes=>btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const decodeB64url=value=>Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4)),c=>c.charCodeAt(0));
-const jsonResponse=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+const CORS={'Access-Control-Allow-Origin':'https://cartonush.github.io','Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'POST, OPTIONS','Vary':'Origin'};
+const jsonResponse=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...CORS}});
 const field=(obj,key)=>obj?.fields?.[key];
 const str=(obj,key)=>field(obj,key)?.stringValue||'';
 const arr=(obj,key)=>field(obj,key)?.arrayValue?.values?.map(x=>x.stringValue).filter(Boolean)||[];
@@ -177,6 +178,7 @@ async function verifyFirebaseIdToken(jwt){
 export default {
  async fetch(request,env){
   const url=new URL(request.url);
+  if(request.method==='OPTIONS'&&url.pathname==='/dispatch')return new Response(null,{status:204,headers:CORS});
   if(url.pathname==='/health'&&request.method==='GET')return jsonResponse({ok:true,service:'FamilyAuto push'});
   if(url.pathname!=='/dispatch'||request.method!=='POST')return jsonResponse({error:'Not found'},404);
   try{
