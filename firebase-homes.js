@@ -48,6 +48,19 @@ function selectHouse(id){if(stopRequests){stopRequests();stopRequests=null}curre
   catch(e){info('שינוי מצב הבית נכשל: '+readableError(e),true)}finally{deleteButton.disabled=false}
  };
  deletion.append(deletionInfo,deleteButton);details.append(deletion);
+ if((h.memberIds||[]).length===1){
+  const permanent=document.createElement('button');permanent.type='button';permanent.className='danger-action';
+  permanent.textContent='מחיקת בית ריק לצמיתות';
+  permanent.onclick=async()=>{
+   if(!confirm('למחוק לצמיתות את הבית ״'+h.name+'״ ואת כל נתוניו? לא ניתן לשחזר את הבית.'))return;
+   if(prompt('לאישור המחיקה, הקלד מחק')!=='מחק')return;
+   permanent.disabled=true;
+   try{await httpsCallable(functions,'deleteEmptyHouse')({houseId:id});info('הבית הריק נמחק לצמיתות.')}
+   catch(e){info('מחיקת הבית נכשלה: '+readableError(e),true)}
+   finally{permanent.disabled=false}
+  };
+  details.append(permanent);
+ }
  const pending=document.createElement('div');details.append(pending);stopRequests=onSnapshot(query(collection(db,'houses',id,'joinRequests'),where('status','==','pending')),snap=>{pending.replaceChildren();const title=document.createElement('h3');title.textContent='בקשות הצטרפות ('+snap.size+')';pending.append(title);snap.forEach(req=>{const row=document.createElement('div');row.className='booking';const name=document.createElement('strong');name.textContent=req.data().displayName||'משתמש';const approve=document.createElement('button');approve.textContent='אישור';approve.className='primary';approve.onclick=async()=>{approve.disabled=true;try{const b=writeBatch(db);b.update(doc(db,'houses',id),{memberIds:arrayUnion(req.id)});b.update(req.ref,{status:'accepted'});b.set(doc(db,'houses',id,'memberSettings',req.id),{displayName:String(req.data().displayName||'חבר בית').slice(0,60),role:'user',canTakeCar:false,suspendedUntil:null,updatedAt:serverTimestamp()});await b.commit();info('המשתמש נוסף לבית')}catch(e){info('האישור נכשל: '+readableError(e),true)}finally{approve.disabled=false}};const reject=document.createElement('button');reject.textContent='דחייה';reject.onclick=async()=>{reject.disabled=true;try{await updateDoc(req.ref,{status:'rejected'});info('בקשת ההצטרפות נדחתה.')}catch(e){info('דחיית הבקשה נכשלה: '+readableError(e),true)}finally{reject.disabled=false}};row.append(name,approve,reject);pending.append(row)})},e=>info('לא ניתן לקרוא בקשות: '+readableError(e),true))}else if(stopRequests){stopRequests();stopRequests=null}}
 $('createHouseForm').onsubmit=async e=>{e.preventDefault();if(!user)return;const form=e.currentTarget;const name=String(new FormData(form).get('houseName')||'').trim();if(!name||name.length>25)return info('שם הבית חייב להכיל 1–25 תווים.',true);const id=code();try{await setDoc(doc(db,'houses',id),{name,ownerUid:user.uid,memberIds:[user.uid],createdAt:serverTimestamp()});form.reset();info('הבית נוצר בהצלחה. אפשר לבחור אותו ולהעתיק קוד הזמנה.');currentHouse=id}catch(err){info('יצירת הבית נכשלה: '+readableError(err),true)}};
 $('joinHouseForm').onsubmit=async e=>{e.preventDefault();if(!user)return;const form=e.currentTarget;const id=String(new FormData(form).get('houseCode')||'').trim().toLowerCase();if(!/^[a-f0-9]{32}$/.test(id))return info('קוד ההזמנה אינו תקין.',true);try{await setDoc(doc(db,'houses',id,'joinRequests',user.uid),{uid:user.uid,displayName:user.displayName||user.email||'משתמש',status:'pending',createdAt:serverTimestamp()});info('בקשת ההצטרפות נשלחה. מנהל הבית צריך לאשר אותה.');form.reset()}catch(err){info('לא ניתן לשלוח בקשה: '+readableError(err),true)}};
