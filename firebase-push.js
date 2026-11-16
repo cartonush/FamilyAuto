@@ -68,5 +68,17 @@ if(root){
   else say('לחץ על הפעלת התראות כדי לאשר קבלת עדכונים.');
  });
  // Foreground updates are already reflected in the live Firestore UI.
- isSupported().then(ok=>{if(ok)onMessage(getMessaging(app),()=>{})}).catch(()=>{});
+ isSupported().then(ok=>{
+  if(!ok)return;
+  onMessage(getMessaging(app),async payload=>{
+   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+   const data=payload.data||{};
+   const registration=await navigator.serviceWorker.ready;
+   await registration.showNotification(data.title||'FamilyAuto',{
+    body:data.body||'יש עדכון חדש על הרכב.',
+    icon:'./icon.svg',tag:data.eventId||'familyauto',
+    data:{destination:data.destination==='calendar'?'#calendar':'#requests'}
+   });
+  });
+ }).catch(()=>{});
 }
