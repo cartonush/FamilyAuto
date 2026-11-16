@@ -16,28 +16,32 @@ if(root){
  const render=()=>{
   list.replaceChildren();
   if(!houseId){status.textContent='בחר בית כדי לראות את ההיסטוריה שלו.';return}
-  if(events.length){
-   status.textContent='יומן פעולות משותף · '+events.length+' אירועים אחרונים.';
-   for(const event of events){
-    entry(event.title||'עדכון רכב',[
-     'מועד הפעולה: '+format(event.occurredAt),
-     'משתמש: '+(event.displayName||'חבר בית'),
-     'זמן הרכב: '+format(event.startAt)+' – '+format(event.endAt)
+  const loggedIds=new Set(events.map(e=>e.bookingId).filter(Boolean));
+  const older=records.filter(r=>!loggedIds.has(r.id));
+  const entries=[
+   ...events.map(e=>({type:'event',data:e,time:e.occurredAt?.toMillis?.()||0})),
+   ...older.map(r=>({type:'legacy',data:r,time:r.createdAt?.toMillis?.()||0}))
+  ].sort((a,b)=>b.time-a.time).slice(0,100);
+  if(!entries.length){status.textContent='אין עדיין פעולות בבית הזה.';return}
+  status.textContent='היסטוריית הרכב · '+entries.length+' רשומות'+(older.length?' (כולל הזמנות ישנות).':'');
+  for(const item of entries){
+   const record=item.data;
+   if(item.type==='event'){
+    entry(record.title||'עדכון רכב',[
+     'מועד הפעולה: '+format(record.occurredAt),
+     'משתמש: '+(record.displayName||'חבר בית'),
+     'זמן הרכב: '+format(record.startAt)+' – '+format(record.endAt)
     ]);
+   }else{
+    const lines=[
+     'בקשה נוצרה: '+format(record.createdAt),
+     'זמן הרכב: '+format(record.startAt)+' – '+format(record.endAt),
+     'מצב נוכחי: '+(({pending:'ממתינה',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה',ended:'הסתיימה'})[record.status]||record.status)
+    ];
+    if(record.approvedAt)lines.push('מועד אישור: '+format(record.approvedAt));
+    if(record.endedAt)lines.push('מועד סיום: '+format(record.endedAt));
+    entry(record.displayName||'חבר בית',lines);
    }
-   return;
-  }
-  if(!records.length){status.textContent='אין עדיין פעולות בבית הזה.';return}
-  status.textContent='הזמנות קיימות · יומן הפעולות החדש יתעד כל שינוי לאחר הפעלת Firebase Functions.';
-  for(const record of [...records].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)).slice(0,50)){
-   const lines=[
-    'בקשה נוצרה: '+format(record.createdAt),
-    'זמן הרכב: '+format(record.startAt)+' – '+format(record.endAt),
-    'מצב: '+(({pending:'ממתינה',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה',ended:'הסתיימה'})[record.status]||record.status)
-   ];
-   if(record.approvedAt)lines.push('מועד אישור: '+format(record.approvedAt));
-   if(record.endedAt)lines.push('מועד סיום: '+format(record.endedAt));
-   entry(record.displayName||'חבר בית',lines);
   }
  };
  window.addEventListener('familyauto:house',event=>{
@@ -55,4 +59,6 @@ if(root){
   records=event.detail.records||[];render();
  });
  window.addEventListener('familyauto:signout',()=>{if(stop){stop();stop=null}houseId=null;records=[];events=[];render()});
+ // Auth and house selection can finish before this module loads.
+ if(window.familyautoSelectedHouse)window.dispatchEvent(new CustomEvent('familyauto:house',{detail:window.familyautoSelectedHouse}));
 }
