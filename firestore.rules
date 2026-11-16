@@ -8,6 +8,19 @@ service cloud.firestore {
     function activeHouse(hid) { return member(hid) && (!('deletedAt' in house(hid).data) || house(hid).data.deletedAt == null); }
     function authorizedBookingAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.role == 'authorized' && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
     function instantAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.canTakeCar == true && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
+    // Device push tokens belong to the signed-in user only; Cloud Functions read via Admin SDK.
+    match /users/{uid}/pushTokens/{tokenId} {
+      allow get, list: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && tokenId.matches('[a-f0-9]{64}')
+        && request.resource.data.keys().hasOnly(['token','enabled','platform','updatedAt'])
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 20 && request.resource.data.token.size() <= 4096
+        && request.resource.data.enabled == true
+        && request.resource.data.platform in ['ios','web']
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
     match /profiles/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
       allow list: if false;
