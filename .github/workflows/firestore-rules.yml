@@ -6,6 +6,12 @@ on:
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'functions/**'
+      - 'firebase-push.js'
+      - 'firebase-activity.js'
+      - 'firebase-homes.js'
+      - 'firebase-auth.js'
+      - 'push-config.js'
       - '.github/workflows/firestore-rules.yml'
   workflow_dispatch:
 jobs:
@@ -29,4 +35,8 @@ jobs:
           node --check firebase-homes.js
           node --check firebase-auth.js
           node --check tests/firestore.rules.test.mjs
+          node --check firebase-push.js
+          node --check firebase-activity.js
+          node --check functions/index.js
+          node --check functions/account.js
       - run: npm run test:rules
