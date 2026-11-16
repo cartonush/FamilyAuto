@@ -53,11 +53,18 @@ if(root){
  });
  onAuthStateChanged(auth,u=>{
   // Never reuse a device token registered for a different signed-in account.
-  if(user?.uid!==u?.uid){tokenId=null;registeredToken=null;toggle(false)}
+  if(user?.uid!==u?.uid){
+   const previousUid=user?.uid,previousTokenId=tokenId;
+   if(previousUid&&previousTokenId){
+    deleteDoc(doc(db,'users',previousUid,'pushTokens',previousTokenId)).catch(()=>{});
+    if(messaging)deleteToken(messaging).catch(()=>{});
+   }
+   tokenId=null;registeredToken=null;toggle(false)
+  }
   user=u;enable.disabled=!u;
   if(!u)say('יש להתחבר לחשבון כדי להפעיל התראות.');
   else if(isIOS&&!isStandalone)say('באייפון, פתח את האפליקציה ממסך הבית כדי להפעיל התראות.');
-  else if(Notification?.permission==='denied')say('התראות חסומות בהגדרות הדפדפן.',true);
+  else if(typeof Notification!=='undefined'&&Notification.permission==='denied')say('התראות חסומות בהגדרות הדפדפן.',true);
   else say('לחץ על הפעלת התראות כדי לאשר קבלת עדכונים.');
  });
  // Foreground updates are already reflected in the live Firestore UI.
