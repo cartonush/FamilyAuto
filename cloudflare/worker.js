@@ -232,3 +232,6 @@ export default {
    .catch(error=>console.error('FamilyAuto push cron',error)));
  }
 };
+
+// Exposed for isolated unit tests; not an HTTP endpoint.
+export {recordActivity};
