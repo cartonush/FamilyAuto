@@ -77,7 +77,7 @@ function home(){
 }
 const instantHomeButton=document.getElementById('homeInstantBtn');
 instantHomeButton?.addEventListener('click',()=>{
- navigate('requests');
+ // Open the instant-use bottom sheet in place, without leaving the home page.
  window.dispatchEvent(new Event('familyauto:instant-open'));
 });
 window.addEventListener('familyauto:instant-permission',e=>{
