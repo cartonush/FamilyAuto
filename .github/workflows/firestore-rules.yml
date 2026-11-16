@@ -15,6 +15,16 @@ on:
       - 'firebase-notification-queue.js'
       - 'cloudflare/**'
       - '.github/workflows/firestore-rules.yml'
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'tests/**'
+      - 'package.json'
+      - 'functions/**'
+      - 'firebase-*.js'
+      - 'push-config.js'
+      - 'cloudflare/**'
+      - '.github/workflows/firestore-rules.yml'
   workflow_dispatch:
 jobs:
   emulator-tests:
