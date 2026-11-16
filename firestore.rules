@@ -84,6 +84,11 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
         allow delete: if false;
       }
+      // Append-only activity entries are written by trusted Cloud Functions only.
+      match /activity/{eventId} {
+        allow get, list: if member(hid);
+        allow create, update, delete: if false;
+      }
       match /system/{docId} {
         function reservationApproved(item) {
           return item.keys().hasOnly(['id','createdBy','startAt','endAt'])
