@@ -1,4 +1,5 @@
 import {app} from './firebase-config.js';
+import {unregisterPushForCurrentUser} from './firebase-push.js';
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,updateProfile,reauthenticateWithCredential,EmailAuthProvider} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js';
 const auth=getAuth(app),functions=getFunctions(app,'europe-west1');
@@ -28,6 +29,7 @@ if(deleteButton)deleteButton.onclick=async()=>{
  deleteButton.disabled=true;
  try{
   await reauthenticateWithCredential(current,EmailAuthProvider.credential(current.email,password));
+  await unregisterPushForCurrentUser().catch(e=>console.warn('Push cleanup before account deletion:',e.code||e.message));
   await httpsCallable(functions,'deleteMyAccount')({});
   el('deleteAccountPassword').value='';
   status.textContent='החשבון נמחק לצמיתות.';
@@ -36,5 +38,5 @@ if(deleteButton)deleteButton.onclick=async()=>{
   status.textContent='מחיקת החשבון נכשלה: '+(errors[e.code]||e.message||e.code||'שגיאה לא ידועה');
  }finally{deleteButton.disabled=false}
 };
-const logout=async()=>{const buttons=['logoutBtn','settingsLogoutBtn'].map(el).filter(Boolean);buttons.forEach(b=>b.disabled=true);try{await signOut(auth)}catch(e){fail(e)}finally{buttons.forEach(b=>b.disabled=false)}};for(const id of ['logoutBtn','settingsLogoutBtn']){const button=el(id);if(button)button.onclick=logout;}
+const logout=async()=>{const buttons=['logoutBtn','settingsLogoutBtn'].map(el).filter(Boolean);buttons.forEach(b=>b.disabled=true);try{await unregisterPushForCurrentUser().catch(e=>console.warn('Push cleanup before logout:',e.code||e.message));await signOut(auth)}catch(e){fail(e)}finally{buttons.forEach(b=>b.disabled=false)}};for(const id of ['logoutBtn','settingsLogoutBtn']){const button=el(id);if(button)button.onclick=logout;}
 onAuthStateChanged(auth,user=>{window.dispatchEvent(new CustomEvent('familyauto:auth',{detail:user?{uid:user.uid}:null}));el('authState').textContent=user?'מחובר':'לא מחובר';if(el('homeGuest'))el('homeGuest').hidden=!!user;if(el('homeLoggedIn'))el('homeLoggedIn').hidden=!user;if(el('settingsAccountSummary'))el('settingsAccountSummary').textContent=user?'מחובר בתור '+(user.displayName||user.email||'משתמש'):'אינך מחובר לחשבון. אפשר להתחבר או להירשם מדף הבית.';if(el('settingsResetEmail'))el('settingsResetEmail').value=user?.email||'';if(el('settingsResetStatus'))el('settingsResetStatus').textContent='';if(el('settingsLoginLink'))el('settingsLoginLink').hidden=!!user;if(el('settingsLogoutArea'))el('settingsLogoutArea').hidden=!user;if(el('deleteAccountArea'))el('deleteAccountArea').hidden=!user;el('authGuest').hidden=!!user;el('authUser').hidden=!user;if(user){el('userEmail').textContent=(user.displayName?user.displayName+' · ':'')+user.email;message('התחברת בהצלחה. בקשות הרכב וההזמנות המשותפות מסתנכרנות דרך Firestore.')}else {setMode('login');document.querySelector('.nav-item[data-goto="home"]')?.click()}},fail);
