@@ -1,7 +1,7 @@
 import {app} from './firebase-config.js';
 import {queueBookingNotification} from './firebase-notification-queue.js';
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import {getFirestore,collection,doc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+import {getFirestore,collection,doc,getDoc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('requestsRoot');
 root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><span class="pill">מערכת הזמנות</span></div>
@@ -19,15 +19,13 @@ root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><sp
 <div class="ios-wheel-fade" aria-hidden="true"></div>
 <div class="ios-wheels">
 <div class="ios-wheel" id="iosDay" role="listbox" aria-label="תאריך"></div>
-<div class="ios-wheel" id="iosHour" role="listbox" aria-label="שעה"></div>
 <div class="ios-wheel" id="iosMinute" role="listbox" aria-label="דקות"></div>
+<div class="ios-wheel" id="iosHour" role="listbox" aria-label="שעה"></div>
 </div></div>
 <p id="iosPickerHint" class="ios-picker-hint" aria-live="polite"></p>
 </dialog>
 <section id="instantPanel" class="instant-panel" hidden><h3>הרכב אצלי</h3><p>שימוש מיידי ברכב, בהתאם להרשאה שבעל הבית העניק לך.</p>
-<label class="instant-option"><input type="radio" name="instantMode" value="untilDone" checked> עד שאני מסיים — אסיים ידנית באפליקציה</label>
-<label class="instant-option"><input type="radio" name="instantMode" value="fixed"> עד שעת הסיום שבחרתי למעלה</label>
-<p class="muted">במצב ״עד שאני מסיים״ נשמרת חסימה זמנית של עד 30 יום. יש ללחוץ על ״סיימתי״ כשמחזירים את הרכב. הזמנות חופפות ימנעו התחלת שימוש.</p>
+<p class="muted">הלחיצה תשריין את הרכב למשך 24 שעות מרגע ההתחלה. אפשר לסיים מוקדם באמצעות ״סיימתי — החזרתי את הרכב״, ואז הרכב יהיה פנוי שוב. לא ניתן ליצור בקשה לשעות החופפות לשריון.</p>
 <button type="button" class="primary wide" id="instantSubmit">הרכב אצלי — התחל שימוש</button></section><div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
@@ -43,7 +41,7 @@ const dateFormatter=new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeri
 const dayFormatter=new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeric',month:'short'});
 const pad=n=>String(n).padStart(2,'0');
 const picker=$('iosPicker'),dayWheel=$('iosDay'),hourWheel=$('iosHour'),minuteWheel=$('iosMinute');
-const wheels=[dayWheel,hourWheel,minuteWheel];
+const wheels=[dayWheel,minuteWheel,hourWheel];
 const ROW=44;
 let editing='start',draft=null,baseDay=null,lockScroll=false;
 const dateAtMidnight=date=>new Date(date.getFullYear(),date.getMonth(),date.getDate());
@@ -150,7 +148,7 @@ $('iosDone').addEventListener('click',()=>{
  const indexes=wheels.map(wheel=>Math.max(0,Math.min(
   wheel.querySelectorAll('.ios-wheel-option').length-1,Math.round(wheel.scrollTop/ROW)
  )));
- draft=closestAllowed(selectedDate(indexes[0],indexes[1],indexes[2]*15));
+ draft=closestAllowed(selectedDate(indexes[0],indexes[2],indexes[1]*15));
  draft=closestAllowed(draft);
  setChoice(editing,draft);
  if(editing==='start'){
@@ -186,7 +184,7 @@ function render(){
   const card=document.createElement('div');card.className='booking request-entry';
   const details=document.createElement('div');details.className='request-details';
   const name=document.createElement('strong');name.textContent=r.displayName||'חבר בית';
-  const range=document.createElement('small');range.textContent=dateOf(r.startAt).toLocaleString('he-IL')+' – '+(r.instantMode==='untilDone'&&r.status==='approved'?'עד שאסיים (יש לסיים ידנית)':dateOf(r.endAt).toLocaleString('he-IL'));
+  const range=document.createElement('small');range.textContent=dateOf(r.startAt).toLocaleString('he-IL')+' – '+dateOf(r.endAt).toLocaleString('he-IL')+(r.instantMode==='untilDone'&&r.status==='approved'?' (ניתן לסיים מוקדם)':'');
   const state=document.createElement('small');state.className='request-state '+r.status;
   state.textContent=({pending:'ממתינה לאישור',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה'})[r.status]||r.status;
   details.append(name,range,state);
@@ -253,12 +251,10 @@ async function startInstant(){
  const hid=selected.id,uid=currentUser.uid;
  if(!canInstant())throw Error('אין לך הרשאה לשימוש מיידי ברכב.');
  if(!navigator.onLine)throw Error('יש צורך בחיבור לאינטרנט כדי לתפוס את הרכב.');
- const mode=document.querySelector('input[name="instantMode"]:checked')?.value||'untilDone';
+ const mode='untilDone';
  const start=new Date();
- const chosenEnd=new Date(endInput.value);
- const end=mode==='untilDone'?new Date(start.getTime()+30*DAY_MS):chosenEnd;
- if(!Number.isFinite(end.getTime())||end.getTime()<=start.getTime()+SLOT_MS)throw Error('בחר שעת סיום מאוחרת בלפחות 15 דקות.');
- if(end.getTime()>start.getTime()+30*DAY_MS)throw Error('הזמנה מוגבלת ל־30 ימים.');
+ // Instant use always expires exactly 24 hours after it begins (not 30 days).
+ const end=new Date(start.getTime()+DAY_MS);
  const scheduleRef=doc(db,'houses',hid,'system','schedule');
  const bookingRef=doc(collection(db,'houses',hid,'bookingRequests'));
  const startAt=Timestamp.fromDate(start),endAt=Timestamp.fromDate(end);
@@ -359,8 +355,15 @@ form.addEventListener('submit',async e=>{
  if(end.getTime()-start.getTime()<SLOT_MS)return say('משך ההזמנה חייב להיות לפחות 15 דקות. למשל 09:00 עד 09:15.',true);
  if(end.getTime()-start.getTime()>30*86400000)return say('משך ההזמנה לא יכול לעלות על 30 ימים.',true);
  if(!navigator.onLine)return say('אין אינטרנט. הבקשה לא נשלחה; אפשר לנסות שוב כשהחיבור חוזר.',true);
- const submit=form.querySelector('button[type=submit]');submit.disabled=true;say('שולח את הבקשה ל־Firestore...');
+ // Do not let members request time already reserved by an approved booking,
+ // including the 24-hour instant-use window. A fresh server read avoids stale UI.
+ const submit=form.querySelector('button[type=submit]');submit.disabled=true;say('בודק זמינות ושולח בקשה...');
  try{
+  const latestSchedule=await getDoc(doc(db,'houses',houseId,'system','schedule'));
+  const reserved=(latestSchedule.exists()?latestSchedule.data().reservations||[]:[])
+   .filter(r=>r.endAt?.toMillis?.()>Date.now());
+  if(reserved.some(r=>overlaps(r,{startAt:Timestamp.fromDate(start),endAt:Timestamp.fromDate(end)})))
+   throw Error('הרכב משוריין בשעות האלה. אפשר להגיש בקשה רק לאחר סיום השריון.');
   const bookingData={
    createdBy:userId,displayName:(currentUser.displayName||currentUser.email||'חבר בית').slice(0,60),
    startAt:Timestamp.fromDate(start),endAt:Timestamp.fromDate(end),
