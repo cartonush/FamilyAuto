@@ -343,3 +343,27 @@ test('activity log is readable by house members but cannot be forged by clients'
   title:'forged',occurredAt:serverTimestamp()
  }));
 });
+
+
+test('notification outbox can be queued only for an existing booking in the correct status',async()=>{
+ const bid='n'.repeat(20),hid=HID,eventId=hid+'_'+bid+'_pending';
+ await env.withSecurityRulesDisabled(async ctx=>{
+  await setDoc(doc(ctx.firestore(),'houses',hid,'bookingRequests',bid),{
+   createdBy:'member',displayName:'Member',status:'pending',
+   startAt:Timestamp.fromDate(new Date(Date.now()+3600000)),
+   endAt:Timestamp.fromDate(new Date(Date.now()+7200000)),
+   createdAt:Timestamp.now(),note:''
+  });
+ });
+ const memberDb=env.authenticatedContext('member').firestore();
+ const outsiderDb=env.authenticatedContext('outsider').firestore();
+ const queued={houseId:hid,bookingId:bid,status:'pending',actorUid:'member',state:'queued',createdAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(memberDb,'notificationEvents',eventId),queued));
+ await assertFails(updateDoc(doc(memberDb,'notificationEvents',eventId),{state:'sent'}));
+ await assertFails(setDoc(doc(outsiderDb,'notificationEvents',hid+'_'+bid+'_approved'),{
+  ...queued,status:'approved',actorUid:'outsider'
+ }));
+ await assertFails(setDoc(doc(memberDb,'notificationEvents',hid+'_'+bid+'_approved'),{
+  ...queued,status:'approved'
+ }));
+});
