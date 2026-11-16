@@ -1,7 +1,9 @@
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import {getFirestore,collection,doc,setDoc,updateDoc,query,where,onSnapshot,serverTimestamp,arrayUnion,writeBatch} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+import {getFirestore,collection,doc,setDoc,updateDoc,query,where,onSnapshot,serverTimestamp,arrayUnion,writeBatch,getDocs} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 import {app} from './firebase-config.js';
+import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js';
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('homesRoot');
+const functions=getFunctions(app,'europe-west1');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let stopHouses=null,stopRequests=null,currentHouse=null,houses=[],user=null;
 root.innerHTML='<div class="section-title"><h2>הבתים שלי</h2><span class="pill">Firestore</span></div><p id="houseInfo">התחבר כדי לנהל בתים משותפים.</p><div id="houseControls" hidden><form id="createHouseForm"><label>שם בית חדש<input name="houseName" maxlength="25" required placeholder="לדוגמה: הבית שלנו"></label><button class="primary">יצירת בית</button></form><form id="joinHouseForm"><label>קוד הזמנה לבית<input name="houseCode" maxlength="32" minlength="32" required autocomplete="off" placeholder="הדבק קוד שקיבלת"></label><button>בקשת הצטרפות</button></form><div id="houseList"></div><div id="houseDetails"></div></div>';
@@ -11,6 +13,30 @@ function code(){const bytes=crypto.getRandomValues(new Uint8Array(16));return [.
 function render(){const list=$('houseList');list.replaceChildren();if(!houses.length){const p=document.createElement('p');p.textContent='אין לך עדיין בתים מאושרים.';list.append(p)}for(const h of houses){const b=document.createElement('button');b.textContent=h.name+(h.deletedAt?' (נמחק — ניתן לשחזור)':'')+(currentHouse===h.id?' ✓':'');b.className=currentHouse===h.id?'primary':'';b.onclick=()=>selectHouse(h.id);list.append(b)}if(currentHouse&&!houses.some(h=>h.id===currentHouse)){currentHouse=null;publishHouse(null);$('houseDetails').replaceChildren();if(stopRequests){stopRequests();stopRequests=null}}}
 function publishHouse(h){window.dispatchEvent(new CustomEvent('familyauto:house',{detail:h||null}))}
 function selectHouse(id){if(stopRequests){stopRequests();stopRequests=null}currentHouse=id;if(user)localStorage.setItem('familyauto-house-'+user.uid,id);render();const h=houses.find(h=>h.id===id);if(!h)return;publishHouse(h.deletedAt?null:h);const details=$('houseDetails');details.replaceChildren();const heading=document.createElement('h3');heading.textContent=h.name;const label=document.createElement('p');label.textContent='קוד הזמנה: '+h.id;const copy=document.createElement('button');copy.textContent='העתקת קוד';copy.onclick=()=>navigator.clipboard.writeText(h.id).then(()=>info('הקוד הועתק. אפשר לשלוח אותו לבן משפחה.')).catch(()=>info('לא ניתן להעתיק. אפשר להעתיק את הקוד ידנית.',true));details.append(heading,label,copy);if(h.ownerUid===user.uid){
+ if((h.memberIds||[]).length>1&&!h.deletedAt){
+  const transfer=document.createElement('div');transfer.className='house-deletion';
+  const title=document.createElement('h3');title.textContent='העברת ניהול הבית';
+  const description=document.createElement('p');description.className='muted';
+  description.textContent='לפני מחיקת החשבון שלך, יש לבחור מנהל חדש לכל בית שאתה מנהל.';
+  const chooser=document.createElement('select');chooser.setAttribute('aria-label','בחירת מנהל חדש');
+  for(const uid of h.memberIds.filter(uid=>uid!==user.uid)){
+   const option=document.createElement('option');option.value=uid;option.textContent='חבר בית '+uid.slice(0,8);chooser.append(option);
+  }
+  getDocs(collection(db,'houses',id,'memberSettings')).then(snapshot=>{
+   const names={};snapshot.forEach(d=>names[d.id]=d.data().displayName);
+   for(const option of chooser.options)option.textContent=names[option.value]||option.textContent;
+  }).catch(()=>{});
+  const button=document.createElement('button');button.type='button';button.textContent='העברת בעלות';button.className='primary';
+  button.onclick=async()=>{
+   const chosen=chooser.value;
+   if(!chosen||!confirm('להעביר את ניהול הבית ״'+h.name+'״ לחבר שנבחר? הפעולה תסיר ממך את הרשאות המנהל.'))return;
+   button.disabled=true;
+   try{await httpsCallable(functions,'transferHouseOwnership')({houseId:id,successorUid:chosen});info('ניהול הבית הועבר בהצלחה.')}
+   catch(e){info('העברת הבעלות נכשלה: '+readableError(e),true)}
+   finally{button.disabled=false}
+  };
+  transfer.append(title,description,chooser,button);details.append(transfer);
+ }
  const deletion=document.createElement('div');deletion.className='house-deletion';
  const deleteButton=document.createElement('button');deleteButton.type='button';deleteButton.className='danger-action';
  deleteButton.textContent=h.deletedAt?'שחזור הבית':'מחיקת בית';
