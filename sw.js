@@ -18,3 +18,34 @@ self.addEventListener('fetch',event=>{
    return response;
  }).catch(()=>caches.match(request)));
 });
+
+
+/* Background Web Push events delivered to this PWA service worker.
+   The sender uses data-only messages; the app decides which recipients are relevant. */
+self.addEventListener('push',event=>{
+ let payload={};
+ try{payload=event.data?.json()||{}}catch{payload={}}
+ const data=payload.data||payload;
+ const title=typeof data.title==='string'?data.title:'FamilyAuto';
+ const body=typeof data.body==='string'?data.body:'יש עדכון חדש על הרכב.';
+ const destination=data.destination==='calendar'?'#calendar':'#requests';
+ event.waitUntil(self.registration.showNotification(title,{
+  body,icon:'./icon.svg',badge:'./icon.svg',tag:data.eventId||'familyauto',
+  data:{destination}
+ }));
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ const destination=event.notification.data?.destination||'#requests';
+ const target=new URL('./'+destination,self.registration.scope).href;
+ event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async clients=>{
+  for(const client of clients){
+   if(client.url.startsWith(self.registration.scope)){
+    await client.focus();
+    if('navigate' in client)await client.navigate(target);
+    return;
+   }
+  }
+  return self.clients.openWindow(target);
+ }));
+});
