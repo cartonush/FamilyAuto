@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {instantUseEnd,INSTANT_HOLD_MS} from '../booking-time.mjs';
+import {instantUseEnd,nextClockEnd,INSTANT_HOLD_MS} from '../booking-time.mjs';
 
 test('untilDone reserves exactly 24 hours, not 30 days',()=>{
  const start=new Date('2026-11-16T19:22:00.000Z');
@@ -27,13 +27,21 @@ test('invalid modes are rejected',()=>{
  assert.throws(()=>instantUseEnd(new Date(),'wrong'),/Unknown/);
 });
 
-test('instant UI retains both modes and displays 24-hour explanation',()=>{
+test('instant home popup has two modes, hour/minute wheels and 24-hour fallback',()=>{
  const source=readFileSync(new URL('../firebase-requests.js',import.meta.url),'utf8');
- assert.match(source,/name="instantMode" value="untilDone" checked/);
- assert.match(source,/name="instantMode" value="fixed"/);
- assert.match(source,/instantUseEnd\(start,mode,chosenEnd\)/);
+ const nav=readFileSync(new URL('../navigation.js',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../styles.css',import.meta.url),'utf8');
+ assert.match(source,/id="instantChoiceDialog"/);
+ assert.match(source,/id="instantUntilDone"/);
+ assert.match(source,/id="instantFixed"/);
+ assert.match(source,/id="instantTimeFields" hidden/);
+ assert.match(source,/id="instantMinute"[\\s\\S]*id="instantHour"/);
+ assert.match(source,/const instantWheels=\\[instantMinute,instantHour\\]/);
+ assert.match(source,/instantUseEnd\\(start,mode,chosenEnd\\)/);
  assert.match(source,/ל־24 שעות/);
- assert.doesNotMatch(source,/חסימה זמנית של עד 30 יום/);
+ assert.match(source,/window.addEventListener\\('familyauto:instant-open',openInstantDialog\\)/);
+ assert.doesNotMatch(nav,/navigate\\('requests'\\);\\s*window.dispatchEvent\\(new Event\\('familyauto:instant-open'\\)\\)/);
+ assert.match(css,/instant-clock-wheels\\{grid-template-columns:minmax\\(0,1fr\\) minmax\\(0,1fr\\);direction:rtl\\}/);
 });
 
 test('Hebrew wheel order is day, minute, hour and matches submitted values',()=>{
@@ -44,4 +52,30 @@ test('Hebrew wheel order is day, minute, hour and matches submitted values',()=>
  assert.ok(day>=0&&minute>day&&hour>minute);
  assert.match(source,/const wheels=\[dayWheel,minuteWheel,hourWheel\]/);
  assert.match(source,/selectedDate\(indexes\[0\],indexes\[2\],indexes\[1\]\*15\)/);
+});
+
+test('selected end time in past today rolls to tomorrow',()=>{
+ const start=new Date(2026,10,16,21,22);
+ const end=nextClockEnd(start,20,45);
+ assert.equal(end.getDate(),17);
+ assert.equal(end.getHours(),20);
+ assert.equal(end.getMinutes(),45);
+});
+
+test('selected future clock time stays today',()=>{
+ const start=new Date(2026,10,16,9,12);
+ const end=nextClockEnd(start,10,30);
+ assert.equal(end.getDate(),16);
+ assert.equal(end.getHours(),10);
+ assert.equal(end.getMinutes(),30);
+});
+
+test('selection within 15 minutes rolls to tomorrow',()=>{
+ const start=new Date(2026,10,16,10,1);
+ const end=nextClockEnd(start,10,15);
+ assert.equal(end.getDate(),17);
+});
+
+test('minutes must be in 15-minute increments',()=>{
+ assert.throws(()=>nextClockEnd(new Date(),12,17),/Invalid/);
 });
