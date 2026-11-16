@@ -169,3 +169,20 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 .settings-logout-area button{margin-top:0}
 :root.dark .guest-auth-card{border-color:#405670}
 :root.dark .settings-logout-area{border-color:#405670}
+
+/* FamilyAuto 2.0: instant-use end-time sheet, launched from the home page */
+.instant-choice-dialog{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.instant-choice-question{font-size:19px;font-weight:700;text-align:center;margin:18px 0 12px}
+.instant-choice-buttons{display:grid;gap:10px;margin-bottom:14px}
+.instant-choice-option{display:block;width:100%;padding:14px 16px;text-align:right;direction:rtl;background:#e9eef6;border:2px solid transparent;border-radius:14px;color:#15263e;font-size:16px;font-weight:700}
+.instant-choice-option small{display:block;font-size:13px;font-weight:400;margin-top:4px;line-height:1.5}
+.instant-choice-option[aria-pressed="true"]{border-color:#246ac4;background:#dbeafe}
+.instant-choice-hint{text-align:center;font-size:13px;margin:14px 0 4px;color:#5e7087}
+.instant-clock-wheels{grid-template-columns:minmax(0,1fr) minmax(0,1fr);direction:rtl}
+.instant-clock-wheels .ios-wheel{direction:ltr}
+.instant-end-preview{font-size:15px;font-weight:700;text-align:center;margin:14px 0 16px}
+.instant-choice-error{color:#b3261e;text-align:center;margin:8px 0}
+.instant-choice-dialog .primary.wide{width:100%}
+:root.dark .instant-choice-option{background:#26384d;color:#f2f6ff}
+:root.dark .instant-choice-option[aria-pressed="true"]{border-color:#77b0ff;background:#24466e}
+:root.dark .instant-choice-hint{color:#a9b9cc}
