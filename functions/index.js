@@ -65,3 +65,5 @@ exports.notifyBookingChange=onDocumentWritten(
   }
  }
 );
+
+Object.assign(exports,require('./account.js'));
