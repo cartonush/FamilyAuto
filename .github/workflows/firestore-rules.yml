@@ -39,4 +39,5 @@ jobs:
           node --check firebase-activity.js
           node --check functions/index.js
           node --check functions/account.js
+          node --check functions/activity.js
       - run: npm run test:rules
