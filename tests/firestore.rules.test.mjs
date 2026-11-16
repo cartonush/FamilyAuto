@@ -324,3 +324,22 @@ test('push tokens reject malformed registration and cannot be read by strangers'
  const outsider=env.authenticatedContext('outsider').firestore();
  await assertFails(getDoc(doc(outsider,'users','push-user','pushTokens','a'.repeat(64))));
 });
+
+
+test('activity log is readable by house members but cannot be forged by clients',async()=>{
+ const refPath=['houses',HID,'activity','audit-event-1'];
+ await env.withSecurityRulesDisabled(async ctx=>{
+  await setDoc(doc(ctx.firestore(),...refPath),{
+   bookingId:'booking-1',eventType:'approved',title:'הרכב הוזמן',
+   displayName:'Member',createdBy:'member',
+   startAt:Timestamp.now(),endAt:Timestamp.now(),occurredAt:Timestamp.now()
+  });
+ });
+ const memberDb=env.authenticatedContext('member').firestore();
+ const outsiderDb=env.authenticatedContext('outsider').firestore();
+ await assertSucceeds(getDoc(doc(memberDb,...refPath)));
+ await assertFails(getDoc(doc(outsiderDb,...refPath)));
+ await assertFails(setDoc(doc(memberDb,'houses',HID,'activity','forged-event'),{
+  title:'forged',occurredAt:serverTimestamp()
+ }));
+});
