@@ -1,6 +1,6 @@
-const CACHE='familyauto-shell-v115';
-const VERSION='1.15';
-const ASSETS=['./','./index.html','./styles.css?v=1.15','./app.js?v=1.15','./navigation.js?v=1.15','./firebase-auth.js?v=1.15','./firebase-config.js','./firebase-profile.js?v=1.15','./firebase-members.js?v=1.15','./firebase-requests.js?v=1.15','./firebase-homes.js?v=1.15','./manifest.webmanifest','./icon.svg'];
+const CACHE='familyauto-shell-v2-preview';
+const VERSION='2.0-preview';
+const ASSETS=['./','./index.html','./styles.css?v=2.0-preview','./app.js?v=2.0-preview','./navigation.js?v=2.0-preview','./firebase-auth.js?v=2.0-preview','./firebase-config.js','./firebase-profile.js?v=2.0-preview','./firebase-members.js?v=2.0-preview','./firebase-requests.js?v=2.0-preview','./firebase-homes.js?v=2.0-preview','./firebase-push.js?v=2.0-preview','./firebase-activity.js?v=2.0-preview','./firebase-notification-queue.js','./push-config.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
@@ -17,4 +17,35 @@ self.addEventListener('fetch',event=>{
    if(response.ok){const clone=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,clone)))}
    return response;
  }).catch(()=>caches.match(request)));
+});
+
+
+/* Background Web Push events delivered to this PWA service worker.
+   The sender uses data-only messages; the app decides which recipients are relevant. */
+self.addEventListener('push',event=>{
+ let payload={};
+ try{payload=event.data?.json()||{}}catch{payload={}}
+ const data=payload.data||payload;
+ const title=typeof data.title==='string'?data.title:'FamilyAuto';
+ const body=typeof data.body==='string'?data.body:'יש עדכון חדש על הרכב.';
+ const destination=data.destination==='calendar'?'#calendar':'#requests';
+ event.waitUntil(self.registration.showNotification(title,{
+  body,icon:'./icon.svg',badge:'./icon.svg',tag:data.eventId||'familyauto',
+  data:{destination}
+ }));
+});
+self.addEventListener('notificationclick',event=>{
+ event.notification.close();
+ const destination=event.notification.data?.destination||'#requests';
+ const target=new URL('./'+destination,self.registration.scope).href;
+ event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async clients=>{
+  for(const client of clients){
+   if(client.url.startsWith(self.registration.scope)){
+    await client.focus();
+    if('navigate' in client)await client.navigate(target);
+    return;
+   }
+  }
+  return self.clients.openWindow(target);
+ }));
 });

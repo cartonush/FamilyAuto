@@ -6,6 +6,24 @@ on:
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'functions/**'
+      - 'firebase-push.js'
+      - 'firebase-activity.js'
+      - 'firebase-homes.js'
+      - 'firebase-auth.js'
+      - 'push-config.js'
+      - 'firebase-notification-queue.js'
+      - 'cloudflare/**'
+      - '.github/workflows/firestore-rules.yml'
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'tests/**'
+      - 'package.json'
+      - 'functions/**'
+      - 'firebase-*.js'
+      - 'push-config.js'
+      - 'cloudflare/**'
       - '.github/workflows/firestore-rules.yml'
   workflow_dispatch:
 jobs:
@@ -29,4 +47,14 @@ jobs:
           node --check firebase-homes.js
           node --check firebase-auth.js
           node --check tests/firestore.rules.test.mjs
+          node --check firebase-push.js
+          node --check firebase-activity.js
+          node --check functions/index.js
+          node --check functions/account.js
+          node --check functions/activity.js
+          node --check firebase-notification-queue.js
+          node --check cloudflare/worker.js
+          node --check tests/cloudflare.worker.test.mjs
+      - name: Cloudflare Worker smoke tests
+        run: node --test tests/cloudflare.worker.test.mjs
       - run: npm run test:rules

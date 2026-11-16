@@ -1,0 +1,11 @@
+name = "familyauto"
+main = "worker.js"
+workers_dev = true
+compatibility_date = "2026-11-01"
+
+[triggers]
+crons = ["* * * * *"]
+
+# The secret FIREBASE_SERVICE_ACCOUNT_JSON must be set in Cloudflare
+# Workers > Settings > Variables and Secrets (Encrypted secret).
+# Never place Firebase service-account JSON in this file or GitHub.

@@ -1,5 +1,5 @@
 const mainPages=['home','calendar','requests','settings'];
-const subs=['profile','houses','members','appearance','account','preview'];
+const subs=['profile','houses','members','activity','appearance','account','preview'];
 let activePage='home',activeSub=null,activeHouse=null,requestItems=[],reservations=[],myUid=null,selectedDate=new Date(),calendarCursor=new Date();
 const $=id=>document.getElementById(id);
 // Navigation must not depend on Firebase loading: settings always works offline.
