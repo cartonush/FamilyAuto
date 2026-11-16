@@ -20,7 +20,7 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 - Added background and foreground notification handlers in existing PWA service worker.
 - Added Firebase Cloud Function routing: pending -> owner only; approved -> household members except approving actor; rejected -> requester; cancelled/ended -> relevant members.
 - Added callable Cloud Functions for owner transfer, sole-member house deletion and guarded account deletion.
-- Added simple booking history page using current shared Firestore booking records.
+- Added immutable Cloud Function activity events for request creation, approval, rejection, cancellation and end-of-use; added activity history page with fallback for bookings created before v2.
 - Added syntax checks for new JavaScript and rules tests for private push token storage.
 
 ## Required before live push test
@@ -32,7 +32,7 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 
 ## Required before 2.0 release
 - Implement server-authoritative reservation operations for instant, direct, owner approval and cancellation. Client-only overlap checks are not a sufficient security boundary.
-- Add immutable event history with action timestamps for rejection/cancellation, rather than only showing each booking's latest status.
+- Validate activity event history on real Firebase devices, including timestamps and historic records created before v2.
 - Confirm account deletion handles pending join requests in other houses and anonymizes all historical personal fields, including future activity records.
 - Test owner transfer, permanent house deletion, account deletion and password reset end-to-end.
 - Verify new Cloud Functions in emulator and on test accounts.
