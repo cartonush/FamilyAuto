@@ -70,6 +70,12 @@ exports.deleteMyAccount=onCall(options,async request=>{
    for(const item of bookings.docs.slice(i,i+400))batch.update(item.ref,{displayName:'משתמש שנמחק'});
    await batch.commit();
   }
+  const activities=await house.ref.collection('activity').where('createdBy','==',uid).get();
+  for(let i=0;i<activities.docs.length;i+=400){
+   const batch=db.batch();
+   for(const item of activities.docs.slice(i,i+400))batch.update(item.ref,{displayName:'משתמש שנמחק'});
+   await batch.commit();
+  }
  }
  await db.doc('profiles/'+uid).delete();
  await db.recursiveDelete(db.collection('users').doc(uid));
