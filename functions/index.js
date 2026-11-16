@@ -31,8 +31,9 @@ exports.notifyBookingChange=onDocumentWritten(
   let recipients=[];
   if(message.type==='pending')recipients=[house.ownerUid];
   else if(message.type==='rejected')recipients=[after.createdBy];
+  else if(message.type==='approved')recipients=members.filter(uid=>uid!==after.approvedBy);
   else recipients=members.filter(uid=>uid!==after.createdBy&&uid!==after.approvedBy);
-  recipients=[...new Set(recipients)].filter(uid=>typeof uid==='string'&&uid.length>0);
+  recipients=[...new Set(recipients)].filter(uid=>typeof uid==='string'&&uid.length>0&&!(message.type==='pending'&&uid===after.createdBy));
   if(!recipients.length)return;
 
   // Claim this event once to prevent duplicate notifications on trigger retries.
