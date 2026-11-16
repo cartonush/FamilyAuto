@@ -18,17 +18,21 @@ Deferred: offline queue, multiple cars per house, expanded automated browser tes
 - Removed stale 1.9 label from booking screen.
 - Added push opt-in controls in Account Settings, per-device FCM token storage and private Firestore rules.
 - Added background and foreground notification handlers in existing PWA service worker.
-- Added Firebase Cloud Function routing: pending -> owner only; approved -> household members except approving actor; rejected -> requester; cancelled/ended -> relevant members.
+- Added Cloudflare Worker notification routing and Firebase Auth verification: pending -> owner only; approved -> household members except approving actor; rejected -> requester; cancelled/ended -> relevant members. The Worker reads a Firestore notification outbox, dispatches via FCM and has a one-minute scheduled retry. The GitHub Pages PWA remains on its original URL.
+- Added a configured Worker endpoint (`https://familyauto.roisuissa6.workers.dev`) to the v2 client queue. Cloudflare reports a Ready deployment, but authenticated push delivery has not yet been tested.
+- Kept Firebase Cloud Functions implementations for account ownership transfer/deletion and activity logging as separate, not-yet-deployable items on Spark.
 - Added callable Cloud Functions for owner transfer, sole-member house deletion and guarded account deletion.
 - Added immutable Cloud Function activity events for request creation, approval, rejection, cancellation and end-of-use; added activity history page with fallback for bookings created before v2.
 - Added syntax checks for new JavaScript and rules tests for private push token storage.
 
 ## Required before live push test
-1. Confirm Firebase project `familyauto-s` is on a plan that permits Cloud Functions deployment. Cloud Functions generally requires Blaze billing; do not enable billing without user approval.
-2. Firebase Console -> Project settings -> Cloud Messaging -> Web Push certificates: create a Web Push key pair. Copy only the **public** VAPID key into `push-config.js`.
-3. Deploy Cloud Functions and Firestore rules from the v2 branch with appropriate Firebase CLI access. GitHub Pages cannot run backend functions.
-4. Test on Android/desktop first. On iPhone, install the PWA via Safari -> Add to Home Screen, launch from the Home Screen and grant notifications. Confirm FCM supports this browser/runtime in a live device test; if not, evaluate a standards-based Web Push alternative.
-5. Verify notification recipients with all four test accounts and at least two devices. Test foreground, background, denied permission, logout and multiple homes.
+1. Firebase project `familyauto-s` remains on Spark; Cloudflare Worker is the selected free notification backend. The public VAPID key is configured in `push-config.js`.
+2. Cloudflare Worker is deployed at `https://familyauto.roisuissa6.workers.dev`. The user configured a service-account JSON as a Cloudflare runtime Secret. Verify `/health`, authenticated Firestore/FCM permissions, scheduled cron runs and notification-delivery logs without exposing credentials.
+3. Run and pass CI security-rule and Worker smoke tests. Deploy v2 Firestore rules carefully, checking v1.15 compatibility before any production rules change.
+4. The v2 PWA client is not on GitHub Pages `main` yet. Test push in a controlled release/preview with authenticated test users; never claim live push works from Cloudflare's Ready status alone.
+5. On iPhone, install the PWA via Safari -> Add to Home Screen, launch from the Home Screen and grant notifications. Confirm FCM supports this browser/runtime in a live device test; if not, evaluate a standards-based Web Push alternative.
+6. Verify notification recipients with all four test accounts and at least two devices. Test foreground, background, denied permission, logout and multiple homes.
+7. Account ownership/deletion and activity logging still use undeployed Firebase Cloud Functions; either implement and validate a free secure backend alternative or obtain explicit consent for Blaze billing. Do not silently deploy billing-dependent features.
 
 ## Required before 2.0 release
 - Implement server-authoritative reservation operations for instant, direct, owner approval and cancellation. Client-only overlap checks are not a sufficient security boundary.
