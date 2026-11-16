@@ -4,6 +4,17 @@ import {app} from './firebase-config.js';
 import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js';
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('homesRoot');
 const functions=getFunctions(app,'europe-west1');
+const WORKER_URL='https://familyauto.roisuissa6.workers.dev';
+async function transferOwnershipOnWorker(houseId,successorUid){
+ const token=await auth.currentUser.getIdToken();
+ const response=await fetch(WORKER_URL+'/account/transfer',{
+  method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+  body:JSON.stringify({houseId,successorUid})
+ });
+ if(!response.ok){const result=await response.json().catch(()=>({}));throw Error(result.error||'HTTP '+response.status)}
+ return response.json();
+}
+
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let stopHouses=null,stopRequests=null,currentHouse=null,houses=[],user=null;
 root.innerHTML='<div class="section-title"><h2>הבתים שלי</h2><span class="pill">Firestore</span></div><p id="houseInfo">התחבר כדי לנהל בתים משותפים.</p><div id="houseControls" hidden><form id="createHouseForm"><label>שם בית חדש<input name="houseName" maxlength="25" required placeholder="לדוגמה: הבית שלנו"></label><button class="primary">יצירת בית</button></form><form id="joinHouseForm"><label>קוד הזמנה לבית<input name="houseCode" maxlength="32" minlength="32" required autocomplete="off" placeholder="הדבק קוד שקיבלת"></label><button>בקשת הצטרפות</button></form><div id="houseList"></div><div id="houseDetails"></div></div>';
@@ -31,7 +42,7 @@ function selectHouse(id){if(stopRequests){stopRequests();stopRequests=null}curre
    const chosen=chooser.value;
    if(!chosen||!confirm('להעביר את ניהול הבית ״'+h.name+'״ לחבר שנבחר? הפעולה תסיר ממך את הרשאות המנהל.'))return;
    button.disabled=true;
-   try{await httpsCallable(functions,'transferHouseOwnership')({houseId:id,successorUid:chosen});info('ניהול הבית הועבר בהצלחה.')}
+   try{await transferOwnershipOnWorker(id,chosen);info('ניהול הבית הועבר בהצלחה.')}
    catch(e){info('העברת הבעלות נכשלה: '+readableError(e),true)}
    finally{button.disabled=false}
   };
