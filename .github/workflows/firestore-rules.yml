@@ -43,6 +43,8 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check firebase-requests.js
+          node --check booking-time.mjs
+          node --check tests/booking-time.test.mjs
           node --check firebase-members.js
           node --check firebase-homes.js
           node --check firebase-auth.js
@@ -55,6 +57,8 @@ jobs:
           node --check firebase-notification-queue.js
           node --check cloudflare/worker.js
           node --check tests/cloudflare.worker.test.mjs
+      - name: Booking duration and RTL picker regression tests
+        run: node --test tests/booking-time.test.mjs
       - name: Cloudflare Worker smoke tests
         run: node --test tests/cloudflare.worker.test.mjs
       - run: npm run test:rules
