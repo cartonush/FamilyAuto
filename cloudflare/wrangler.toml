@@ -1,4 +1,4 @@
-name = "familyauto-push"
+name = "familyauto"
 main = "worker.js"
 workers_dev = true
 compatibility_date = "2026-11-01"
