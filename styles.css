@@ -186,3 +186,6 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 :root.dark .instant-choice-option{background:#26384d;color:#f2f6ff}
 :root.dark .instant-choice-option[aria-pressed="true"]{border-color:#77b0ff;background:#24466e}
 :root.dark .instant-choice-hint{color:#a9b9cc}
+
+/* Keep the confirmation button reachable on smaller iPhones. */
+.instant-choice-dialog{max-height:90dvh;overflow-y:auto;overscroll-behavior:contain}
