@@ -67,3 +67,5 @@ exports.notifyBookingChange=onDocumentWritten(
 );
 
 Object.assign(exports,require('./account.js'));
+
+Object.assign(exports,require('./activity.js'));
