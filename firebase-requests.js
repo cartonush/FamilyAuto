@@ -1,6 +1,6 @@
 import {app} from './firebase-config.js';
 import {queueBookingNotification} from './firebase-notification-queue.js';
-import {instantUseEnd} from './booking-time.mjs';
+import {instantUseEnd,nextClockEnd} from './booking-time.mjs';
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
 import {getFirestore,collection,doc,getDoc,onSnapshot,addDoc,updateDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 
@@ -25,10 +25,26 @@ root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><sp
 </div></div>
 <p id="iosPickerHint" class="ios-picker-hint" aria-live="polite"></p>
 </dialog>
+<dialog id="instantChoiceDialog" class="ios-picker instant-choice-dialog" aria-labelledby="instantChoiceTitle">
+<div class="ios-picker-head"><button type="button" id="instantChoiceCancel">ביטול</button><strong id="instantChoiceTitle">הרכב אצלי</strong><span aria-hidden="true"></span></div>
+<p class="instant-choice-question">רוצה לבחור שעת סיום?</p>
+<div class="instant-choice-buttons">
+<button type="button" id="instantUntilDone" class="instant-choice-option" aria-pressed="true">לא, עד שאסיים <small>שריון ל־24 שעות, עם אפשרות לסיים מוקדם</small></button>
+<button type="button" id="instantFixed" class="instant-choice-option" aria-pressed="false">כן, אבחר שעת סיום <small>בחירת שעה ודקות בקפיצות של רבע שעה</small></button>
+</div>
+<div id="instantTimeFields" hidden>
+<p class="instant-choice-hint">בחר שעת סיום (אם השעה חלפה היום, היא תחול מחר)</p>
+<div class="ios-wheel-frame" aria-label="בחירת שעת סיום">
+<div class="ios-wheel-highlight" aria-hidden="true"></div><div class="ios-wheel-fade" aria-hidden="true"></div>
+<div class="ios-wheels instant-clock-wheels">
+<div class="ios-wheel" id="instantMinute" role="listbox" aria-label="דקות"></div>
+<div class="ios-wheel" id="instantHour" role="listbox" aria-label="שעה"></div>
+</div></div></div>
+<p id="instantEndPreview" class="instant-end-preview" aria-live="polite"></p>
+<p id="instantChoiceError" class="instant-choice-error" role="alert" hidden></p>
+<button type="button" class="primary wide" id="instantConfirm">אישור — הרכב אצלי</button>
+</dialog>
 <section id="instantPanel" class="instant-panel" hidden><h3>הרכב אצלי</h3><p>שימוש מיידי ברכב, בהתאם להרשאה שבעל הבית העניק לך.</p>
-<label class="instant-option"><input type="radio" name="instantMode" value="untilDone" checked> עד שאני מסיים — אסיים ידנית באפליקציה</label>
-<label class="instant-option"><input type="radio" name="instantMode" value="fixed"> עד שעת הסיום שבחרתי למעלה</label>
-<p class="muted">במצב ״עד שאני מסיים״ הרכב משוריין ל־24 שעות בלבד מרגע הלחיצה, ולא ל־30 יום. אפשר ללחוץ על ״סיימתי״ מוקדם יותר כדי לשחרר אותו. במצב ״עד שעת הסיום״ השריון מסתיים בשעה שנבחרה. בקשות החופפות לשריון לא יתאפשרו.</p>
 <button type="button" class="primary wide" id="instantSubmit">הרכב אצלי — התחל שימוש</button></section><div id="requestList"></div>
 <p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
@@ -249,14 +265,12 @@ async function cancelApproved(record){
  });
  await queueBookingNotification(hid,record.id,'cancelled');
 }
-async function startInstant(){
+async function startInstant(mode='untilDone',chosenEnd=null){
  if(!selected||!currentUser)throw Error('בחר בית והתחבר.');
  const hid=selected.id,uid=currentUser.uid;
  if(!canInstant())throw Error('אין לך הרשאה לשימוש מיידי ברכב.');
  if(!navigator.onLine)throw Error('יש צורך בחיבור לאינטרנט כדי לתפוס את הרכב.');
- const mode=document.querySelector('input[name="instantMode"]:checked')?.value||'untilDone';
  const start=new Date();
- const chosenEnd=new Date(endInput.value);
  // Open-ended use expires after 24 hours, rather than blocking 30 days.
  const end=instantUseEnd(start,mode,chosenEnd);
  if(!Number.isFinite(end.getTime())||end.getTime()<=start.getTime()+SLOT_MS)
@@ -311,16 +325,105 @@ function updateInstant(){
  $('instantPanel').hidden=!canInstant();
  window.dispatchEvent(new CustomEvent('familyauto:instant-permission',{detail:canInstant()}));
 }
-$('instantSubmit').addEventListener('click',()=>perform($('instantSubmit'),startInstant));
+$('instantSubmit').addEventListener('click',openInstantDialog);
 window.addEventListener('familyauto:permissions',e=>{
  if(!e.detail?.houseId)return;
  permissionCache[e.detail.houseId]=e.detail.settings||{};
  if(e.detail.houseId!==selected?.id)return;
  permissions=permissionCache[selected.id];updateInstant();updateBookingMode()
 });
-window.addEventListener('familyauto:instant-open',()=>{
- if(!canInstant())return;
- $('instantPanel').scrollIntoView({behavior:'smooth',block:'start'});
+window.addEventListener('familyauto:instant-open',openInstantDialog);
+// The home-page shortcut opens this bottom sheet directly; it never navigates
+// to Requests. The minute wheel is first in RTL (right), the hour wheel second
+// (left). The two wheels reuse the booking picker dimensions and 15-minute slots.
+const instantDialog=$('instantChoiceDialog');
+const instantHour=$('instantHour'),instantMinute=$('instantMinute');
+const instantWheels=[instantMinute,instantHour];
+let instantMode='untilDone',instantDraft=null,instantLock=false,instantSubmitting=false;
+function readInstantClock(){
+ const indexes=instantWheels.map(w=>Math.max(0,Math.min(
+  w.querySelectorAll('.ios-wheel-option').length-1,Math.round(w.scrollTop/ROW))));
+ return {minute:indexes[0]*15,hour:indexes[1]};
+}
+function updateInstantPreview(){
+ if(!instantDialog.open||instantSubmitting)return;
+ const now=new Date();
+ let end;
+ if(instantMode==='fixed'){
+  const {hour,minute}=readInstantClock();
+  end=nextClockEnd(now,hour,minute);
+ }else end=instantUseEnd(now,'untilDone');
+ instantDraft=end;
+ $('instantEndPreview').textContent='סיום השריון: '+dateFormatter.format(end);
+ for(const w of instantWheels){
+  const selectedIndex=w===instantHour?end.getHours():end.getMinutes()/15;
+  w.querySelectorAll('.ios-wheel-option').forEach((el,i)=>{
+   el.classList.toggle('ios-wheel-selected',i===selectedIndex);
+   el.setAttribute('aria-selected',String(i===selectedIndex));
+  });
+ }
+}
+function setInstantMode(mode){
+ instantMode=mode;
+ $('instantUntilDone').setAttribute('aria-pressed',String(mode==='untilDone'));
+ $('instantFixed').setAttribute('aria-pressed',String(mode==='fixed'));
+ $('instantTimeFields').hidden=mode!=='fixed';
+ if(mode==='fixed'){
+  instantLock=true;
+  const next=nextQuarter();
+  scrollWheelTo(instantHour,next.getHours());
+  scrollWheelTo(instantMinute,next.getMinutes()/15);
+  requestAnimationFrame(()=>{instantLock=false;updateInstantPreview()});
+ }else updateInstantPreview();
+}
+function openInstantDialog(){
+ if(!canInstant()||instantDialog.open||instantSubmitting)return;
+ $('instantChoiceError').hidden=true;
+ instantWheels.forEach(w=>{
+  w.replaceChildren();
+  const spacer=document.createElement('div');spacer.className='ios-wheel-spacer';spacer.setAttribute('aria-hidden','true');
+  w.append(spacer);
+  const values=w===instantHour?Array.from({length:24},(_,i)=>i):[0,15,30,45];
+  for(const [i,n] of values.entries()){
+   const option=document.createElement('div');option.className='ios-wheel-option';
+   option.textContent=pad(n);option.setAttribute('role','option');
+   option.addEventListener('click',()=>scrollWheelTo(w,i,'smooth'));
+   w.append(option);
+  }
+  w.append(spacer.cloneNode());
+ });
+ instantDialog.showModal();
+ setInstantMode('untilDone');
+}
+$('instantUntilDone').addEventListener('click',()=>setInstantMode('untilDone'));
+$('instantFixed').addEventListener('click',()=>setInstantMode('fixed'));
+$('instantChoiceCancel').addEventListener('click',()=>instantDialog.close());
+instantDialog.addEventListener('click',e=>{if(e.target===instantDialog&&!instantSubmitting)instantDialog.close()});
+instantDialog.addEventListener('cancel',e=>{if(instantSubmitting)e.preventDefault()});
+for(const wheel of instantWheels){
+ let settleTimer;
+ wheel.addEventListener('scroll',()=>{
+  if(instantLock||!instantDialog.open||instantMode!=='fixed')return;
+  clearTimeout(settleTimer);
+  settleTimer=setTimeout(updateInstantPreview,120);
+ },{passive:true});
+}
+$('instantConfirm').addEventListener('click',async()=>{
+ if(instantSubmitting||!canInstant())return;
+ const button=$('instantConfirm');
+ const error=$('instantChoiceError');
+ error.hidden=true;
+ const mode=instantMode;
+ const chosen=mode==='fixed'?nextClockEnd(new Date(),readInstantClock().hour,readInstantClock().minute):null;
+ instantSubmitting=true;button.disabled=true;
+ try{
+  await startInstant(mode,chosen);
+  instantDialog.close();
+  say('הרכב שוריין בהצלחה עד '+dateFormatter.format(chosen||instantUseEnd(new Date(),'untilDone')));
+ }catch(e){
+  error.textContent='לא ניתן לשריין: '+friendlyError(e);
+  error.hidden=false;
+ }finally{instantSubmitting=false;button.disabled=false}
 });
 function clear(){
  ++epoch;
