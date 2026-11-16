@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import worker,{recordActivity} from '../cloudflare/worker.js';
+import worker,{recordActivity,transferOwnership} from '../cloudflare/worker.js';
 
 test('Cloudflare Worker health endpoint does not require secrets',async()=>{
  const response=await worker.fetch(new Request('https://example.workers.dev/health'),{});
@@ -70,5 +70,39 @@ test('Cloudflare activity recorder fails closed on Firestore write errors',async
   await assert.rejects(()=>recordActivity({name:'notificationEvents/'+hid+'_'+bid+'_pending',fields:{
    houseId:{stringValue:hid},bookingId:{stringValue:bid},status:{stringValue:'pending'},actorUid:{stringValue:'user'}
   }},{fields:{createdBy:{stringValue:'user'}}},'fake-oauth'),/Firestore activity 403/);
+ }finally{globalThis.fetch=original}
+});
+
+test('Cloudflare ownership transfer is atomic and owner-authorized',async()=>{
+ const original=globalThis.fetch;
+ const hid='a'.repeat(32),successor='member2',commits=[];
+ globalThis.fetch=async(url,options={})=>{
+  if(String(url).includes('/documents/houses/'+hid)&&!String(url).includes(':commit'))
+   return new Response(JSON.stringify({
+    name:'projects/familyauto-s/databases/(default)/documents/houses/'+hid,
+    updateTime:'2026-11-16T10:00:00Z',
+    fields:{ownerUid:{stringValue:'owner1'},memberIds:{arrayValue:{values:[
+     {stringValue:'owner1'},{stringValue:successor}
+    ]}}}
+   }),{status:200});
+  if(String(url).endsWith(':commit')){
+   commits.push(JSON.parse(options.body));
+   return new Response(JSON.stringify({writeResults:[]}),{status:200});
+  }
+  throw Error('Unexpected URL '+url);
+ };
+ try{
+  const denied=await transferOwnership('not-owner',hid,successor,'fake-oauth');
+  assert.equal(denied.status,403);
+  assert.equal(commits.length,0);
+  const response=await transferOwnership('owner1',hid,successor,'fake-oauth');
+  assert.equal(response.status,200);
+  assert.deepEqual(await response.json(),{success:true});
+  assert.equal(commits.length,1);
+  assert.equal(commits[0].writes.length,2);
+  assert.equal(commits[0].writes[0].update.fields.ownerUid.stringValue,successor);
+  assert.equal(commits[0].writes[0].currentDocument.updateTime,'2026-11-16T10:00:00Z');
+  assert.equal(commits[0].writes[1].update.fields.role.stringValue,'user');
+  assert.equal(commits[0].writes[1].update.fields.canTakeCar.booleanValue,false);
  }finally{globalThis.fetch=original}
 });
