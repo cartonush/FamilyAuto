@@ -1,19 +1,11 @@
 import {app} from './firebase-config.js';
+import {formatHistoryMoment,formatHistoryRange} from './history-time.mjs';
 import {getFirestore,collection,query,orderBy,limit,onSnapshot} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 const db=getFirestore(app),root=document.getElementById('activityRoot');
 if(root){
  root.innerHTML='<div class="section-title"><h2>היסטוריית פעולות</h2><span class="pill">יומן הרכב</span></div><p id="activityStatus" class="muted">בחר בית כדי לראות את ההיסטוריה שלו.</p><div id="activityList"></div>';
  const status=document.getElementById('activityStatus'),list=document.getElementById('activityList');
  let houseId=null,records=[],events=[],stop=null;
- const asDate=value=>value?.toDate?value.toDate():value instanceof Date?value:null;
- const format=value=>{const date=asDate(value);return date?date.toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'}):'לא ידוע'};
- const formatCarRange=(startValue,endValue)=>{
-  const start=asDate(startValue),end=asDate(endValue);
-  if(!start||!end)return 'לא ידוע';
-  const time=date=>date.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-  if(start.toDateString()===end.toDateString())return start.toLocaleDateString('he-IL',{dateStyle:'short'})+' · '+time(start)+' עד '+time(end);
-  return format(start)+' עד '+format(end);
- };
  const entry=(title,lines)=>{
   const card=document.createElement('div');card.className='booking';
   const details=document.createElement('div');details.className='request-details';
@@ -23,6 +15,9 @@ if(root){
  };
  const render=()=>{
   list.replaceChildren();
+  const now=new Date();
+  const format=value=>formatHistoryMoment(value,now);
+  const formatCarRange=(start,end)=>formatHistoryRange(start,end,now);
   if(!houseId){status.textContent='בחר בית כדי לראות את ההיסטוריה שלו.';return}
   const loggedIds=new Set(events.map(e=>e.bookingId).filter(Boolean));
   const older=records.filter(r=>!loggedIds.has(r.id));
@@ -67,6 +62,7 @@ if(root){
   records=event.detail.records||[];render();
  });
  window.addEventListener('familyauto:signout',()=>{if(stop){stop();stop=null}houseId=null;records=[];events=[];render()});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
  // Auth and house selection can finish before this module loads.
  if(window.familyautoSelectedHouse)window.dispatchEvent(new CustomEvent('familyauto:house',{detail:window.familyautoSelectedHouse}));
 }
