@@ -45,4 +45,354 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 :root.dark .settings-link small{color:#a8b7c9}
 :root.dark .home-metrics>div,:root.dark .calendar-day,:root.dark .calendar-header button{background:#26384d;color:#f0f5fc}
 :root.dark .calendar-day.selected,:root.dark .bottom-nav .nav-item.active{background:#315f9a;color:#fff}
-:root.dark .neutral{background:#30465f;cyë}-¢G§²ÚîÆ­yÐ¥ô(¹ÍÑ…ÑÌ‘¥Ø°¹¡½µ”µµ•ÑÉ¥Ìù‘¥Ø°¹…±•¹‘…Èµ‘…äé¹½Ð ¹Í•±•Ñ•¤°¹¥½¸µ‰Ñ¸°¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¹í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(éÉ½½Ð¹‘…É¬€¹ÍÑ…ÑÌ‘¥Ø°éÉ½½Ð¹‘…É¬€¹¡½µ”µµ•ÑÉ¥Ìù‘¥Ø°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‘…äé¹½Ð ¹Í•±•Ñ•¤°éÉ½½Ð¹‘…É¬€¹¥½¸µ‰Ñ¸°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¹í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¹í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô)¥¹ÁÕÐ±Í•±•Ð°¹Ñ¥µ”µ™¥•±°¹Í±½ÐµÝ¡••°µÉ½ÜÍ•±•Ð°¹¥½ÌµÁ¥­•Éí‰…­É½Õ¹µ½±½ÈéÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬¥¹ÁÕÐ°éÉ½½Ð¹‘…É¬Í•±•Ð°éÉ½½Ð¹‘…É¬€¹Ñ¥µ”µ™¥•±°éÉ½½Ð¹‘…É¬€¹Í±½ÐµÝ¡••°µÉ½ÜÍ•±•Ð°éÉ½½Ð¹‘…É¬€¹¥½ÌµÁ¥­•Éí‰…­É½Õ¹µ½±½ÈéÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹ÁÉ¥µ…Éåí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(¹Ñ•áÐµ…Ñ¥½¸°¹‰…¬µ±¥¹­í½±½ÈéÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…±•¹‘…Èµ‘…ä¹Í•±•Ñ•‘í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‘…ä¹Í•±•Ñ•‘í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(É•Í•ÑÁÁ•…É…¹•½±½ÉÍí½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô((¼¨I½ÕÑ”É•µ…¥¹¥¹œ¹•ÕÑÉ…°¥¹Ñ•É™…”½±½ÉÌÑ¡É½Õ Ñ¡”ÕÍ•ÈÌÁ…±•ÑÑ”¸€¨¼(éÉ½½Ñì´µ…ÁÀµµÕÑ•èŒÜÄàÄäÝô(éÉ½½Ð¹‘…É­ì´µ…ÁÀµµÕÑ•è„áˆÝŒåô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•µí½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…±•¹‘…Èµ‘…åí½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…±•¹‘…ÈµÝ••­‘…ä°¹…±•¹‘…Èµ¡•…‘•È‰ÕÑÑ½¸°¹Í•ÑÑ¥¹Ìµ±¥¹¬ùˆ°¹Í±½Ðµ‘¥ÍÁ±…äùÍÁ…¸é±…ÍÐµ¡¥±°¹¥½Ìµ‘…Ñ”µ¡•ÙÉ½¹í½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(¹¹•ÕÑÉ…±í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¹½Ñ¥”°¹É•ÅÕ•ÍÐµÝ…É¹¥¹í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹±½¼°¹¥½¸µ‰Ñ¸°¹ÍÑ…ÑÌ‘¥Ø°¹¡½µ”µµ•ÑÉ¥Ìù‘¥Ø°¹…±•¹‘…Èµ‘…äé¹½Ð ¹Í•±•Ñ•¤°¹…±•¹‘…Èµ¡•…‘•È‰ÕÑÑ½¸°¹Í±½Ðµ¡•…‰ÕÑÑ½¸°¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ñí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”°¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù•í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬°¹Í•ÑÑ¥¹ÌµÍÕ‰Á…”°¹‰½½­¥¹œ°¹µ•µ‰•ÈµÉ½Ü°¹‘…Í¡‰½…Éµ…É°¹Õ•ÍÐµ…ÕÑ µ…É°¹Ñ¥µ”µ™¥•±°¹Í±½Ðµ‘¥ÍÁ±…ä°¹Í±½ÐµÝ¡••°µÉ½ÜÍ•±•Ð°¹¥½Ìµ‘…Ñ”µÑÉ¥•È°¹…ÁÁ•…É…¹”µÑ•áÐµ¡½¥”°¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸°¹…±•¹‘…Èµ‰½½­¥¹œµÉ½Ýí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹Í•ÑÑ¥¹ÌµÍÕ‰Á…•í‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¥ô)¥¹ÁÕÐ±Í•±•Ð°¹Ñ¥µ”µÁ¥­•ÉÌ¥¹ÁÕÐ°¹Ñ¥µ”µÁ¥­•ÉÌÍ•±•Ð°¹Í±½ÐµÝ¡••°µÉ½ÜÍ•±•Ð°¹¥½ÌµÁ¥­•Éí‰…­É½Õ¹µ½±½ÈéÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹¥½ÌµÁ¥­•Èµ¡•…‘í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ñí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹¥½ÌµÝ¡••°µ™…‘•í‰…­É½Õ¹é±¥¹•…ÈµÉ…‘¥•¹Ð¡Ñ¼‰½ÑÑ½´±Ù…È ´µ…ÁÀµÍÕÉ™…”¤€À”±ÑÉ…¹ÍÁ…É•¹Ð€ÌÐ”±ÑÉ…¹ÍÁ…É•¹Ð€ØØ”±Ù…È ´µ…ÁÀµÍÕÉ™…”¤€ÄÀÀ”¥ô(¹…Ñ¥½¹Ì‰ÕÑÑ½¸é¹½Ð ¹ÁÉ¥µ…Éä¤°¹…ÕÑ µÍÝ¥Ñ ‰ÕÑÑ½¸é¹½Ð ¹ÁÉ¥µ…Éä¤°±½½ÕÑ	Ñ¸°¹…±•¹‘…Èµ¡•…‘•È‰ÕÑÑ½¸°¹Í±½Ðµ¡•…‰ÕÑÑ½¸°¹ÁÕÍ µÝ•±½µ”µ…Ñ¥½¹Ì‰ÕÑÑ½¸é¹½Ð ¹ÁÉ¥µ…Éä¤°É•Í•ÑÁÁ•…É…¹•½±½ÉÌ°¹¹•ÕÑÉ…±í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹Ñ•áÐµ…Ñ¥½¸°¹‰…¬µ±¥¹¬°¹¥½ÌµÁ¥­•Èµ¡•…‰ÕÑÑ½¸°É•Í•ÑA…ÍÍÝ½É‘í½±½ÈéÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¥ô(¹¡•…‘•Èµ±½½ÕÑí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…±•¹‘…Èµ‘…ä¹Ñ½‘…åí½ÕÑ±¥¹”µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹…±•¹‘…Èµ±••¹°¹…±•¹‘…Èµ‰½½­¥¹œµ‘•Ñ…¥±ÌÍµ…±±í½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‰½½­¥¹œµÉ½Ýí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹…±•¹‘…Èµ‘½Ñí‰½É‘•Èµ½±½ÈèŒÀÀÁô(éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹ÌµÍÕ‰Á…”°éÉ½½Ð¹‘…É¬€¹‰½½­¥¹œ°éÉ½½Ð¹‘…É¬€¹µ•µ‰•ÈµÉ½Ü°éÉ½½Ð¹‘…É¬€¹‘…Í¡‰½…Éµ…É°éÉ½½Ð¹‘…É¬€¹Õ•ÍÐµ…ÕÑ µ…É°éÉ½½Ð¹‘…É¬€¹Ñ¥µ”µ™¥•±°éÉ½½Ð¹‘…É¬€¹Í±½Ðµ‘¥ÍÁ±…ä°éÉ½½Ð¹‘…É¬€¹Í±½ÐµÝ¡••°µÉ½ÜÍ•±•Ð°éÉ½½Ð¹‘…É¬€¹¥½Ìµ‘…Ñ”µÑÉ¥•È°éÉ½½Ð¹‘…É¬€¹…ÁÁ•…É…¹”µÑ•áÐµ¡½¥”°éÉ½½Ð¹‘…É¬€¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‰½½­¥¹œµÉ½Ýí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹ÌµÍÕ‰Á…”°éÉ½½Ð¹‘…É¬€¹‰½½­¥¹œ°éÉ½½Ð¹‘…É¬€¹µ•µ‰•ÈµÉ½Ü°éÉ½½Ð¹‘…É¬€¹Í±½ÐµÁ¥­•È°éÉ½½Ð¹‘…É¬€¹¥½ÌµÁ¥­•Éí‰…­É½Õ¹µ½±½ÈéÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬Íµ…±°°éÉ½½Ð¹‘…É¬€¹…±•¹‘…ÈµÝ••­‘…ä°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ¡•…‘•È‰ÕÑÑ½¸°éÉ½½Ð¹‘…É¬€¹Í±½Ðµ‘¥ÍÁ±…äùÍÁ…¸é±…ÍÐµ¡¥±°éÉ½½Ð¹‘…É¬€¹¥½Ìµ‘…Ñ”µ¡•ÙÉ½¸°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ±••¹°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‰½½­¥¹œµ‘•Ñ…¥±ÌÍµ…±±í½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(éÉ½½Ð¹‘…É¬€¹ÍÑ…ÑÌ‘¥Ø°éÉ½½Ð¹‘…É¬€¹¡½µ”µµ•ÑÉ¥Ìù‘¥Ø°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‘…äé¹½Ð ¹Í•±•Ñ•¤°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ¡•…‘•È‰ÕÑÑ½¸°éÉ½½Ð¹‘…É¬€¹Í±½Ðµ¡•…‰ÕÑÑ½¸°éÉ½½Ð¹‘…É¬€¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ð°éÉ½½Ð¹‘…É¬€¹¥¹ÍÑ…¹ÐµÁ…¹•°°éÉ½½Ð¹‘…É¬€¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¸°éÉ½½Ð¹‘…É¬€¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰uí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹Í±½ÐµÁ¥­•Éí‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¥¹ÍÑ…¹ÐµÁ…¹•±í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¸°¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰uí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¥¹ÍÑ…¹Ðµ¡½¥”µ¡¥¹Ñí½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(…ÁÁQ½…ÍÐ°éÉ½½Ð¹‘…É¬€…ÁÁQ½…ÍÑí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(¹‰É…¹Íµ…±°°¹•µÁÑä°¹µÕÑ•°¹ÍÑ…ÑÌÍµ…±°°¹¡½µ”µµ•ÑÉ¥ÌÍµ…±°°¹Í•ÑÑ¥¹Ìµ±¥¹¬Íµ…±°°¹…±•¹‘…ÈµÝ••­‘…ä°¹…±•¹‘…Èµ±••¹°¹…±•¹‘…Èµ‰½½­¥¹œµ‘•Ñ…¥±ÌÍµ…±°°¹¥½ÌµÁ¥­•Èµ¡¥¹Ð°¹Í±½Ðµ¹½Ñ”°¹¥¹ÍÑ…¹Ðµ¡½¥”µ¡¥¹Ð°¹•å•‰É½Ýí½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(éÉ½½Ð¹‘…É¬€¹‰É…¹Íµ…±°°éÉ½½Ð¹‘…É¬€¹•µÁÑä°éÉ½½Ð¹‘…É¬€¹µÕÑ•°éÉ½½Ð¹‘…É¬€¹ÍÑ…ÑÌÍµ…±°°éÉ½½Ð¹‘…É¬€¹¡½µ”µµ•ÑÉ¥ÌÍµ…±°°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬Íµ…±°°éÉ½½Ð¹‘…É¬€¹…±•¹‘…ÈµÝ••­‘…ä°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ±••¹°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‰½½­¥¹œµ‘•Ñ…¥±ÌÍµ…±°°éÉ½½Ð¹‘…É¬€¹¥½ÌµÁ¥­•Èµ¡¥¹Ð°éÉ½½Ð¹‘…É¬€¹Í±½Ðµ¹½Ñ”°éÉ½½Ð¹‘…É¬€¹¥¹ÍÑ…¹Ðµ¡½¥”µ¡¥¹Ð°éÉ½½Ð¹‘…É¬€¹•å•‰É½Ýí½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(¹¥½ÌµÝ¡••°µ½ÁÑ¥½¸¹¥½ÌµÝ¡••°µÕ¹…Ù…¥±…‰±”°éÉ½½Ð¹‘…É¬€¹¥½ÌµÝ¡••°µ½ÁÑ¥½¸¹¥½ÌµÝ¡••°µÕ¹…Ù…¥±…‰±•í½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¥ô(éÉ½½Ð¹‘…É¬€¹¥½ÌµÝ¡••°µ™…‘•í‰…­É½Õ¹é±¥¹•…ÈµÉ…‘¥•¹Ð¡Ñ¼‰½ÑÑ½´±Ù…È ´µ…ÁÀµÍÕÉ™…”¤€À”±ÑÉ…¹ÍÁ…É•¹Ð€ÌÐ”±ÑÉ…¹ÍÁ…É•¹Ð€ØØ”±Ù…È ´µ…ÁÀµÍÕÉ™…”¤€ÄÀÀ”¥ô(…±•¹‘…É…å•Ñ…¥±Íí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô)¥¹ÁÕÐèéÁ±…•¡½±‘•Éí½±½ÈéÙ…È ´µ…ÁÀµµÕÑ•¤í½Á…¥Ñäè¸ÜÕô)¥¹ÁÕÐ±Í•±•Ð±‰ÕÑÑ½¹í…•¹Ðµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô)¥¹ÁÕÐé™½ÕÌµÙ¥Í¥‰±”±Í•±•Ðé™½ÕÌµÙ¥Í¥‰±”±‰ÕÑÑ½¸é™½ÕÌµÙ¥Í¥‰±•í½ÕÑ±¥¹”µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(èéÍ•±•Ñ¥½¹í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(¹Á¥±±í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹Á¥±°¹‰ÕÍåí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÁÉ¥µ…Éä¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•ù‰í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬€¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù•í½ÕÑ±¥¹”µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰t°éÉ½½Ð¹‘…É¬€¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰uí‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ð°éÉ½½Ð¹‘…É¬€¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ñí‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô)‰ÕÑÑ½¸é™½ÕÌµÙ¥Í¥‰±”±¥¹ÁÕÐé™½ÕÌµÙ¥Í¥‰±”±Í•±•Ðé™½ÕÌµÙ¥Í¥‰±•í½ÕÑ±¥¹”èÉÁàÍ½±¥Ù…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½ÕÑ±¥¹”µ½™™Í•ÐèÉÁáô)‰ÕÑÑ½¸é¡½Ù•Èé¹½Ð ¹‘…¹•Èµ…Ñ¥½¸¤é¹½Ð ¹…±•¹‘…Èµ‘…ä¤é¹½Ð ¹¹…Øµ¥Ñ•´¤é¹½Ð ¹Í•ÑÑ¥¹Ìµ±¥¹¬¥í‰½àµÍ¡…‘½ÜèÀ€À€À€ÉÁàÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬é¡½Ù•È°¹Í•ÑÑ¥¹Ìµ±¥¹¬é™½ÕÌµÙ¥Í¥‰±•í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´é¡½Ù•Èé¹½Ð ¹…Ñ¥Ù”¥í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€¹¹•ÕÑÉ…±í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€É•Í•ÑÁÁ•…É…¹•½±½ÉÍí‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€¹…ÕÑ µÍÝ¥Ñ ‰ÕÑÑ½¸é¹½Ð ¹ÁÉ¥µ…Éä¤°éÉ½½Ð¹‘…É¬€±½½ÕÑ	Ñ¸°éÉ½½Ð¹‘…É¬€¹ÁÕÍ µÝ•±½µ”µ…Ñ¥½¹Ì‰ÕÑÑ½¸é¹½Ð ¹ÁÉ¥µ…Éä¥í‰…­É½Õ¹éÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹‘…É¬€¹¥½ÌµÁ¥­•Èµ¡•…‘í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(¹…ÁÁ•…É…¹”µ½±½Èµ™¥•±‘Ì¥¹ÁÕÑmÑåÁ”ô‰½±½È‰uí‰½É‘•ÈèÅÁàÍ½±¥Ù…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½É‘•ÈµÉ…‘¥ÕÌèÄÉÁàí‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…ÁÁ•…É…¹”µ½±½Èµ™¥•±‘Ì¥¹ÁÕÑmÑåÁ”ô‰½±½È‰tèèµÝ•‰­¥Ðµ½±½ÈµÍÝ…Ñ µÝÉ…ÁÁ•ÉíÁ…‘‘¥¹œèÑÁáô(¹…ÁÁ•…É…¹”µ½±½Èµ™¥•±‘Ì¥¹ÁÕÑmÑåÁ”ô‰½±½È‰tèèµÝ•‰­¥Ðµ½±½ÈµÍÝ…Ñ¡í‰½É‘•ÈèÀí‰½É‘•ÈµÉ…‘¥ÕÌèáÁáô(éÉ½½Ð¹‘…É¬€¹…ÁÁ•…É…¹”µ½±½Èµ™¥•±‘Ì¥¹ÁÕÑmÑåÁ”ô‰½±½È‰uí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¥ô(©ìµÝ•‰­¥ÐµÑ…Àµ¡¥¡±¥¡Ðµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô((¼¨UÍ•Èµ½¹™¥ÕÉ…‰±”¡¥¡±¥¡Ð…¹‘¥Ù¥‘•È½¹ÑÉ½±Ì¸€¨¼(¹…ÁÁ•…É…¹”µÍÑå±”µÑ½±•Íí‘¥ÍÁ±…äéÉ¥í…ÀèÄÁÁàíµ…É¥¸èÄÁÁà€À€ÄÑÁàíÁ…‘‘¥¹œèÄÁÁà€ÄÉÁàí‰½É‘•ÈèÅÁàÍ½±¥Ù…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½É‘•ÈµÉ…‘¥ÕÌèÄÉÁáô(¹…ÁÁ•…É…¹”µÍÑå±”µÑ½±•Ì±••¹‘íÁ…‘‘¥¹œèÀ€ÙÁàí™½¹ÐµÍ¥é”èÄÍÁàí™½¹ÐµÝ•¥¡ÐèØÀÁô(¹…ÁÁ•…É…¹”µÍÑå±”µÑ½±•Ì±…‰•±í‘¥ÍÁ±…äé™±•àí…±¥¸µ¥Ñ•µÌé•¹Ñ•Èí…ÀèáÁáô(¹…ÁÁ•…É…¹”µÍÑå±”µÑ½±•Ì¥¹ÁÕÑíÝ¥‘Ñ èÈÁÁàíµ¥¸µ¡•¥¡ÐèÈÁÁàíµ…É¥¸èÀí…•¹Ðµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…±•¹‘…Èµ‘…ä¹Í•±•Ñ•°éÉ½½Ð¹‘…É¬€¹…±•¹‘…Èµ‘…ä¹Í•±•Ñ•‘í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹…±•¹‘…Èµ‘…ä¹Ñ½‘…åí½ÕÑ±¥¹”µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬€¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù•í½ÕÑ±¥¹”µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰t°éÉ½½Ð¹‘…É¬€¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰uí‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ð°éÉ½½Ð¹‘…É¬€¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ñí‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Á¥±°¹‰ÕÍåí‰…­É½Õ¹éÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½±½ÈéÙ…È ´µ‰É…¹µ½¸µÁÉ¥µ…Éä¥ô(¹…ÁÁ•…É…¹”µ½±½Èµ™¥•±‘Ì¥¹ÁÕÑmÑåÁ”ô‰½±½È‰uí‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Í•ÑÑ¥¹Ìµ±½½ÕÐµ…É•…í‰½É‘•ÈµÑ½Àµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±½½ÕÐµ…É•…í‰½É‘•ÈµÑ½Àµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Í•ÑÑ¥¹Ìµ±½½ÕÐµ…É•„‰ÕÑÑ½¹í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(…±•¹‘…É…å•Ñ…¥±Íí‰½É‘•ÈµÑ½Àµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹¥½ÌµÁ¥­•Èµ¡•…‘í‰½É‘•Èµ‰½ÑÑ½´µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹…±•¹‘…Èµ‰½½­¥¹œµÉ½Ýí‰½É‘•Èµ‰½ÑÑ½´µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¡½ÕÍ•½¹ÑÉ½±Ì™½Éµí‰½É‘•Èµ‰½ÑÑ½´µ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Ñ•áÐµ…Ñ¥½¸°¹‰…¬µ±¥¹¬°¹¥½ÌµÁ¥­•Èµ¡•…‰ÕÑÑ½¸°É•Í•ÑA…ÍÍÝ½É‘í½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô)‰ÕÑÑ½¸é™½ÕÌµÙ¥Í¥‰±”±¥¹ÁÕÐé™½ÕÌµÙ¥Í¥‰±”±Í•±•Ðé™½ÕÌµÙ¥Í¥‰±•í½ÕÑ±¥¹”èÉÁàÍ½±¥Ù…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í½ÕÑ±¥¹”µ½™™Í•ÐèÉÁáô)‰ÕÑÑ½¸é¡½Ù•Èé¹½Ð ¹‘…¹•Èµ…Ñ¥½¸¤é¹½Ð ¹…±•¹‘…Èµ‘…ä¤é¹½Ð ¹¹…Øµ¥Ñ•´¤é¹½Ð ¹Í•ÑÑ¥¹Ìµ±¥¹¬¥í‰½àµÍ¡…‘½ÜèÀ€À€À€ÉÁàÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô(¹Í•ÑÑ¥¹Ìµ±¥¹¬é¡½Ù•È°¹Í•ÑÑ¥¹Ìµ±¥¹¬é™½ÕÌµÙ¥Í¥‰±•í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µ¡¥¡±¥¡Ð¥ô((éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”°(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹…±•¹‘…Èµ‘…ä¹Í•±•Ñ•°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹…±•¹‘…Èµ‘…ä¹Í•±•Ñ•°(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹¡½ÕÍ”µÁ¥­•Èµ½ÁÑ¥½¸¹…Ñ¥Ù”°(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰t°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹¥¹ÍÑ…¹Ðµ¡½¥”µ½ÁÑ¥½¹m…É¥„µÁÉ•ÍÍ•ô‰ÑÉÕ”‰uí‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¤í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¤í½ÕÑ±¥¹”µ½±½ÈéÑÉ…¹ÍÁ…É•¹Ðí½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ð°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹¥½ÌµÝ¡••°µ¡¥¡±¥¡Ñí½Á…¥ÑäèÁô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹…±•¹‘…Èµ‘…ä¹Ñ½‘…ä°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹…±•¹‘…Èµ‘…ä¹Ñ½‘…åí½ÕÑ±¥¹”µ½±½ÈéÑÉ…¹ÍÁ…É•¹Ðí™½¹ÐµÝ•¥¡ÐèÜÀÁô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜‰ÕÑÑ½¸é™½ÕÌµÙ¥Í¥‰±”°éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜¥¹ÁÕÐé™½ÕÌµÙ¥Í¥‰±”°éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜Í•±•Ðé™½ÕÌµÙ¥Í¥‰±”°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜‰ÕÑÑ½¸é™½ÕÌµÙ¥Í¥‰±”°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜¥¹ÁÕÐé™½ÕÌµÙ¥Í¥‰±”°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜Í•±•Ðé™½ÕÌµÙ¥Í¥‰±•í½ÕÑ±¥¹”é¹½¹•ô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜‰ÕÑÑ½¸é¡½Ù•È°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜‰ÕÑÑ½¸é¡½Ù•Éí‰½àµÍ¡…‘½Üé¹½¹•ô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜°éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€©ìµÝ•‰­¥ÐµÑ…Àµ¡¥¡±¥¡Ðµ½±½ÈéÑÉ…¹ÍÁ…É•¹Ñô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Á¥±°¹¹•ÕÑÉ…°°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Á¥±°¹¹•ÕÑÉ…±í‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¤í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô((éÉ½½Ð¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±½½ÕÐµ…É•„°éÉ½½Ð¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€…±•¹‘…É…å•Ñ…¥±Ì°éÉ½½Ð¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¹¥½ÌµÁ¥­•Èµ¡•…°éÉ½½Ð¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¹…±•¹‘…Èµ‰½½­¥¹œµÉ½Ü°éÉ½½Ð¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¡½ÕÍ•½¹ÑÉ½±Ì™½É´°(éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±½½ÕÐµ…É•„°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€…±•¹‘…É…å•Ñ…¥±Ì°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¹¥½ÌµÁ¥­•Èµ¡•…°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¹…±•¹‘…Èµ‰½½­¥¹œµÉ½Ü°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ‘¥Ù¥‘•ÉÌµ½™˜€¡½ÕÍ•½¹ÑÉ½±Ì™½Éµí‰½É‘•ÈµÑ½ÀèÀ…¥µÁ½ÉÑ…¹Ðí‰½É‘•Èµ‰½ÑÑ½´èÀ…¥µÁ½ÉÑ…¹Ñô((¼¨=ÕÑ±¥¹”Ñ¡”Í•±•Ñ•µ•¹Ô…¹¹…Ù¥…Ñ¥½¸¥Ñ•´Ý¥Ñ¡½ÕÐ™¥±±¥¹œÑ¡•¥ÈÍÕÉ™…•Ì¸€¨¼(¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°éÉ½½Ð¹‘…É¬€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰…­É½Õ¹éÙ…È ´µ…ÁÀµÍÕÉ™…”¤í‰½É‘•ÈèÉÁàÍ½±¥Ù…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½àµÍ¡…‘½Üé¹½¹”í½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•µíÁ½Í¥Ñ¥½¸éÉ•±…Ñ¥Ù•ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”°éÉ½½Ð¹‘…É¬€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù•í‰…­É½Õ¹éÑÉ…¹ÍÁ…É•¹Ðí½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”èé‰•™½É•í½¹Ñ•¹ÐèˆˆíÁ½Í¥Ñ¥½¸é…‰Í½±ÕÑ”í¥¹Í•ÐèÀí‰½É‘•ÈèÉÁàÍ½±¥Ù…È ´µ‰É…¹µ¡¥¡±¥¡Ð¤í‰½É‘•ÈµÉ…‘¥ÕÌèÄÙÁàíÁ½¥¹Ñ•Èµ•Ù•¹ÑÌé¹½¹•ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”èé…™Ñ•Éí½¹Ñ•¹Ðé¹½¹•ô(¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´é¡½Ù•Èé¹½Ð ¹…Ñ¥Ù”¥í‰…­É½Õ¹éÑÉ…¹ÍÁ…É•¹Ðí½±½ÈéÙ…È ´µ…ÁÀµÑ•áÐ¥ô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹Í•ÑÑ¥¹Ìµ±¥¹¬¹•áÁ…¹‘•‘í‰½àµÍ¡…‘½Üé¹½¹•ô(éÉ½½Ð¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”èé‰•™½É”°éÉ½½Ð¹‘…É¬¹…ÁÁ•…É…¹”µ¡¥¡±¥¡ÑÌµ½™˜€¹‰½ÑÑ½´µ¹…Ø€¹¹…Øµ¥Ñ•´¹…Ñ¥Ù”èé‰•™½É•í‰½É‘•Èµ½±½ÈéÙ…È ´µ‰É…¹µÍ•½¹‘…Éä¥ô(
+:root.dark .neutral{background:#30465f;color:#dce9ff}
+@media(max-width:370px){main{padding-inline:12px}.panel{padding:16px}.settings-link{padding:14px 12px}.calendar-grid{gap:3px}.calendar-day{min-height:33px}.home-metrics>div{padding:12px}.bottom-nav .nav-icon{font-size:21px}}
+@media(min-width:900px){.bottom-nav{left:50%;transform:translateX(-50%);max-width:820px;border-radius:18px 18px 0 0}}
+
+/* Collapsible settings cards */
+.settings-menu{gap:9px}
+.settings-link{transition:background .18s,border-color .18s,box-shadow .18s}
+.settings-link.expanded{border-color:#8fb8ec;background:#edf5ff;border-radius:18px 18px 8px 8px}
+.settings-link>b{display:inline-block;transition:transform .18s}
+.settings-link.expanded>b{transform:rotate(180deg)}
+.settings-subpage{min-width:0;animation:accordionIn .16s ease-out;margin:-4px 0 10px;border:1px solid #dbe7f5;border-radius:0 0 18px 18px;padding:0 12px 10px;background:#fff}
+.settings-subpage>.panel{margin:10px 0;box-shadow:none;padding:12px}
+.settings-subpage>.notice{margin:12px 0}
+@keyframes accordionIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+:root.dark .settings-link.expanded{background:#263e5d;border-color:#5276a6}
+:root.dark .settings-subpage{background:#19283b;border-color:#3a4b60}
+@media(prefers-reduced-motion:reduce){.settings-subpage{animation:none}.settings-link,.settings-link>b{transition:none}}
+
+/* v1.5: shared bookings */
+.request-entry{align-items:flex-start;flex-wrap:wrap}
+.request-details{flex:1 1 210px;min-width:0}
+.request-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.request-actions button{min-height:40px}
+.request-actions button.primary{background:#2364c4;color:white}
+.request-state{font-weight:700}
+.request-state.approved{color:#13854b}
+.request-state.pending{color:#ab7100}
+.request-state.cancelled,.request-state.rejected{color:#a24a4a}
+:root.dark .request-state.approved{color:#6ddba0}
+:root.dark .request-state.pending{color:#f1c16a}
+
+/* v1.8: iOS native wheel pickers, quarter-hour minutes only */
+.time-field{border:1px solid #dbe5f2;border-radius:14px;padding:12px;margin:12px 0;min-width:0}
+.time-field legend{font-weight:700;padding:0 6px}
+.time-pickers{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end}
+.time-pickers label{min-width:0;font-size:12px}
+.time-pickers input,.time-pickers select{width:100%;min-width:0;font-size:16px;min-height:46px;background:transparent}
+.time-pickers select{padding-inline:6px}
+:root.dark .time-field{border-color:#42566c}
+@media(max-width:370px){.time-pickers{gap:4px}.time-field{padding:8px}.time-pickers input,.time-pickers select{font-size:15px;padding-inline:2px}}
+
+/* Native-looking single-field quarter-hour picker, 1.8 hotfix */
+.slot-display{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;text-align:right;border:1px solid #bac9dc;background:transparent;color:inherit;font-size:16px;padding:12px 14px;border-radius:13px}
+.slot-display>span:last-child{color:#70849d}
+.slot-picker{width:min(92vw,430px);max-width:430px;border:0;border-radius:22px;padding:20px;background:#fff;color:#15263e}
+.slot-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.slot-head h2{margin:0}.slot-head button{background:#edf2f8}
+.slot-picker>label{display:grid;gap:8px;margin-bottom:14px}
+.slot-picker input[type=date]{display:block;width:100%;min-width:0;max-width:100%;font-size:16px;min-height:48px}
+.slot-wheel-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.slot-wheel-row label{display:grid;gap:8px;min-width:0}
+.slot-wheel-row select{display:block;width:100%;min-width:0;min-height:50px;font-size:20px;text-align:center;border:1px solid #bac9dc;border-radius:12px;background:#f5f8fc;color:#15263e}
+.slot-note{font-size:13px;margin:12px 0}.slot-error{font-size:13px;color:#b3261e;min-height:18px}
+.slot-confirm{display:block;width:100%;min-height:48px}
+:root.dark .slot-picker{background:#19283b;color:#f2f6ff}
+:root.dark .slot-display{border-color:#5a7089;color:#f2f6ff}
+:root.dark .slot-wheel-row select{background:#26384d;color:#fff;border-color:#5a7089}
+
+/* FamilyAuto iOS-inspired unified date and time wheels */
+.ios-date-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;border:1px solid #bac9dc;background:transparent;color:inherit;text-align:right;font-size:16px;font-weight:500;border-radius:13px;padding:12px 14px}
+.ios-date-chevron{color:#8294aa;font-size:23px;line-height:1}
+.ios-picker{position:fixed;inset:auto 0 0 0;margin:0;width:100%;max-width:none;max-height:80dvh;overflow:hidden;border:0;border-radius:20px 20px 0 0;background:#f4f5f9;color:#15263e;padding:0 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 48px #0003;direction:rtl}
+.ios-picker::backdrop{background:#0007}
+.ios-picker-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:60px;border-bottom:1px solid #dce0e8}
+.ios-picker-head strong{font-size:16px}
+.ios-picker-head button{background:transparent;color:#246ac4;font-weight:700;font-size:16px;padding:10px 6px}
+.ios-wheel-frame{height:220px;position:relative;isolation:isolate;margin:16px 0 8px}
+.ios-wheels{height:220px;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.8fr) minmax(0,.8fr);gap:4px;position:relative;z-index:2}
+.ios-wheel{height:220px;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-width:0;text-align:center}
+.ios-wheel::-webkit-scrollbar{display:none}
+.ios-wheel-spacer{height:88px;flex:none;scroll-snap-align:none}
+.ios-wheel-option{height:44px;display:flex;align-items:center;justify-content:center;white-space:nowrap;scroll-snap-align:center;font-size:20px;font-weight:400;line-height:1.1;user-select:none;-webkit-user-select:none;padding:0 2px;cursor:pointer}
+#iosDay .ios-wheel-option{font-size:16px}
+.ios-wheel-option.ios-wheel-selected{font-weight:600}
+.ios-wheel-option.ios-wheel-unavailable{color:#a7afba}
+.ios-wheel-highlight{position:absolute;z-index:0;top:88px;left:0;right:0;height:44px;border-radius:10px;background:#dfe3eb}
+.ios-wheel-fade{position:absolute;z-index:3;inset:0;pointer-events:none;background:linear-gradient(to bottom,#f4f5f9 0%,#f4f5f900 34%,#f4f5f900 66%,#f4f5f9 100%)}
+.ios-picker-hint{font-size:12px;text-align:center;margin:8px 0 0;color:#69798d}
+:root.dark .ios-date-trigger{border-color:#526780;color:#f2f6ff}
+:root.dark .ios-picker{background:#19283b;color:#f2f6ff}
+:root.dark .ios-picker-head{border-color:#354960}
+:root.dark .ios-wheel-highlight{background:#354960}
+:root.dark .ios-wheel-fade{background:linear-gradient(to bottom,#19283b 0%,#19283b00 34%,#19283b00 66%,#19283b 100%)}
+:root.dark .ios-wheel-option.ios-wheel-unavailable{color:#6f8095}
+@media(min-width:600px){.ios-picker{left:50%;right:auto;transform:translateX(-50%);width:min(100%,430px);border-radius:20px 20px 0 0}}
+@media(max-width:360px){.ios-wheel-option{font-size:18px}#iosDay .ios-wheel-option{font-size:14px}}
+
+/* 1.10 instant car use and household recovery */
+.instant-panel{margin:16px 0;padding:16px;border:1px solid #b8d0ee;border-radius:18px;background:#f1f6fd}
+.instant-panel h3{margin:0 0 8px}
+.instant-option{display:flex;align-items:center;gap:10px;padding:12px 8px;font-size:15px}
+.instant-option input{width:20px;height:20px;flex:none}
+.member-permission{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}
+.member-permission input{width:19px;height:19px}
+.house-deletion{margin-top:20px;padding:12px;border:1px solid #f0d2d2;border-radius:12px}
+.ownership-transfer-label{display:grid;gap:8px;margin:12px 0;color:var(--app-text)}.ownership-transfer-select{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--brand-secondary);border-radius:12px;background:var(--app-surface);color:var(--app-text);font:inherit}.ownership-transfer-select:disabled{opacity:.7}
+.danger-action{color:#ad2634;border:1px solid #dfb3b8;background:transparent}
+.house-permanent-dialog{max-height:88dvh;overflow:auto}.house-permanent-dialog ul{padding-inline-start:24px;line-height:1.8}.house-permanent-dialog .actions{margin-top:16px}
+:root.dark .instant-panel{background:#213852;border-color:#45668a}
+:root.dark .house-deletion{border-color:#875560}
+
+/* v1.12: account sign-out always accessible */
+.header-actions{display:flex;align-items:center;gap:8px}
+.header-logout{border:1px solid #c6d3e3;border-radius:10px;padding:8px 11px;background:transparent;color:inherit;font-size:13px;font-weight:700;white-space:nowrap}
+.settings-logout-area{margin:0 0 14px}
+.settings-logout-area button{border:1px solid #dfb3b8;border-radius:12px;background:transparent;color:#ad2634;font-weight:700;min-height:46px}
+:root.dark .settings-logout-area button{color:#ffabb6}
+
+/* v1.13: dedicated guest login/register home and footer logout */
+.guest-landing{max-width:520px;margin:8px auto 24px}
+.guest-intro{text-align:center;padding:22px 10px 6px}
+.guest-intro h1{font-size:clamp(26px,6vw,38px)}
+.guest-intro p{font-size:15px}
+.guest-auth-card{padding:24px;margin-top:18px;border:1px solid #dceafa}
+.guest-auth-card .auth-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.guest-auth-card .auth-switch button{width:100%}
+.guest-auth-card #authSubmit{width:100%;min-height:48px}
+.guest-auth-card #resetPassword{background:transparent;color:#2364c4;font-weight:700}
+.settings-logout-area{margin:20px 0 12px;padding:12px 0 0;border-top:1px solid #e1e7ef}
+.settings-logout-area button{margin-top:0}
+:root.dark .guest-auth-card{border-color:#405670}
+:root.dark .settings-logout-area{border-color:#405670}
+
+/* FamilyAuto 2.0: instant-use end-time sheet, launched from the home page */
+.instant-choice-dialog{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.instant-choice-question{font-size:19px;font-weight:700;text-align:center;margin:18px 0 12px}
+.instant-choice-buttons{display:grid;gap:10px;margin-bottom:14px}
+.instant-choice-option{display:block;width:100%;padding:14px 16px;text-align:right;direction:rtl;background:#e9eef6;border:2px solid transparent;border-radius:14px;color:#15263e;font-size:16px;font-weight:700}
+.instant-choice-option small{display:block;font-size:13px;font-weight:400;margin-top:4px;line-height:1.5}
+.instant-choice-option[aria-pressed="true"]{border-color:#246ac4;background:#dbeafe}
+.instant-choice-hint{text-align:center;font-size:13px;margin:14px 0 4px;color:#5e7087}
+.instant-clock-wheels{grid-template-columns:minmax(0,1fr) minmax(0,1fr);direction:rtl}
+.instant-clock-wheels .ios-wheel{direction:ltr}
+.instant-end-preview{font-size:15px;font-weight:700;text-align:center;margin:14px 0 16px}
+.instant-choice-error{color:#b3261e;text-align:center;margin:8px 0}
+.instant-choice-dialog .primary.wide{width:100%}
+:root.dark .instant-choice-option{background:#26384d;color:#f2f6ff}
+:root.dark .instant-choice-option[aria-pressed="true"]{border-color:#77b0ff;background:#24466e}
+:root.dark .instant-choice-hint{color:#a9b9cc}
+
+/* Keep the confirmation button reachable on smaller iPhones. */
+.instant-choice-dialog{max-height:90dvh;overflow-y:auto;overscroll-behavior:contain}
+
+#appToast{position:fixed;z-index:1001;left:16px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;padding:14px 16px;border-radius:14px;background:#14263f;color:#fff;box-shadow:0 8px 32px #0004;text-align:center}
+:root.dark #appToast{background:#e6edf7;color:#14263f}
+
+
+/* First launch notification explanation for installed PWAs. */
+.push-welcome-dialog{direction:rtl;text-align:right}
+.push-welcome-dialog h2{font-size:21px}
+.push-welcome-dialog p{margin:8px 0 20px}
+.push-welcome-actions{display:flex;gap:9px;flex-wrap:wrap}
+.push-welcome-actions button{flex:1 1 145px}
+.push-welcome-actions button:not(.primary){background:#eaf0f6;color:#253951}
+:root.dark .push-welcome-actions button:not(.primary){background:#30465f;color:white}
+
+
+/* Calendar status dots and booking ranges. */
+.calendar-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:5px;gap:1px}
+.calendar-dots{position:absolute;bottom:4px;left:0;right:0;display:flex;justify-content:center;gap:3px}
+.calendar-dot{display:inline-block;flex:none;width:7px;height:7px;border:1px solid #000;border-radius:50%;background:#8b98a8}
+.dot-pending{background:#e0a32e}
+.dot-approved{background:#1ba766}
+.dot-rejected{background:#d64545}
+.dot-cancelled{background:#8b98a8}
+.calendar-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:15px 0;color:#637388;font-size:13px}
+.calendar-legend span{display:inline-flex;align-items:center;gap:6px}
+.calendar-legend .calendar-dot{width:9px;height:9px}
+.calendar-booking-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #e5eaf0}
+.calendar-booking-details{display:grid;gap:3px}
+.calendar-booking-details small{color:#637388}
+:root.dark .calendar-booking-row{border-color:#3a4b60}
+:root.dark .calendar-booking-details small,:root.dark .calendar-legend{color:#a8b7c9}
+.notification-action{font-size:18px}
+html,body{touch-action:pan-x pan-y}
+@media (orientation:landscape) and (max-height:520px){
+ header{height:56px;padding-inline:14px}
+ header .brand strong{font-size:17px}
+ header .brand small{font-size:10px}
+ header .logo{padding:6px}
+ main{padding-top:12px;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+ .bottom-nav{padding-top:4px;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+ .bottom-nav .nav-item{min-height:44px;padding:2px;font-size:10px}
+ .bottom-nav .nav-icon{font-size:19px}
+}
+:root{--brand-primary:#2364c4;--brand-secondary:#eaf2ff;--brand-highlight:#2364c4;--brand-on-primary:#fff}
+:root.dark{--brand-primary:#14263f;--brand-secondary:#527cac;--brand-highlight:#77b0ff;--brand-on-primary:#fff}
+.primary{background:var(--brand-primary);color:var(--brand-on-primary)}
+.text-action,.back-link{color:var(--brand-primary)}
+.bottom-nav .nav-item.active{background:var(--brand-secondary);color:#2364c4}
+:root.dark .bottom-nav .nav-item.active{background:var(--brand-secondary);color:#fff}
+.calendar-day.selected,:root.dark .calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
+.appearance-panel h3{font-size:15px;margin:22px 0 10px}
+.appearance-panel>p:first-of-type{margin:8px 0 14px}
+.appearance-color-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.appearance-color-fields label{min-width:0}
+.appearance-color-fields input[type=color]{height:48px;padding:4px;direction:ltr;cursor:pointer}
+.appearance-text-choice{display:flex;align-items:center;gap:16px;min-width:0;margin:10px 0 14px;padding:10px 12px;border:1px solid #d6e0eb;border-radius:12px}
+.appearance-text-choice legend{padding:0 6px;font-size:13px;font-weight:600}
+.appearance-text-choice label{display:flex;align-items:center;gap:6px}
+.appearance-text-choice input{width:auto;min-height:auto;accent-color:var(--brand-highlight)}
+#resetAppearanceColors{background:#eaf0f6;color:inherit}
+#appearanceSaved{min-height:1.2em;margin:8px 0 0;font-size:12px}
+:root.dark .appearance-text-choice{border-color:#3a4b60}
+:root.dark #resetAppearanceColors{background:#30465f;color:#fff}
+@media(max-width:430px){.appearance-color-fields{grid-template-columns:1fr}.appearance-text-choice{flex-wrap:wrap}}
+.house-picker-dialog{display:grid;gap:12px;max-height:calc(100dvh - 36px);overflow:auto}
+.house-picker-dialog h2{margin:0}
+.house-picker-options{display:grid;gap:8px;max-height:55dvh;overflow:auto}
+.house-picker-option{width:100%;text-align:right;background:#f1f5fa;color:#15263e}
+.house-picker-option.active{outline:2px solid var(--brand-primary);background:var(--brand-secondary)}
+:root.dark .house-picker-option{background:#26384d;color:#f0f5fc}
+:root.dark .house-picker-option.active{background:var(--brand-secondary);color:#fff}
+:root{--app-background:#f4f7fb;--app-surface:#fff;--app-text:#15263e;background:var(--app-background);color:var(--app-text)}
+:root.dark{--app-background:#0d1725;--app-surface:#19283b;--app-text:#f0f5fc;background:var(--app-background);color:var(--app-text)}
+body{background:var(--app-background);color:var(--app-text)}
+header,.panel,nav,dialog,.settings-link,.settings-subpage,.booking,.member-row{background-color:var(--app-surface);color:var(--app-text)}
+:root.dark header,:root.dark .panel,:root.dark nav,:root.dark dialog,:root.dark .settings-link,:root.dark .settings-subpage{background-color:var(--app-surface);color:var(--app-text)}
+h1,h2,h3,p,label,strong,small,.muted,.empty,.calendar-legend,.settings-link small,.brand small,.booking small,.member-row small,.stats small{color:var(--app-text)}
+:root.dark p,:root.dark .booking small,:root.dark .settings-link small,:root.dark .brand small,:root.dark .member-row small,:root.dark .stats small{color:var(--app-text)}
+.stats div,.home-metrics>div,.calendar-day:not(.selected),.icon-btn,.settings-link.expanded,.house-picker-option{background:var(--brand-secondary)}
+:root.dark .stats div,:root.dark .home-metrics>div,:root.dark .calendar-day:not(.selected),:root.dark .icon-btn,:root.dark .settings-link.expanded{background:var(--brand-secondary)}
+.house-picker-option{color:var(--app-text)}
+:root.dark .house-picker-option{background:var(--brand-secondary);color:var(--app-text)}
+input,select,.time-field,.slot-wheel-row select,.ios-picker{background-color:var(--app-surface);color:var(--app-text)}
+:root.dark input,:root.dark select,:root.dark .time-field,:root.dark .slot-wheel-row select,:root.dark .ios-picker{background-color:var(--app-surface);color:var(--app-text)}
+.primary{background:var(--brand-primary);color:var(--brand-on-primary)}
+.text-action,.back-link{color:var(--brand-primary)}
+.bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
+.calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
+:root.dark .calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
+#resetAppearanceColors{color:var(--app-text)}
+
+/* Route remaining neutral interface colors through the user's palette. */
+:root{--app-muted:#718197}
+:root.dark{--app-muted:#a8b7c9}
+.bottom-nav .nav-item{color:var(--app-muted)}
+.bottom-nav .nav-item.active{color:var(--app-text)}
+.calendar-day{color:var(--app-text)}
+.calendar-weekday,.calendar-header button,.settings-link>b,.slot-display>span:last-child,.ios-date-chevron{color:var(--app-muted)}
+.neutral{background:var(--brand-secondary);color:var(--app-text)}
+.notice,.request-warning{background:var(--brand-secondary);border-color:var(--brand-secondary);color:var(--app-text)}
+.logo,.icon-btn,.stats div,.home-metrics>div,.calendar-day:not(.selected),.calendar-header button,.slot-head button,.ios-wheel-highlight{background:var(--brand-secondary);color:var(--app-text)}
+.settings-link.expanded,.bottom-nav .nav-item.active,.house-picker-option.active{background:var(--brand-secondary);color:var(--app-text)}
+.settings-link.expanded{border-color:var(--brand-highlight)}
+.settings-link,.settings-subpage,.booking,.member-row,.dashboard-card,.guest-auth-card,.time-field,.slot-display,.slot-wheel-row select,.ios-date-trigger,.appearance-text-choice,.house-picker-option,.calendar-booking-row{border-color:var(--brand-secondary)}
+.settings-subpage{background:var(--app-surface)}
+input,select,.time-pickers input,.time-pickers select,.slot-wheel-row select,.ios-picker{background-color:var(--app-surface);color:var(--app-text);border-color:var(--brand-secondary)}
+.ios-picker-head{border-color:var(--brand-secondary)}
+.ios-wheel-highlight{background:var(--brand-secondary)}
+.ios-wheel-fade{background:linear-gradient(to bottom,var(--app-surface) 0%,transparent 34%,transparent 66%,var(--app-surface) 100%)}
+.actions button:not(.primary),.auth-switch button:not(.primary),#logoutBtn,.calendar-header button,.slot-head button,.push-welcome-actions button:not(.primary),#resetAppearanceColors,.neutral{background:var(--brand-secondary);color:var(--app-text)}
+.text-action,.back-link,.ios-picker-head button,#resetPassword{color:var(--brand-primary)}
+.header-logout{border-color:var(--brand-secondary)}
+.bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
+.calendar-day.today{outline-color:var(--brand-highlight)}
+.calendar-legend,.calendar-booking-details small{color:var(--app-muted)}
+:root.dark .calendar-booking-row{border-color:var(--brand-secondary)}
+.calendar-dot{border-color:#000}
+:root.dark .settings-link,:root.dark .settings-subpage,:root.dark .booking,:root.dark .member-row,:root.dark .dashboard-card,:root.dark .guest-auth-card,:root.dark .time-field,:root.dark .slot-display,:root.dark .slot-wheel-row select,:root.dark .ios-date-trigger,:root.dark .appearance-text-choice,:root.dark .house-picker-option,:root.dark .calendar-booking-row{border-color:var(--brand-secondary)}
+:root.dark .settings-link,:root.dark .settings-subpage,:root.dark .booking,:root.dark .member-row,:root.dark .slot-picker,:root.dark .ios-picker{background-color:var(--app-surface);color:var(--app-text)}
+:root.dark .settings-link small,:root.dark .calendar-weekday,:root.dark .calendar-header button,:root.dark .slot-display>span:last-child,:root.dark .ios-date-chevron,:root.dark .calendar-legend,:root.dark .calendar-booking-details small{color:var(--app-muted)}
+:root.dark .stats div,:root.dark .home-metrics>div,:root.dark .calendar-day:not(.selected),:root.dark .calendar-header button,:root.dark .slot-head button,:root.dark .ios-wheel-highlight,:root.dark .instant-panel,:root.dark .instant-choice-option,:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-secondary);color:var(--app-text);border-color:var(--brand-secondary)}
+.slot-picker{background:var(--app-surface);color:var(--app-text)}
+.instant-panel{background:var(--brand-secondary);border-color:var(--brand-secondary)}
+.instant-choice-option,.instant-choice-option[aria-pressed="true"]{background:var(--brand-secondary);border-color:var(--brand-primary);color:var(--app-text)}
+.instant-choice-hint{color:var(--app-muted)}
+#appToast,:root.dark #appToast{background:var(--brand-primary);color:var(--brand-on-primary)}
+.brand small,.empty,.muted,.stats small,.home-metrics small,.settings-link small,.calendar-weekday,.calendar-legend,.calendar-booking-details small,.ios-picker-hint,.slot-note,.instant-choice-hint,.eyebrow{color:var(--app-muted)}
+:root.dark .brand small,:root.dark .empty,:root.dark .muted,:root.dark .stats small,:root.dark .home-metrics small,:root.dark .settings-link small,:root.dark .calendar-weekday,:root.dark .calendar-legend,:root.dark .calendar-booking-details small,:root.dark .ios-picker-hint,:root.dark .slot-note,:root.dark .instant-choice-hint,:root.dark .eyebrow{color:var(--app-muted)}
+.ios-wheel-option.ios-wheel-unavailable,:root.dark .ios-wheel-option.ios-wheel-unavailable{color:var(--app-muted)}
+:root.dark .ios-wheel-fade{background:linear-gradient(to bottom,var(--app-surface) 0%,transparent 34%,transparent 66%,var(--app-surface) 100%)}
+#calendarDayDetails{border-color:var(--brand-secondary)}
+input::placeholder{color:var(--app-muted);opacity:.75}
+input,select,button{accent-color:var(--brand-highlight)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline-color:var(--brand-highlight)}
+::selection{background:var(--brand-highlight);color:var(--brand-on-primary)}
+.pill{background:var(--brand-secondary);color:var(--app-text)}
+.pill.busy{background:var(--brand-primary);color:var(--brand-on-primary)}
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--brand-primary);border-color:var(--brand-highlight);color:var(--app-text)}
+.settings-link.expanded>b{color:var(--app-text)}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:var(--brand-highlight);color:var(--app-text)}
+.house-picker-option.active,:root.dark .house-picker-option.active{outline-color:var(--brand-highlight);background:var(--brand-highlight);color:var(--app-text)}
+.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-highlight);border-color:var(--brand-highlight);color:var(--app-text)}
+.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:var(--brand-highlight)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand-highlight);outline-offset:2px}
+button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-highlight)}
+.settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-highlight)}
+.bottom-nav .nav-item:hover:not(.active){background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .neutral{background:var(--brand-secondary);color:var(--app-text)}
+:root.dark #resetAppearanceColors{background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .auth-switch button:not(.primary),:root.dark #logoutBtn,:root.dark .push-welcome-actions button:not(.primary){background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .ios-picker-head{border-color:var(--brand-secondary)}
+.appearance-color-fields input[type="color"]{border:1px solid var(--brand-highlight);border-radius:12px;background:var(--app-surface);color:var(--app-text)}
+.appearance-color-fields input[type="color"]::-webkit-color-swatch-wrapper{padding:4px}
+.appearance-color-fields input[type="color"]::-webkit-color-swatch{border:0;border-radius:8px}
+:root.dark .appearance-color-fields input[type="color"]{border-color:var(--brand-highlight);background:var(--app-surface)}
+*{-webkit-tap-highlight-color:var(--brand-highlight)}
+
+/* User-configurable highlight and divider controls. */
+.appearance-style-toggles{display:grid;gap:10px;margin:10px 0 14px;padding:10px 12px;border:1px solid var(--brand-highlight);border-radius:12px}
+.appearance-style-toggles legend{padding:0 6px;font-size:13px;font-weight:600}
+.appearance-style-toggles label{display:flex;align-items:center;gap:8px}
+.appearance-style-toggles input{width:20px;min-height:20px;margin:0;accent-color:var(--brand-highlight)}
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--brand-highlight);border-color:var(--brand-highlight);color:var(--app-text)}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:var(--brand-highlight);color:var(--app-text)}
+.calendar-day.selected,:root.dark .calendar-day.selected{background:var(--brand-highlight);color:var(--app-text)}
+.calendar-day.today{outline-color:var(--brand-highlight)}
+.house-picker-option.active,:root.dark .house-picker-option.active{outline-color:var(--brand-highlight);background:var(--brand-highlight);color:var(--app-text)}
+.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-highlight);border-color:var(--brand-highlight);color:var(--app-text)}
+.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:var(--brand-highlight)}
+.pill.busy{background:var(--brand-highlight);color:var(--brand-on-primary)}
+.appearance-color-fields input[type="color"]{border-color:var(--brand-highlight)}
+.settings-logout-area{border-top-color:var(--brand-highlight)}
+:root.dark .settings-logout-area{border-top-color:var(--brand-highlight)}
+.settings-logout-area button{border-color:var(--brand-highlight)}
+#calendarDayDetails{border-top-color:var(--brand-highlight)}
+.ios-picker-head{border-bottom-color:var(--brand-highlight)}
+.calendar-booking-row{border-bottom-color:var(--brand-highlight)}
+#houseControls form{border-bottom-color:var(--brand-highlight)}
+.text-action,.back-link,.ios-picker-head button,#resetPassword{color:var(--brand-highlight)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand-highlight);outline-offset:2px}
+button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-highlight)}
+.settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-highlight)}
+
+:root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded,
+:root.appearance-highlights-off .bottom-nav .nav-item.active,:root.dark.appearance-highlights-off .bottom-nav .nav-item.active,
+:root.appearance-highlights-off .calendar-day.selected,:root.dark.appearance-highlights-off .calendar-day.selected,
+:root.appearance-highlights-off .house-picker-option.active,:root.dark.appearance-highlights-off .house-picker-option.active,
+:root.appearance-highlights-off .instant-choice-option[aria-pressed="true"],:root.dark.appearance-highlights-off .instant-choice-option[aria-pressed="true"]{background:var(--app-surface);border-color:var(--brand-secondary);outline-color:transparent;color:var(--app-text)}
+:root.appearance-highlights-off .ios-wheel-highlight,:root.dark.appearance-highlights-off .ios-wheel-highlight{opacity:0}
+:root.appearance-highlights-off .calendar-day.today,:root.dark.appearance-highlights-off .calendar-day.today{outline-color:transparent;font-weight:700}
+:root.appearance-highlights-off button:focus-visible,:root.appearance-highlights-off input:focus-visible,:root.appearance-highlights-off select:focus-visible,:root.dark.appearance-highlights-off button:focus-visible,:root.dark.appearance-highlights-off input:focus-visible,:root.dark.appearance-highlights-off select:focus-visible{outline:none}
+:root.appearance-highlights-off button:hover,:root.dark.appearance-highlights-off button:hover{box-shadow:none}
+:root.appearance-highlights-off,:root.appearance-highlights-off *{-webkit-tap-highlight-color:transparent}
+:root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded{border-color:var(--brand-secondary)}
+:root.appearance-highlights-off .pill.neutral,:root.dark.appearance-highlights-off .pill.neutral{background:var(--app-surface);color:var(--app-text)}
+
+:root.appearance-dividers-off .settings-logout-area,:root.appearance-dividers-off #calendarDayDetails,:root.appearance-dividers-off .ios-picker-head,:root.appearance-dividers-off .calendar-booking-row,:root.appearance-dividers-off #houseControls form,
+:root.dark.appearance-dividers-off .settings-logout-area,:root.dark.appearance-dividers-off #calendarDayDetails,:root.dark.appearance-dividers-off .ios-picker-head,:root.dark.appearance-dividers-off .calendar-booking-row,:root.dark.appearance-dividers-off #houseControls form{border-top:0!important;border-bottom:0!important}
+
+/* Outline the selected menu and navigation item without filling their surfaces. */
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--app-surface);border:2px solid var(--brand-highlight);box-shadow:none;color:var(--app-text)}
+.bottom-nav .nav-item{position:relative}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:transparent;color:var(--app-text)}
+.bottom-nav .nav-item.active::before{content:"";position:absolute;inset:0;border:2px solid var(--brand-highlight);border-radius:16px;pointer-events:none}
+.bottom-nav .nav-item.active::after{content:none}
+.bottom-nav .nav-item:hover:not(.active){background:transparent;color:var(--app-text)}
+:root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded{box-shadow:none}
+:root.appearance-highlights-off .bottom-nav .nav-item.active::before,:root.dark.appearance-highlights-off .bottom-nav .nav-item.active::before{border-color:var(--brand-secondary)}
