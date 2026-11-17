@@ -1,6 +1,6 @@
 const KEY='familyauto-demo-bookings-v1';const $=s=>document.querySelector(s);let bookings=[];try{const value=JSON.parse(localStorage.getItem(KEY)||'[]');if(Array.isArray(value))bookings=value.filter(b=>b&&typeof b.id==='string'&&typeof b.start==='string'&&typeof b.end==='string')}catch{}const format=date=>new Intl.DateTimeFormat('he-IL',{dateStyle:'short',timeStyle:'short'}).format(new Date(date));const save=()=>localStorage.setItem(KEY,JSON.stringify(bookings));function render(){const now=Date.now();const active=bookings.find(b=>new Date(b.start).getTime()<=now&&new Date(b.end).getTime()>now);$('#statusPill').textContent=active?'בשימוש':'פנוי';$('#statusPill').className='pill'+(active?' busy':'');$('#statusText').textContent=active?'הרכב שמור כרגע בהדגמה.':'אין הזמנה פעילה כרגע בנתוני ההדגמה.';$('#bookingCount').textContent=bookings.length;$('#pendingCount').textContent='0';const list=$('#bookingList');list.replaceChildren();if(!bookings.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='עדיין אין הזמנות. אפשר ליצור הזמנה לבדיקה.';list.append(empty);return}for(const b of [...bookings].sort((a,b)=>a.start.localeCompare(b.start))){const row=document.createElement('div');row.className='booking';const details=document.createElement('div');const title=document.createElement('strong');title.textContent=b.name;const when=document.createElement('small');when.textContent=format(b.start)+' ← '+format(b.end);details.append(title,when);if(b.note){const note=document.createElement('small');note.textContent=b.note;details.append(note)}const del=document.createElement('button');del.textContent='מחק';del.setAttribute('aria-label','מחק הזמנה של '+b.name);del.addEventListener('click',()=>{bookings=bookings.filter(x=>x.id!==b.id);save();render()});row.append(details,del);list.append(row)}}$('#newBtn').addEventListener('click',()=>$('#bookingDialog').showModal());$('#closeDialog').addEventListener('click',()=>$('#bookingDialog').close());$('#bookingForm').addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget);const name=String(data.get('name')||'').trim();const start=String(data.get('start')||'');const end=String(data.get('end')||'');const startMs=new Date(start).getTime(),endMs=new Date(end).getTime();let error='';if(!name)error='יש להזין שם';else if(!Number.isFinite(startMs)||!Number.isFinite(endMs)||startMs<Date.now()-60000||endMs<=startMs)error='יש לבחור טווח זמנים עתידי ותקין';else if(bookings.some(b=>startMs<new Date(b.end).getTime()&&endMs>new Date(b.start).getTime()))error='הזמנה זו חופפת להזמנה קיימת';$('#formError').textContent=error;if(error)return;bookings.push({id:crypto.randomUUID(),name,start:new Date(startMs).toISOString(),end:new Date(endMs).toISOString(),note:String(data.get('note')||'').trim()});save();render();e.currentTarget.reset();$('#bookingDialog').close()});const appearanceDefaults={light:{background:'#f4f7fb',surface:'#ffffff',primary:'#2364c4',secondary:'#eaf2ff',highlight:'#2364c4',highlightsEnabled:true,dividersEnabled:true,text:'black'},dark:{background:'#0d1725',surface:'#19283b',primary:'#14263f',secondary:'#26384d',highlight:'#77b0ff',highlightsEnabled:true,dividersEnabled:true,text:'white'}};
 const appearanceKey='familyauto-color-palettes-v1';
-const appearancePresets=[
+const baseAppearancePresets=[
  {id:'red',name:'אדום',background:'#fff4f3',surface:'#fffafa',primary:'#efb3b0',secondary:'#fbe0de',highlight:'#d78380',text:'black'},
  {id:'orange',name:'כתום',background:'#fff7ef',surface:'#fffaf5',primary:'#f3c39e',secondary:'#fce7d3',highlight:'#d99766',text:'black'},
  {id:'yellow',name:'צהוב',background:'#fffced',surface:'#fffef6',primary:'#efdf9a',secondary:'#faf1c9',highlight:'#c3a954',text:'black'},
@@ -29,6 +29,14 @@ const appearancePresets=[
  {id:'white',name:'לבן לגמרי',background:'#ffffff',surface:'#ffffff',primary:'#f0f0f0',secondary:'#f7f7f7',highlight:'#777777',text:'black'},
  {id:'black',name:'שחור לגמרי',background:'#101112',surface:'#1b1d1e',primary:'#303335',secondary:'#25282a',highlight:'#b9c1bd',text:'white'}
 ];
+const blendHex=(first,second,amount)=>'#'+[1,3,5].map(index=>Math.round(parseInt(first.slice(index,index+2),16)*(1-amount)+parseInt(second.slice(index,index+2),16)*amount).toString(16).padStart(2,'0')).join('');
+const appearancePresets=baseAppearancePresets.flatMap(base=>{
+ if(['white','black'].includes(base.id))return [base];
+ const light=base.id==='navy'?{...base,background:'#f2f5fb',surface:'#fbfcff',primary:'#b6c5e2',secondary:'#dfe7f6',highlight:'#879dc5',text:'black'}:base.id==='gray-4'?{...base,background:'#e4e6e7',surface:'#f3f4f4',primary:'#bdc1c3',secondary:'#d7dadb',highlight:'#737c80',text:'black'}:base;
+ const dark=['navy','gray-4'].includes(base.id)?base:{...base,background:blendHex('#141b20',base.highlight,.13),surface:blendHex('#20292e',base.highlight,.20),primary:blendHex('#273139',base.highlight,.37),secondary:blendHex('#29343a',base.highlight,.22),highlight:blendHex(base.highlight,'#ffffff',.45),text:'white'};
+ return [{...light,id:base.id+'-light',name:base.name+' · בהיר',mode:'light',family:base.id},
+  {...dark,id:base.id+'-dark',name:base.name+' · כהה',mode:'dark',family:base.id}];
+});
 const presetGrid=$('#appearancePresets');
 for(const preset of appearancePresets){
  const button=document.createElement('button');button.type='button';button.className='appearance-preset';button.dataset.preset=preset.id;
@@ -36,9 +44,13 @@ for(const preset of appearancePresets){
  button.querySelectorAll('i').forEach((swatch,index)=>swatch.style.background=[preset.background,preset.primary,preset.highlight][index]);
  button.querySelector('span:last-child').textContent=preset.name;
  button.addEventListener('click',()=>{
-  const mode=preset.text==='white'?'dark':'light';
+  const mode=preset.mode||(preset.text==='white'?'dark':'light');
   document.documentElement.classList.toggle('dark',mode==='dark');localStorage.setItem('familyauto-theme',mode);
-  savedPalettes[mode]={background:preset.background,surface:preset.surface,primary:preset.primary,secondary:preset.secondary,highlight:preset.highlight,highlightsEnabled:true,dividersEnabled:true,text:preset.text,preset:preset.id};
+  const pair=preset.family?appearancePresets.filter(item=>item.family===preset.family):appearancePresets.filter(item=>['white','black'].includes(item.id));
+  for(const item of pair){
+   const targetMode=item.mode||(item.text==='white'?'dark':'light');
+   savedPalettes[targetMode]={background:item.background,surface:item.surface,primary:item.primary,secondary:item.secondary,highlight:item.highlight,highlightsEnabled:true,dividersEnabled:true,text:item.text,preset:item.id};
+  }
   localStorage.setItem(appearanceKey,JSON.stringify(savedPalettes));applyAppearance();
   const message=$('#appearanceSaved');if(message)message.textContent='ערכת '+preset.name+' נבחרה ונשמרה במכשיר הזה. אפשר לשנות את הצבעים שלה למטה.';
  });
@@ -46,6 +58,18 @@ for(const preset of appearancePresets){
 }
 let savedPalettes={};
 try{const parsed=JSON.parse(localStorage.getItem(appearanceKey)||'{}');if(parsed&&typeof parsed==='object')savedPalettes=parsed}catch{}
+for(const mode of ['light','dark']){
+ const saved=savedPalettes[mode],legacy=baseAppearancePresets.find(item=>item.id===saved?.preset);
+ if(legacy&&appearancePresets.some(item=>item.id===legacy.id+'-'+mode)){
+  saved.preset=legacy.id+'-'+mode;
+  const otherMode=mode==='light'?'dark':'light';
+  if(!savedPalettes[otherMode]){
+   const partner=appearancePresets.find(item=>item.id===legacy.id+'-'+otherMode);
+   savedPalettes[otherMode]={background:partner.background,surface:partner.surface,primary:partner.primary,secondary:partner.secondary,highlight:partner.highlight,highlightsEnabled:true,dividersEnabled:true,text:partner.text,preset:partner.id};
+  }
+  localStorage.setItem(appearanceKey,JSON.stringify(savedPalettes));
+ }
+}
 const appearanceMode=()=>document.documentElement.classList.contains('dark')?'dark':'light';
 const validHex=value=>typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value);
 for(const mode of ['light','dark']){
