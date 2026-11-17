@@ -229,8 +229,8 @@ html,body{touch-action:pan-x pan-y}
  .bottom-nav .nav-item{min-height:44px;padding:2px;font-size:10px}
  .bottom-nav .nav-icon{font-size:19px}
 }
-:root{--brand-primary:#2364c4;--brand-secondary:#eaf2ff;--brand-on-primary:#fff}
-:root.dark{--brand-primary:#14263f;--brand-secondary:#527cac;--brand-on-primary:#fff}
+:root{--brand-primary:#2364c4;--brand-secondary:#eaf2ff;--brand-highlight:#2364c4;--brand-on-primary:#fff}
+:root.dark{--brand-primary:#14263f;--brand-secondary:#527cac;--brand-highlight:#77b0ff;--brand-on-primary:#fff}
 .primary{background:var(--brand-primary);color:var(--brand-on-primary)}
 .text-action,.back-link{color:var(--brand-primary)}
 .bottom-nav .nav-item.active{background:var(--brand-secondary);color:#2364c4}
@@ -244,7 +244,7 @@ html,body{touch-action:pan-x pan-y}
 .appearance-text-choice{display:flex;align-items:center;gap:16px;min-width:0;margin:10px 0 14px;padding:10px 12px;border:1px solid #d6e0eb;border-radius:12px}
 .appearance-text-choice legend{padding:0 6px;font-size:13px;font-weight:600}
 .appearance-text-choice label{display:flex;align-items:center;gap:6px}
-.appearance-text-choice input{width:auto;min-height:auto;accent-color:var(--brand-primary)}
+.appearance-text-choice input{width:auto;min-height:auto;accent-color:var(--brand-highlight)}
 #resetAppearanceColors{background:#eaf0f6;color:inherit}
 #appearanceSaved{min-height:1.2em;margin:8px 0 0;font-size:12px}
 :root.dark .appearance-text-choice{border-color:#3a4b60}
@@ -289,7 +289,7 @@ input,select,.time-field,.slot-wheel-row select,.ios-picker{background-color:var
 .notice,.request-warning{background:var(--brand-secondary);border-color:var(--brand-secondary);color:var(--app-text)}
 .logo,.icon-btn,.stats div,.home-metrics>div,.calendar-day:not(.selected),.calendar-header button,.slot-head button,.ios-wheel-highlight{background:var(--brand-secondary);color:var(--app-text)}
 .settings-link.expanded,.bottom-nav .nav-item.active,.house-picker-option.active{background:var(--brand-secondary);color:var(--app-text)}
-.settings-link.expanded{border-color:var(--brand-primary)}
+.settings-link.expanded{border-color:var(--brand-highlight)}
 .settings-link,.settings-subpage,.booking,.member-row,.dashboard-card,.guest-auth-card,.time-field,.slot-display,.slot-wheel-row select,.ios-date-trigger,.appearance-text-choice,.house-picker-option,.calendar-booking-row{border-color:var(--brand-secondary)}
 .settings-subpage{background:var(--app-surface)}
 input,select,.time-pickers input,.time-pickers select,.slot-wheel-row select,.ios-picker{background-color:var(--app-surface);color:var(--app-text);border-color:var(--brand-secondary)}
@@ -300,7 +300,7 @@ input,select,.time-pickers input,.time-pickers select,.slot-wheel-row select,.io
 .text-action,.back-link,.ios-picker-head button,#resetPassword{color:var(--brand-primary)}
 .header-logout{border-color:var(--brand-secondary)}
 .bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
-.calendar-day.today{outline-color:var(--brand-primary)}
+.calendar-day.today{outline-color:var(--brand-highlight)}
 .calendar-legend,.calendar-booking-details small{color:var(--app-muted)}
 :root.dark .calendar-booking-row{border-color:var(--brand-secondary)}
 .calendar-dot{border-color:#000}
@@ -319,27 +319,69 @@ input,select,.time-pickers input,.time-pickers select,.slot-wheel-row select,.io
 :root.dark .ios-wheel-fade{background:linear-gradient(to bottom,var(--app-surface) 0%,transparent 34%,transparent 66%,var(--app-surface) 100%)}
 #calendarDayDetails{border-color:var(--brand-secondary)}
 input::placeholder{color:var(--app-muted);opacity:.75}
-input,select,button{accent-color:var(--brand-primary)}
-input:focus-visible,select:focus-visible,button:focus-visible{outline-color:var(--brand-primary)}
-::selection{background:var(--brand-primary);color:var(--brand-on-primary)}
+input,select,button{accent-color:var(--brand-highlight)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline-color:var(--brand-highlight)}
+::selection{background:var(--brand-highlight);color:var(--brand-on-primary)}
 .pill{background:var(--brand-secondary);color:var(--app-text)}
 .pill.busy{background:var(--brand-primary);color:var(--brand-on-primary)}
-.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--brand-primary);border-color:var(--brand-primary);color:var(--app-text)}
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--brand-primary);border-color:var(--brand-highlight);color:var(--app-text)}
 .settings-link.expanded>b{color:var(--app-text)}
-.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:var(--brand-primary);color:var(--app-text)}
-.house-picker-option.active,:root.dark .house-picker-option.active{outline-color:var(--brand-primary);background:var(--brand-primary);color:var(--app-text)}
-.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-primary);border-color:var(--brand-primary);color:var(--app-text)}
-.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:var(--brand-primary)}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand-primary);outline-offset:2px}
-button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-primary)}
-.settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-primary)}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:var(--brand-highlight);color:var(--app-text)}
+.house-picker-option.active,:root.dark .house-picker-option.active{outline-color:var(--brand-highlight);background:var(--brand-highlight);color:var(--app-text)}
+.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-highlight);border-color:var(--brand-highlight);color:var(--app-text)}
+.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:var(--brand-highlight)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand-highlight);outline-offset:2px}
+button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-highlight)}
+.settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-highlight)}
 .bottom-nav .nav-item:hover:not(.active){background:var(--brand-secondary);color:var(--app-text)}
 :root.dark .neutral{background:var(--brand-secondary);color:var(--app-text)}
 :root.dark #resetAppearanceColors{background:var(--brand-secondary);color:var(--app-text)}
 :root.dark .auth-switch button:not(.primary),:root.dark #logoutBtn,:root.dark .push-welcome-actions button:not(.primary){background:var(--brand-secondary);color:var(--app-text)}
 :root.dark .ios-picker-head{border-color:var(--brand-secondary)}
-.appearance-color-fields input[type="color"]{border:1px solid var(--brand-secondary);border-radius:12px;background:var(--app-surface);color:var(--app-text)}
+.appearance-color-fields input[type="color"]{border:1px solid var(--brand-highlight);border-radius:12px;background:var(--app-surface);color:var(--app-text)}
 .appearance-color-fields input[type="color"]::-webkit-color-swatch-wrapper{padding:4px}
 .appearance-color-fields input[type="color"]::-webkit-color-swatch{border:0;border-radius:8px}
-:root.dark .appearance-color-fields input[type="color"]{border-color:var(--brand-secondary);background:var(--app-surface)}
-*{-webkit-tap-highlight-color:color-mix(in srgb,var(--brand-secondary) 65%,transparent)}
+:root.dark .appearance-color-fields input[type="color"]{border-color:var(--brand-highlight);background:var(--app-surface)}
+*{-webkit-tap-highlight-color:var(--brand-highlight)}
+
+/* User-configurable highlight and divider controls. */
+.appearance-style-toggles{display:grid;gap:10px;margin:10px 0 14px;padding:10px 12px;border:1px solid var(--brand-highlight);border-radius:12px}
+.appearance-style-toggles legend{padding:0 6px;font-size:13px;font-weight:600}
+.appearance-style-toggles label{display:flex;align-items:center;gap:8px}
+.appearance-style-toggles input{width:20px;min-height:20px;margin:0;accent-color:var(--brand-highlight)}
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--brand-highlight);border-color:var(--brand-highlight);color:var(--app-text)}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:var(--brand-highlight);color:var(--app-text)}
+.calendar-day.selected,:root.dark .calendar-day.selected{background:var(--brand-highlight);color:var(--app-text)}
+.calendar-day.today{outline-color:var(--brand-highlight)}
+.house-picker-option.active,:root.dark .house-picker-option.active{outline-color:var(--brand-highlight);background:var(--brand-highlight);color:var(--app-text)}
+.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-highlight);border-color:var(--brand-highlight);color:var(--app-text)}
+.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:var(--brand-highlight)}
+.pill.busy{background:var(--brand-highlight);color:var(--brand-on-primary)}
+.appearance-color-fields input[type="color"]{border-color:var(--brand-highlight)}
+.settings-logout-area{border-top-color:var(--brand-highlight)}
+:root.dark .settings-logout-area{border-top-color:var(--brand-highlight)}
+.settings-logout-area button{border-color:var(--brand-highlight)}
+#calendarDayDetails{border-top-color:var(--brand-highlight)}
+.ios-picker-head{border-bottom-color:var(--brand-highlight)}
+.calendar-booking-row{border-bottom-color:var(--brand-highlight)}
+#houseControls form{border-bottom-color:var(--brand-highlight)}
+.text-action,.back-link,.ios-picker-head button,#resetPassword{color:var(--brand-highlight)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand-highlight);outline-offset:2px}
+button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-highlight)}
+.settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-highlight)}
+
+:root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded,
+:root.appearance-highlights-off .bottom-nav .nav-item.active,:root.dark.appearance-highlights-off .bottom-nav .nav-item.active,
+:root.appearance-highlights-off .calendar-day.selected,:root.dark.appearance-highlights-off .calendar-day.selected,
+:root.appearance-highlights-off .house-picker-option.active,:root.dark.appearance-highlights-off .house-picker-option.active,
+:root.appearance-highlights-off .instant-choice-option[aria-pressed="true"],:root.dark.appearance-highlights-off .instant-choice-option[aria-pressed="true"]{background:var(--app-surface);border-color:var(--brand-secondary);outline-color:transparent;color:var(--app-text)}
+:root.appearance-highlights-off .ios-wheel-highlight,:root.dark.appearance-highlights-off .ios-wheel-highlight{opacity:0}
+:root.appearance-highlights-off .calendar-day.today,:root.dark.appearance-highlights-off .calendar-day.today{outline-color:transparent;font-weight:700}
+:root.appearance-highlights-off button:focus-visible,:root.appearance-highlights-off input:focus-visible,:root.appearance-highlights-off select:focus-visible,:root.dark.appearance-highlights-off button:focus-visible,:root.dark.appearance-highlights-off input:focus-visible,:root.dark.appearance-highlights-off select:focus-visible{outline:none}
+:root.appearance-highlights-off button:hover,:root.dark.appearance-highlights-off button:hover{box-shadow:none}
+:root.appearance-highlights-off,:root.appearance-highlights-off *{-webkit-tap-highlight-color:transparent}
+:root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded{border-color:var(--brand-secondary)}
+:root.appearance-highlights-off .pill.neutral,:root.dark.appearance-highlights-off .pill.neutral{background:var(--app-surface);color:var(--app-text)}
+
+:root.appearance-dividers-off .settings-logout-area,:root.appearance-dividers-off #calendarDayDetails,:root.appearance-dividers-off .ios-picker-head,:root.appearance-dividers-off .calendar-booking-row,:root.appearance-dividers-off #houseControls form,
+:root.dark.appearance-dividers-off .settings-logout-area,:root.dark.appearance-dividers-off #calendarDayDetails,:root.dark.appearance-dividers-off .ios-picker-head,:root.dark.appearance-dividers-off .calendar-booking-row,:root.dark.appearance-dividers-off #houseControls form{border-top:0!important;border-bottom:0!important}
