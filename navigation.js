@@ -77,7 +77,15 @@ function home(){
  if(badge&&message){
   badge.textContent=!activeHouse?'בחר בית':active?'בשימוש':'אין שימוש פעיל';
   badge.className='pill '+(active?'busy':'neutral');
-  message.textContent=!activeHouse?'בחר בית כדי לראות זמינות.':active?'הרכב משוריין כעת בהזמנה מאושרת.':next?'ההזמנה המאושרת הבאה: '+next.startAt.toDate().toLocaleString('he-IL'):'לא נמצאה הזמנה מאושרת פעילה בלוח הבית.';
+  message.textContent=!activeHouse?'בחר בית כדי לראות זמינות.':active?'הרכב משוריין כעת בהזמנה מאושרת עד '+active.endAt.toDate().toLocaleString('he-IL')+'.':next?'ההזמנה המאושרת הבאה: '+next.startAt.toDate().toLocaleString('he-IL'):'לא נמצאה הזמנה מאושרת פעילה בלוח הבית.';
+ }
+ const finish=$('homeFinishBtn');
+ const activeRecord=active&&requestItems.find(r=>r.id===active.id&&r.status==='approved');
+ const canRelease=!!(activeRecord&&activeHouse&&myUid&&(activeRecord.createdBy===myUid||activeHouse.ownerUid===myUid));
+ if(finish){
+  finish.hidden=!canRelease;
+  finish.dataset.bookingId=canRelease?activeRecord.id:'';
+  finish.textContent=canRelease&&activeRecord.createdBy!==myUid?'החזרה כפויה — שחרור הרכב':'סיימתי — שחררתי את הרכב';
  }
  const own=requestItems.filter(x=>x.createdBy===myUid);
  $('homePendingCount').textContent=activeHouse?own.filter(x=>x.status==='pending').length:'—';
@@ -90,6 +98,10 @@ $('homeFinishBtn')?.addEventListener('click',()=>{
 });
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){home();drawCalendar()}});
 setInterval(()=>{if(!document.hidden)home()},60_000);
+$('homeFinishBtn')?.addEventListener('click',event=>{
+ const bookingId=event.currentTarget.dataset.bookingId;
+ if(bookingId)window.dispatchEvent(new CustomEvent('familyauto:finish-active',{detail:{bookingId}}));
+});
 const instantHomeButton=document.getElementById('homeInstantBtn');
 instantHomeButton?.addEventListener('click',()=>{
  // Open the instant-use bottom sheet in place, without leaving the home page.
