@@ -257,3 +257,23 @@ html,body{touch-action:pan-x pan-y}
 .house-picker-option.active{outline:2px solid var(--brand-primary);background:var(--brand-secondary)}
 :root.dark .house-picker-option{background:#26384d;color:#f0f5fc}
 :root.dark .house-picker-option.active{background:var(--brand-secondary);color:#fff}
+:root{--app-background:#f4f7fb;--app-surface:#fff;--app-text:#15263e;background:var(--app-background);color:var(--app-text)}
+:root.dark{--app-background:#0d1725;--app-surface:#19283b;--app-text:#f0f5fc;background:var(--app-background);color:var(--app-text)}
+body{background:var(--app-background);color:var(--app-text)}
+header,.panel,nav,dialog,.settings-link,.settings-subpage,.booking,.member-row{background-color:var(--app-surface);color:var(--app-text)}
+:root.dark header,:root.dark .panel,:root.dark nav,:root.dark dialog,:root.dark .settings-link,:root.dark .settings-subpage{background-color:var(--app-surface);color:var(--app-text)}
+h1,h2,h3,p,label,strong,small,.muted,.empty,.calendar-legend,.settings-link small,.brand small,.booking small,.member-row small,.stats small{color:var(--app-text)}
+:root.dark p,:root.dark .booking small,:root.dark .settings-link small,:root.dark .brand small,:root.dark .member-row small,:root.dark .stats small{color:var(--app-text)}
+.stats div,.home-metrics>div,.calendar-day:not(.selected),.icon-btn,.settings-link.expanded,.house-picker-option{background:var(--brand-secondary)}
+:root.dark .stats div,:root.dark .home-metrics>div,:root.dark .calendar-day:not(.selected),:root.dark .icon-btn,:root.dark .settings-link.expanded{background:var(--brand-secondary)}
+.house-picker-option{color:var(--app-text)}
+:root.dark .house-picker-option{background:var(--brand-secondary);color:var(--app-text)}
+input,select,.time-field,.slot-wheel-row select,.ios-picker{background-color:var(--app-surface);color:var(--app-text)}
+:root.dark input,:root.dark select,:root.dark .time-field,:root.dark .slot-wheel-row select,:root.dark .ios-picker{background-color:var(--app-surface);color:var(--app-text)}
+.primary{background:var(--brand-primary);color:var(--brand-on-primary)}
+.text-action,.back-link{color:var(--brand-primary)}
+.bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
+.calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
+:root.dark .calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
+#resetAppearanceColors{color:var(--app-text)}
