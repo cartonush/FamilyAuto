@@ -396,3 +396,11 @@ button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings
 .bottom-nav .nav-item:hover:not(.active){background:transparent;color:var(--app-text)}
 :root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded{box-shadow:none}
 :root.appearance-highlights-off .bottom-nav .nav-item.active::before,:root.dark.appearance-highlights-off .bottom-nav .nav-item.active::before{border-color:var(--brand-secondary)}
+
+.appearance-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 8px}
+.appearance-preset{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:76px;padding:9px 5px;border:2px solid var(--brand-secondary);border-radius:14px;background:var(--app-surface);color:var(--app-text);font:inherit;font-size:13px;cursor:pointer}
+.appearance-preset.selected{border-color:var(--brand-highlight);outline:2px solid var(--brand-highlight);outline-offset:1px}
+.appearance-preset-swatches{display:flex;direction:ltr;gap:3px}
+.appearance-preset-swatches i{display:block;width:17px;height:17px;border:1px solid #777;border-radius:50%}
+#appearancePresetName{font-weight:700}
+@media(max-width:360px){.appearance-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
