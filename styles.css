@@ -397,7 +397,7 @@ button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings
 :root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded{box-shadow:none}
 :root.appearance-highlights-off .bottom-nav .nav-item.active::before,:root.dark.appearance-highlights-off .bottom-nav .nav-item.active::before{border-color:var(--brand-secondary)}
 
-.appearance-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 8px}
+.appearance-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 8px}
 .appearance-preset{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:76px;padding:9px 5px;border:2px solid var(--brand-secondary);border-radius:14px;background:var(--app-surface);color:var(--app-text);font:inherit;font-size:13px;cursor:pointer}
 .appearance-preset.selected{border-color:var(--brand-highlight);outline:2px solid var(--brand-highlight);outline-offset:1px}
 .appearance-preset-swatches{display:flex;direction:ltr;gap:3px}
@@ -406,3 +406,9 @@ button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings
 @media(max-width:360px){.appearance-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .request-actions button.primary{background:var(--brand-primary);color:var(--brand-on-primary)}
 .guest-auth-card #resetPassword{color:var(--brand-highlight)}
+
+/* Keep filled selections readable while their outline follows the chosen accent. */
+.calendar-day.selected,:root.dark .calendar-day.selected,
+.pill.busy,.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"],
+.house-picker-option.active,:root.dark .house-picker-option.active,
+.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:color-mix(in srgb,var(--brand-highlight) 25%,var(--app-surface));color:var(--app-text)}

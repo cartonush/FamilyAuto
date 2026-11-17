@@ -1,42 +1,54 @@
 const KEY='familyauto-demo-bookings-v1';const $=s=>document.querySelector(s);let bookings=[];try{const value=JSON.parse(localStorage.getItem(KEY)||'[]');if(Array.isArray(value))bookings=value.filter(b=>b&&typeof b.id==='string'&&typeof b.start==='string'&&typeof b.end==='string')}catch{}const format=date=>new Intl.DateTimeFormat('he-IL',{dateStyle:'short',timeStyle:'short'}).format(new Date(date));const save=()=>localStorage.setItem(KEY,JSON.stringify(bookings));function render(){const now=Date.now();const active=bookings.find(b=>new Date(b.start).getTime()<=now&&new Date(b.end).getTime()>now);$('#statusPill').textContent=active?'בשימוש':'פנוי';$('#statusPill').className='pill'+(active?' busy':'');$('#statusText').textContent=active?'הרכב שמור כרגע בהדגמה.':'אין הזמנה פעילה כרגע בנתוני ההדגמה.';$('#bookingCount').textContent=bookings.length;$('#pendingCount').textContent='0';const list=$('#bookingList');list.replaceChildren();if(!bookings.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='עדיין אין הזמנות. אפשר ליצור הזמנה לבדיקה.';list.append(empty);return}for(const b of [...bookings].sort((a,b)=>a.start.localeCompare(b.start))){const row=document.createElement('div');row.className='booking';const details=document.createElement('div');const title=document.createElement('strong');title.textContent=b.name;const when=document.createElement('small');when.textContent=format(b.start)+' ← '+format(b.end);details.append(title,when);if(b.note){const note=document.createElement('small');note.textContent=b.note;details.append(note)}const del=document.createElement('button');del.textContent='מחק';del.setAttribute('aria-label','מחק הזמנה של '+b.name);del.addEventListener('click',()=>{bookings=bookings.filter(x=>x.id!==b.id);save();render()});row.append(details,del);list.append(row)}}$('#newBtn').addEventListener('click',()=>$('#bookingDialog').showModal());$('#closeDialog').addEventListener('click',()=>$('#bookingDialog').close());$('#bookingForm').addEventListener('submit',e=>{e.preventDefault();const data=new FormData(e.currentTarget);const name=String(data.get('name')||'').trim();const start=String(data.get('start')||'');const end=String(data.get('end')||'');const startMs=new Date(start).getTime(),endMs=new Date(end).getTime();let error='';if(!name)error='יש להזין שם';else if(!Number.isFinite(startMs)||!Number.isFinite(endMs)||startMs<Date.now()-60000||endMs<=startMs)error='יש לבחור טווח זמנים עתידי ותקין';else if(bookings.some(b=>startMs<new Date(b.end).getTime()&&endMs>new Date(b.start).getTime()))error='הזמנה זו חופפת להזמנה קיימת';$('#formError').textContent=error;if(error)return;bookings.push({id:crypto.randomUUID(),name,start:new Date(startMs).toISOString(),end:new Date(endMs).toISOString(),note:String(data.get('note')||'').trim()});save();render();e.currentTarget.reset();$('#bookingDialog').close()});const appearanceDefaults={light:{background:'#f4f7fb',surface:'#ffffff',primary:'#2364c4',secondary:'#eaf2ff',highlight:'#2364c4',highlightsEnabled:true,dividersEnabled:true,text:'black'},dark:{background:'#0d1725',surface:'#19283b',primary:'#14263f',secondary:'#26384d',highlight:'#77b0ff',highlightsEnabled:true,dividersEnabled:true,text:'white'}};
 const appearanceKey='familyauto-color-palettes-v1';
-const baseAppearancePresets=[
- {id:'red',name:'אדום',background:'#fff4f3',surface:'#fffafa',primary:'#efb3b0',secondary:'#fbe0de',highlight:'#d78380',text:'black'},
- {id:'orange',name:'כתום',background:'#fff7ef',surface:'#fffaf5',primary:'#f3c39e',secondary:'#fce7d3',highlight:'#d99766',text:'black'},
- {id:'yellow',name:'צהוב',background:'#fffced',surface:'#fffef6',primary:'#efdf9a',secondary:'#faf1c9',highlight:'#c3a954',text:'black'},
- {id:'light-green',name:'ירוק בהיר',background:'#f5fbed',surface:'#fcfff8',primary:'#c6e6a9',secondary:'#e7f5d7',highlight:'#91ba78',text:'black'},
- {id:'green',name:'ירוק',background:'#f0f8f2',surface:'#fafffb',primary:'#add9b7',secondary:'#d9efdf',highlight:'#79ae87',text:'black'},
- {id:'light-blue',name:'תכלת',background:'#f0faff',surface:'#faffff',primary:'#b0e1ef',secondary:'#dcf3fa',highlight:'#78b9cc',text:'black'},
- {id:'blue',name:'כחול',background:'#f2f6ff',surface:'#fbfcff',primary:'#b5c9ee',secondary:'#dfe9fa',highlight:'#819ed0',text:'black'},
- {id:'purple',name:'סגול',background:'#f8f4ff',surface:'#fdfaff',primary:'#d6bfeb',secondary:'#ede0f7',highlight:'#aa8ac9',text:'black'},
- {id:'pink',name:'ורוד',background:'#fff3f8',surface:'#fffafd',primary:'#f0bed6',secondary:'#fae1ed',highlight:'#ce8eae',text:'black'},
- {id:'brown',name:'חום וחאקי',background:'#f8f5ed',surface:'#fdfbf5',primary:'#d8c8ac',secondary:'#eae8d6',highlight:'#a59974',text:'black'},
- {id:'turquoise',name:'טורקיז',background:'#effbf8',surface:'#fafffd',primary:'#9cddd3',secondary:'#d5f2eb',highlight:'#66aea4',text:'black'},
- {id:'cyan',name:'ציאן',background:'#effcff',surface:'#faffff',primary:'#a1e8f2',secondary:'#d5f5fa',highlight:'#66b9ca',text:'black'},
- {id:'burgundy',name:'בורדו',background:'#fdf1f3',surface:'#fff9fa',primary:'#dfb1bc',secondary:'#f2dce2',highlight:'#a96878',text:'black'},
- {id:'magenta',name:'מג׳נטה',background:'#fff1fa',surface:'#fff9fd',primary:'#eab4d8',secondary:'#f9def0',highlight:'#bb78a5',text:'black'},
- {id:'cream',name:'בז׳ ושמנת',background:'#fcf8ed',surface:'#fffdf6',primary:'#e9d7b6',secondary:'#f5ead4',highlight:'#b6a07e',text:'black'},
- {id:'peach',name:'אפרסק',background:'#fff5ef',surface:'#fffcf9',primary:'#f4c7ae',secondary:'#fce5d6',highlight:'#d59d7f',text:'black'},
- {id:'olive',name:'זית',background:'#f6f7eb',surface:'#fcfdf5',primary:'#cbd5a9',secondary:'#e7ebd4',highlight:'#9ca977',text:'black'},
- {id:'lime',name:'ליים',background:'#f8fdea',surface:'#fdfff6',primary:'#d9ed9d',secondary:'#edf7cc',highlight:'#acc872',text:'black'},
- {id:'navy',name:'נייבי',background:'#151e31',surface:'#24324a',primary:'#364b6a',secondary:'#2c3d58',highlight:'#b2c6dd',text:'white'},
- {id:'light-purple',name:'סגול בהיר',background:'#fbf7ff',surface:'#fefbff',primary:'#e1d2f1',secondary:'#f1e9fa',highlight:'#b8a1d4',text:'black'},
- {id:'light-pink',name:'ורוד בהיר',background:'#fff8fb',surface:'#fffdfd',primary:'#f7d7e6',secondary:'#fceaf2',highlight:'#d9a6bf',text:'black'},
- {id:'gray-1',name:'אפור בהיר',background:'#f2f3f4',surface:'#fcfcfc',primary:'#d9dcdf',secondary:'#e9ebed',highlight:'#9da4aa',text:'black'},
- {id:'gray-2',name:'אפור עדין',background:'#e3e5e7',surface:'#f5f6f7',primary:'#c5c9cd',secondary:'#d8dbde',highlight:'#858c92',text:'black'},
- {id:'gray-3',name:'אפור בינוני',background:'#c8cccf',surface:'#e3e6e8',primary:'#a9afb4',secondary:'#d3d7da',highlight:'#69737a',text:'black'},
- {id:'gray-4',name:'אפור כהה',background:'#34393c',surface:'#41474b',primary:'#596167',secondary:'#4b5358',highlight:'#b9c2c7',text:'white'},
- {id:'white',name:'לבן לגמרי',background:'#ffffff',surface:'#ffffff',primary:'#f0f0f0',secondary:'#f7f7f7',highlight:'#777777',text:'black'},
- {id:'black',name:'שחור לגמרי',background:'#101112',surface:'#1b1d1e',primary:'#303335',secondary:'#25282a',highlight:'#b9c1bd',text:'white'}
+const appearanceThemes=[
+ {id:'red',name:'אדום',hue:2,saturation:62},
+ {id:'orange',name:'כתום',hue:29,saturation:66},
+ {id:'yellow',name:'צהוב',hue:49,saturation:67},
+ {id:'light-green',name:'ירוק בהיר',hue:106,saturation:42},
+ {id:'green',name:'ירוק',hue:146,saturation:42},
+ {id:'light-blue',name:'תכלת',hue:200,saturation:61},
+ {id:'blue',name:'כחול',hue:222,saturation:57},
+ {id:'purple',name:'סגול',hue:269,saturation:51},
+ {id:'pink',name:'ורוד',hue:331,saturation:59},
+ {id:'brown',name:'חום וחאקי',hue:35,saturation:37,secondaryHue:56},
+ {id:'turquoise',name:'טורקיז',hue:170,saturation:49},
+ {id:'cyan',name:'ציאן',hue:188,saturation:64},
+ {id:'burgundy',name:'בורדו',hue:346,saturation:47},
+ {id:'magenta',name:'מג׳נטה',hue:310,saturation:58},
+ {id:'cream',name:'בז׳ ושמנת',hue:42,saturation:28},
+ {id:'peach',name:'אפרסק',hue:19,saturation:62},
+ {id:'olive',name:'זית',hue:78,saturation:35},
+ {id:'lime',name:'ליים',hue:88,saturation:62},
+ {id:'navy',name:'נייבי',hue:222,saturation:34},
+ {id:'light-purple',name:'סגול בהיר',hue:278,saturation:34},
+ {id:'light-pink',name:'ורוד בהיר',hue:338,saturation:38}
 ];
-const blendHex=(first,second,amount)=>'#'+[1,3,5].map(index=>Math.round(parseInt(first.slice(index,index+2),16)*(1-amount)+parseInt(second.slice(index,index+2),16)*amount).toString(16).padStart(2,'0')).join('');
-const appearancePresets=baseAppearancePresets.flatMap(base=>{
- if(['white','black'].includes(base.id))return [base];
- const light=base.id==='navy'?{...base,background:'#f2f5fb',surface:'#fbfcff',primary:'#b6c5e2',secondary:'#dfe7f6',highlight:'#879dc5',text:'black'}:base.id==='gray-4'?{...base,background:'#e4e6e7',surface:'#f3f4f4',primary:'#bdc1c3',secondary:'#d7dadb',highlight:'#737c80',text:'black'}:base;
- const dark=['navy','gray-4'].includes(base.id)?base:{...base,background:blendHex('#141b20',base.highlight,.13),surface:blendHex('#20292e',base.highlight,.20),primary:blendHex('#273139',base.highlight,.37),secondary:blendHex('#29343a',base.highlight,.22),highlight:blendHex(base.highlight,'#ffffff',.45),text:'white'};
- return [{...light,id:base.id+'-light',name:base.name+' · בהיר',mode:'light',family:base.id},
-  {...dark,id:base.id+'-dark',name:base.name+' · כהה',mode:'dark',family:base.id}];
-});
+const grayPalettes=[
+ {id:'gray-1',name:'אפור בהיר',light:['#f7f8f9','#ffffff','#dce2e6','#edf0f2','#53616a'],dark:['#293239','#354048','#455661','#3a4852','#d5e0e5']},
+ {id:'gray-2',name:'אפור עדין',light:['#ebedf0','#f8f9fa','#c5cbd0','#dde1e5','#46515c'],dark:['#1e252b','#2b343a','#3a464e','#323d45','#c8d5da']},
+ {id:'gray-3',name:'אפור בינוני',light:['#dce0e3','#eef0f2','#abb2b9','#c6cbd0','#394650'],dark:['#13191d','#222a30','#303b43','#28343b','#c1ced4']},
+ {id:'gray-4',name:'אפור כהה',light:['#cbd0d4','#e3e6e8','#89939c','#b4bbc1','#293641'],dark:['#0a0d10','#171c20','#28323a','#20282e','#bdcbd2']}
+];
+const hslHex=(h,s,l)=>{
+ const k=n=>(n+h/30)%12,a=s/100*Math.min(l/100,1-l/100);
+ return '#'+[0,8,4].map(n=>Math.round(255*(l/100-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1)))).toString(16).padStart(2,'0')).join('');
+};
+const palette=(background,surface,primary,secondary,highlight,text)=>({background,surface,primary,secondary,highlight,text});
+const appearancePresets=[
+ ...appearanceThemes.flatMap(theme=>{
+  const {hue,saturation,secondaryHue=hue}=theme;
+  const light=palette(hslHex(hue,Math.min(saturation,40),95),hslHex(hue,Math.min(saturation,32),99),hslHex(hue,saturation,72),hslHex(secondaryHue,Math.min(saturation,50),86),hslHex(hue,saturation,35),'black');
+  const dark=palette(hslHex(hue,24,10),hslHex(hue,27,22),hslHex(hue,Math.min(saturation,50),hue>=40&&hue<=110?27:34),hslHex(secondaryHue,28,30),hslHex(hue,Math.min(saturation,58),76),'white');
+  return [{...light,id:theme.id+'-light',name:theme.name+' · בהיר',mode:'light',family:theme.id},
+   {...dark,id:theme.id+'-dark',name:theme.name+' · כהה',mode:'dark',family:theme.id}];
+ }),
+ ...grayPalettes.flatMap(theme=>['light','dark'].map(mode=>{
+  const [background,surface,primary,secondary,highlight]=theme[mode];
+  return {...palette(background,surface,primary,secondary,highlight,mode==='dark'?'white':'black'),id:theme.id+'-'+mode,name:theme.name+' · '+(mode==='dark'?'כהה':'בהיר'),mode,family:theme.id};
+ })),
+ {...palette('#ffffff','#ffffff','#e0e0e0','#f2f2f2','#555555','black'),id:'white',name:'לבן לגמרי'},
+ {...palette('#08090a','#17191b','#30363a','#23282c','#d6e1e7','white'),id:'black',name:'שחור לגמרי'}
+];
 const presetGrid=$('#appearancePresets');
 for(const preset of appearancePresets){
  const button=document.createElement('button');button.type='button';button.className='appearance-preset';button.dataset.preset=preset.id;
@@ -59,7 +71,7 @@ for(const preset of appearancePresets){
 let savedPalettes={};
 try{const parsed=JSON.parse(localStorage.getItem(appearanceKey)||'{}');if(parsed&&typeof parsed==='object')savedPalettes=parsed}catch{}
 for(const mode of ['light','dark']){
- const saved=savedPalettes[mode],legacy=baseAppearancePresets.find(item=>item.id===saved?.preset);
+ const saved=savedPalettes[mode],legacy=appearanceThemes.concat(grayPalettes).find(item=>item.id===saved?.preset);
  if(legacy&&appearancePresets.some(item=>item.id===legacy.id+'-'+mode)){
   saved.preset=legacy.id+'-'+mode;
   const otherMode=mode==='light'?'dark':'light';
@@ -67,6 +79,13 @@ for(const mode of ['light','dark']){
    const partner=appearancePresets.find(item=>item.id===legacy.id+'-'+otherMode);
    savedPalettes[otherMode]={background:partner.background,surface:partner.surface,primary:partner.primary,secondary:partner.secondary,highlight:partner.highlight,highlightsEnabled:true,dividersEnabled:true,text:partner.text,preset:partner.id};
   }
+  localStorage.setItem(appearanceKey,JSON.stringify(savedPalettes));
+ }
+}
+for(const mode of ['light','dark']){
+ const saved=savedPalettes[mode],preset=appearancePresets.find(item=>item.id===saved?.preset);
+ if(preset){
+  Object.assign(saved,{background:preset.background,surface:preset.surface,primary:preset.primary,secondary:preset.secondary,highlight:preset.highlight,text:preset.text});
   localStorage.setItem(appearanceKey,JSON.stringify(savedPalettes));
  }
 }
