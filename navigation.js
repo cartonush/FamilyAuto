@@ -107,7 +107,10 @@ instantHomeButton?.addEventListener('click',()=>{
 window.addEventListener('familyauto:instant-permission',e=>{
  if(instantHomeButton)instantHomeButton.hidden=!e.detail;
 });
-window.addEventListener('familyauto:house',e=>{activeHouse=e.detail;requestItems=[];reservations=[];home();drawCalendar()});
+function handleSelectedHouse(e){activeHouse=e.detail;requestItems=[];reservations=[];home();drawCalendar()}
+window.addEventListener('familyauto:house',handleSelectedHouse);
+// The Firebase module can select the house before navigation finishes loading.
+if(window.familyautoSelectedHouse)handleSelectedHouse({detail:window.familyautoSelectedHouse});
 window.addEventListener('familyauto:requests',e=>{
  const payload=e.detail||{};
  if(payload.houseId&&activeHouse?.id!==payload.houseId)return;

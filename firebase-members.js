@@ -55,14 +55,17 @@ function render(){
     list.append(row);
   }
 }
-window.addEventListener('familyauto:house',event=>{
+function handleHouseChange(event){
   if(unsubscribe){unsubscribe();unsubscribe=null}
   selected=event.detail;settings={};window.dispatchEvent(new CustomEvent('familyauto:permissions',{detail:{houseId:selected?.id||null,settings}}));render();
   if(!selected)return;
   unsubscribe=onSnapshot(collection(db,'houses',selected.id,'memberSettings'),snap=>{
     settings={};snap.forEach(d=>{settings[d.id]=d.data()});window.dispatchEvent(new CustomEvent('familyauto:permissions',{detail:{houseId:selected.id,settings}}));render();
   },e=>say('טעינת ההרשאות נכשלה: '+(e.code||e.message),true));
-});
+}
+window.addEventListener('familyauto:house',handleHouseChange);
+// House loading may finish before this module registers its listener.
+if(window.familyautoSelectedHouse)handleHouseChange({detail:window.familyautoSelectedHouse});
 window.addEventListener('familyauto:signout',()=>{
   if(unsubscribe){unsubscribe();unsubscribe=null}
   selected=null;settings={};list.replaceChildren();say('בחר בית כדי לראות את חבריו.');

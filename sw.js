@@ -1,6 +1,6 @@
-const CACHE='familyauto-shell-v2.2.0';
-const VERSION='2.2.0';
-const ASSETS=['./','./index.html','./styles.css?v=2.2.0','./app.js?v=2.2.0','./navigation.js?v=2.2.0','./firebase-auth.js?v=2.2.0','./firebase-config.js','./firebase-profile.js?v=2.2.0','./firebase-members.js?v=2.2.0','./firebase-requests.js?v=2.2.0','./firebase-homes.js?v=2.2.0','./firebase-push.js?v=2.2.0','./firebase-activity.js?v=2.2.0','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
+const CACHE='familyauto-shell-v2.2.1';
+const VERSION='2.2.1';
+const ASSETS=['./','./index.html','./styles.css?v=2.2.1','./app.js?v=2.2.1','./navigation.js?v=2.2.1','./firebase-auth.js?v=2.2.1','./firebase-config.js','./firebase-profile.js?v=2.2.1','./firebase-members.js?v=2.2.1','./firebase-requests.js?v=2.2.1','./firebase-homes.js?v=2.2.1','./firebase-push.js?v=2.2.1','./firebase-activity.js?v=2.2.1','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{

@@ -518,7 +518,10 @@ window.addEventListener('familyauto:house',e=>subscribe(e.detail));
 onAuthStateChanged(auth,user=>{
  const changed=currentUser?.uid!==user?.uid;
  currentUser=user;
- if(!user){permissionCache={};clear();say('יש להתחבר כדי לשלוח בקשות.')}else if(changed&&selected){subscribe(selected)}
+ if(!user){permissionCache={};clear();say('יש להתחבר כדי לשלוח בקשות.')}else{
+  const house=window.familyautoSelectedHouse||selected;
+  if(house&&(changed||house.id!==selected?.id))subscribe(house);
+ }
 });
 form.addEventListener('submit',async e=>{
  e.preventDefault();
