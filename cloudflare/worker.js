@@ -274,12 +274,77 @@ async function transferOwnership(uid,houseId,successorUid,token){
  if(!response.ok)throw Error('Ownership transfer '+response.status);
  return jsonResponse({success:true});
 }
+async function listAllDocuments(collectionPath,token){
+ const documents=[];let pageToken='';
+ do{
+  const path=collectionPath+'?pageSize=1000'+(pageToken?'&pageToken='+encodeURIComponent(pageToken):'');
+  const result=await firestore(path,token);
+  documents.push(...(result?.documents||[]));pageToken=result?.nextPageToken||'';
+ }while(pageToken);
+ return documents;
+}
+async function listHouseEvents(collectionId,houseId,token){
+ const documents=[];let startAfter='';
+ while(true){
+  const structuredQuery={from:[{collectionId}],
+   where:{fieldFilter:{field:{fieldPath:'houseId'},op:'EQUAL',value:{stringValue:houseId}}},
+   orderBy:[{field:{fieldPath:'__name__'},direction:'ASCENDING'}],limit:500};
+  if(startAfter)structuredQuery.startAt={values:[{referenceValue:startAfter}],before:false};
+  const response=await fetch(BASE+':runQuery',{
+   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({structuredQuery})
+  });
+  if(!response.ok)throw Error('Firestore query '+collectionId+' '+response.status);
+  const page=(await response.json()).map(row=>row.document).filter(Boolean);
+  documents.push(...page);if(page.length<500)break;startAfter=page[page.length-1].name;
+ }
+ return documents;
+}
+async function deleteDocuments(documents,token){
+ const names=[...new Set(documents.map(item=>item.name).filter(Boolean))];
+ for(let index=0;index<names.length;index+=400){
+  const response=await fetch(BASE+':commit',{
+   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({writes:names.slice(index,index+400).map(name=>({delete:name}))})
+  });
+  if(!response.ok)throw Error('Firestore delete batch '+response.status);
+ }
+}
+async function permanentlyDeleteHouse(uid,houseId,confirmName,token){
+ if(typeof houseId!=='string'||!/^[a-f0-9]{32}$/.test(houseId)||typeof confirmName!=='string')
+  return jsonResponse({error:'Invalid house or confirmation'},400);
+ const house=await firestore('houses/'+houseId,token);
+ if(!house)return jsonResponse({error:'House not found'},404);
+ if(str(house,'ownerUid')!==uid)return jsonResponse({error:'Only the house owner may delete it'},403);
+ if(!field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'Move the house to trash before permanent deletion'},409);
+ if(str(house,'name')!==confirmName)return jsonResponse({error:'House name confirmation does not match'},409);
+ const [bookings,joinRequests,memberSettings,activity,system,events,deliveries]=await Promise.all([
+  listAllDocuments('houses/'+houseId+'/bookingRequests',token),
+  listAllDocuments('houses/'+houseId+'/joinRequests',token),
+  listAllDocuments('houses/'+houseId+'/memberSettings',token),
+  listAllDocuments('houses/'+houseId+'/activity',token),
+  listAllDocuments('houses/'+houseId+'/system',token),
+  listHouseEvents('notificationEvents',houseId,token),
+  listHouseEvents('notificationDeliveries',houseId,token)
+ ]);
+ await deleteDocuments([...bookings,...joinRequests,...memberSettings,...activity,...system,...events,...deliveries],token);
+ const latest=await firestore('houses/'+houseId,token);
+ if(!latest)return jsonResponse({success:true});
+ if(str(latest,'ownerUid')!==uid||str(latest,'name')!==confirmName||!field(latest,'deletedAt')?.timestampValue)
+  return jsonResponse({error:'House changed while deleting; review it and retry'},409);
+ const url=new URL(BASE+'/houses/'+houseId);
+ url.searchParams.set('currentDocument.updateTime',latest.updateTime);
+ const response=await fetch(url,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
+ if(response.status===409||response.status===412)return jsonResponse({error:'House changed while deleting; review it and retry'},409);
+ if(!response.ok)throw Error('Firestore house delete '+response.status);
+ return jsonResponse({success:true});
+}
 export default {
  async fetch(request,env){
   const url=new URL(request.url);
-  if(request.method==='OPTIONS'&&['/dispatch','/account/transfer'].includes(url.pathname))return new Response(null,{status:204,headers:CORS});
+  if(request.method==='OPTIONS'&&['/dispatch','/account/transfer','/account/delete'].includes(url.pathname))return new Response(null,{status:204,headers:CORS});
   if(url.pathname==='/health'&&request.method==='GET')return jsonResponse({ok:true,service:'FamilyAuto push'});
-  if(!['/dispatch','/account/transfer'].includes(url.pathname)||request.method!=='POST')return jsonResponse({error:'Not found'},404);
+  if(!['/dispatch','/account/transfer','/account/delete'].includes(url.pathname)||request.method!=='POST')return jsonResponse({error:'Not found'},404);
   try{
    const bearer=request.headers.get('Authorization')||'';
    if(!bearer.startsWith('Bearer '))return jsonResponse({error:'Unauthorized'},401);
@@ -288,6 +353,10 @@ export default {
    if(url.pathname==='/account/transfer'){
     const token=await googleAccessToken(env);
     return transferOwnership(uid,data?.houseId,data?.successorUid,token);
+   }
+   if(url.pathname==='/account/delete'){
+    const token=await googleAccessToken(env);
+    return permanentlyDeleteHouse(uid,data?.houseId,data?.confirmName,token);
    }
    if(typeof data.eventId!=='string')return jsonResponse({error:'Bad request'},400);
    const token=await googleAccessToken(env);

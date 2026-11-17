@@ -7,14 +7,6 @@ const requireUid=request=>{
  return request.auth.uid;
 };
 const options={region:'europe-west1',enforceAppCheck:false};
-async function deleteMatchingDocuments(collectionName,houseId){
- const snapshot=await db.collection(collectionName).where('houseId','==',houseId).get();
- for(let i=0;i<snapshot.docs.length;i+=400){
-  const batch=db.batch();
-  for(const item of snapshot.docs.slice(i,i+400))batch.delete(item.ref);
-  await batch.commit();
- }
-}
 exports.transferHouseOwnership=onCall(options,async request=>{
  const uid=requireUid(request);
  const {houseId,successorUid}=request.data||{};
@@ -39,21 +31,14 @@ exports.transferHouseOwnership=onCall(options,async request=>{
 });
 exports.deleteEmptyHouse=onCall(options,async request=>{
  const uid=requireUid(request);
- const {houseId,confirmName}=request.data||{};
+ const {houseId}=request.data||{};
  if(typeof houseId!=='string'||!/^[a-f0-9]{32}$/.test(houseId))
   throw new HttpsError('invalid-argument','מזהה הבית אינו תקין.');
  const ref=db.doc('houses/'+houseId);
  const snap=await ref.get();
  if(!snap.exists)throw new HttpsError('not-found','הבית לא נמצא.');
- const house=snap.data();
- if(house.ownerUid!==uid)
-  throw new HttpsError('permission-denied','רק בעל הבית יכול למחוק אותו לצמיתות.');
- if(!house.deletedAt)
-  throw new HttpsError('failed-precondition','יש להעביר את הבית למחיקה לפני מחיקתו לצמיתות.');
- if(typeof confirmName!=='string'||confirmName!==house.name)
-  throw new HttpsError('failed-precondition','יש לאשר את שם הבית המדויק.');
- await deleteMatchingDocuments('notificationEvents',houseId);
- await deleteMatchingDocuments('notificationDeliveries',houseId);
+ if(snap.data().ownerUid!==uid||snap.data().memberIds?.length!==1||snap.data().memberIds[0]!==uid)
+  throw new HttpsError('failed-precondition','אפשר למחוק לצמיתות רק בית שאתה מנהל והחבר היחיד בו.');
  await db.recursiveDelete(ref);
  return {success:true};
 });

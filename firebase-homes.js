@@ -2,9 +2,7 @@ import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.
 import {getFirestore,collection,doc,setDoc,updateDoc,query,where,onSnapshot,serverTimestamp,arrayUnion,writeBatch,getDocs} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 import {app} from './firebase-config.js';
 import {queueJoinNotification} from './firebase-notification-queue.js';
-import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js';
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('homesRoot');
-const functions=getFunctions(app,'europe-west1');
 const WORKER_URL='https://familyauto.roisuissa6.workers.dev';
 async function transferOwnershipOnWorker(houseId,successorUid){
  const token=await auth.currentUser.getIdToken();
@@ -14,6 +12,16 @@ async function transferOwnershipOnWorker(houseId,successorUid){
  });
  if(!response.ok){const result=await response.json().catch(()=>({}));throw Error(result.error||'HTTP '+response.status)}
  return response.json();
+}
+async function deleteHouseOnWorker(houseId,confirmName){
+ const token=await auth.currentUser.getIdToken();
+ const response=await fetch(WORKER_URL+'/account/delete',{
+  method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+  body:JSON.stringify({houseId,confirmName})
+ });
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(result.error||'HTTP '+response.status);
+ return result;
 }
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -61,7 +69,7 @@ async function permanentlyDeleteHouse(h){
   confirmButton.onclick=async()=>{
    confirmButton.disabled=true;back.disabled=true;
    try{
-    await httpsCallable(functions,'deleteEmptyHouse')({houseId:h.id,confirmName:h.name});
+    await deleteHouseOnWorker(h.id,h.name);
     if(user)localStorage.removeItem('familyauto-house-'+user.uid);
     currentHouse=null;if(stopRequests){stopRequests();stopRequests=null}publishHouse(null);$('houseDetails').replaceChildren();info('הבית וכל חבריו, ההרשאות וההיסטוריה נמחקו לצמיתות.');finish();render();
    }catch(e){info('מחיקת הבית נכשלה: '+readableError(e),true);error.textContent='המחיקה לא הושלמה. '+readableError(e);dialog.replaceChildren(title,explanation,memberList,error,finalActions);confirmButton.disabled=false;back.disabled=false}
