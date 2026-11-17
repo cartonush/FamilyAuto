@@ -102,7 +102,7 @@ test('normal active booking early return is limited to renter or house owner',()
  assert.match(nav,/id===active\.id&&r\.status==='approved'/);
  assert.match(nav,/familyauto:finish-active/);
  assert.match(html,/id="homeFinishBtn"/);
- assert.match(nav,/!\['cancelled','rejected','ended'\]\.includes\(r\.status\)/);
+ assert.match(nav,/\['pending','approved','ended','rejected'\]\.includes\(r\.status\)/);
 });
 
 test('2.1 home release button is wired exactly once without redeclaring state',()=>{
