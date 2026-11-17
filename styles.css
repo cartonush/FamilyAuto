@@ -322,3 +322,15 @@ input::placeholder{color:var(--app-muted);opacity:.75}
 input,select,button{accent-color:var(--brand-primary)}
 input:focus-visible,select:focus-visible,button:focus-visible{outline-color:var(--brand-primary)}
 ::selection{background:var(--brand-primary);color:var(--brand-on-primary)}
+.pill{background:var(--brand-secondary);color:var(--app-text)}
+.pill.busy{background:var(--brand-primary);color:var(--brand-on-primary)}
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--brand-primary);border-color:var(--brand-primary);color:var(--app-text)}
+.settings-link.expanded>b{color:var(--app-text)}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:var(--brand-primary);color:var(--app-text)}
+.house-picker-option.active,:root.dark .house-picker-option.active{outline-color:var(--brand-primary);background:var(--brand-primary);color:var(--app-text)}
+.instant-choice-option[aria-pressed="true"],:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-primary);border-color:var(--brand-primary);color:var(--app-text)}
+.ios-wheel-highlight,:root.dark .ios-wheel-highlight{background:var(--brand-primary)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand-primary);outline-offset:2px}
+button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-primary)}
+.settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-primary)}
+.bottom-nav .nav-item:hover:not(.active){background:var(--brand-secondary);color:var(--app-text)}
