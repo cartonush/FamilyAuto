@@ -404,3 +404,5 @@ button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings
 .appearance-preset-swatches i{display:block;width:17px;height:17px;border:1px solid #777;border-radius:50%}
 #appearancePresetName{font-weight:700}
 @media(max-width:360px){.appearance-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.request-actions button.primary{background:var(--brand-primary);color:var(--brand-on-primary)}
+.guest-auth-card #resetPassword{color:var(--brand-highlight)}
