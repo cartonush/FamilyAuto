@@ -117,14 +117,20 @@ function selectHouse(id){if(stopRequests){stopRequests();stopRequests=null}curre
   const title=document.createElement('h3');title.textContent='העברת ניהול הבית';
   const description=document.createElement('p');description.className='muted';
   description.textContent='לפני מחיקת החשבון שלך, יש לבחור מנהל חדש לכל בית שאתה מנהל.';
-  const chooser=document.createElement('select');chooser.setAttribute('aria-label','בחירת מנהל חדש');
-  for(const uid of h.memberIds.filter(uid=>uid!==user.uid)){
-   const option=document.createElement('option');option.value=uid;option.textContent='חבר בית '+uid.slice(0,8);chooser.append(option);
-  }
+  const chooserLabel=document.createElement('label');chooserLabel.className='ownership-transfer-label';chooserLabel.textContent='בחר את חבר הבית שיקבל את הבעלות';
+  const chooser=document.createElement('select');chooser.className='ownership-transfer-select';chooser.setAttribute('aria-label','בחירת מנהל חדש');chooser.disabled=true;
+  const loading=document.createElement('option');loading.value='';loading.textContent='טוען את חברי הבית…';chooser.append(loading);chooserLabel.append(chooser);
+  const candidates=h.memberIds.filter(uid=>uid!==user.uid);
   getDocs(collection(db,'houses',id,'memberSettings')).then(snapshot=>{
    const names={};snapshot.forEach(d=>names[d.id]=d.data().displayName);
-   for(const option of chooser.options)option.textContent=names[option.value]||option.textContent;
-  }).catch(()=>{});
+   chooser.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='בחר חבר בית';chooser.append(placeholder);
+   for(const uid of candidates){const option=document.createElement('option');option.value=uid;option.textContent=names[uid]||'חבר בית '+uid.slice(0,8);chooser.append(option)}
+   chooser.disabled=candidates.length===0;
+  }).catch(()=>{
+   chooser.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='בחר חבר בית';chooser.append(placeholder);
+   for(const uid of candidates){const option=document.createElement('option');option.value=uid;option.textContent='חבר בית '+uid.slice(0,8);chooser.append(option)}
+   chooser.disabled=candidates.length===0;
+  });
   const button=document.createElement('button');button.type='button';button.textContent='העברת בעלות';button.className='primary';
   button.onclick=async()=>{
    const chosen=chooser.value;
@@ -134,7 +140,7 @@ function selectHouse(id){if(stopRequests){stopRequests();stopRequests=null}curre
    catch(e){info('העברת הבעלות נכשלה: '+readableError(e),true)}
    finally{button.disabled=false}
   };
-  transfer.append(title,description,chooser,button);details.append(transfer);
+  transfer.append(title,description,chooserLabel,button);details.append(transfer);
  }
  const deletion=document.createElement('div');deletion.className='house-deletion';
  const deleteButton=document.createElement('button');deleteButton.type='button';deleteButton.className='danger-action';
