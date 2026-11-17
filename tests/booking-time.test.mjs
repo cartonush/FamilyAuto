@@ -111,8 +111,19 @@ test('2.1 home release button is wired exactly once without redeclaring state',(
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  assert.equal((nav.match(/const canRelease=/g)||[]).length,1);
  assert.equal((nav.match(/homeFinishBtn'\)\?\.addEventListener\('click'/g)||[]).length,1);
- assert.match(html,/FamilyAuto 2\.1/);
- assert.match(html,/גרסה 2\.1/);
- assert.match(sw,/familyauto-shell-v2\.1/);
- assert.match(sw,/const VERSION='2\.1'/);
+ assert.match(html,/FamilyAuto 2\.1\.1/);
+ assert.match(html,/גרסה 2\.1\.1/);
+ assert.match(sw,/familyauto-shell-v2\.1\.1/);
+ assert.match(sw,/const VERSION='2\.1\.1'/);
+});
+
+test('instant popup is outside hidden Requests tab when opened from Home',()=>{
+ const source=readFileSync(new URL('../firebase-requests.js',import.meta.url),'utf8');
+ const nav=readFileSync(new URL('../navigation.js',import.meta.url),'utf8');
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ assert.match(source,/document\.body\.append\(picker,instantDialog\)/);
+ assert.ok(source.indexOf('document.body.append(picker,instantDialog)')<source.indexOf('instantDialog.showModal()'));
+ assert.match(source,/instantDialog\.showModal\(\)/);
+ assert.match(nav,/window\.dispatchEvent\(new Event\('familyauto:instant-open'\)\)/);
+ assert.match(html,/id="page-requests"/);
 });
