@@ -277,3 +277,48 @@ input,select,.time-field,.slot-wheel-row select,.ios-picker{background-color:var
 .calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
 :root.dark .calendar-day.selected{background:var(--brand-primary);color:var(--brand-on-primary)}
 #resetAppearanceColors{color:var(--app-text)}
+
+/* Route remaining neutral interface colors through the user's palette. */
+:root{--app-muted:#718197}
+:root.dark{--app-muted:#a8b7c9}
+.bottom-nav .nav-item{color:var(--app-muted)}
+.bottom-nav .nav-item.active{color:var(--app-text)}
+.calendar-day{color:var(--app-text)}
+.calendar-weekday,.calendar-header button,.settings-link>b,.slot-display>span:last-child,.ios-date-chevron{color:var(--app-muted)}
+.neutral{background:var(--brand-secondary);color:var(--app-text)}
+.notice,.request-warning{background:var(--brand-secondary);border-color:var(--brand-secondary);color:var(--app-text)}
+.logo,.icon-btn,.stats div,.home-metrics>div,.calendar-day:not(.selected),.calendar-header button,.slot-head button,.ios-wheel-highlight{background:var(--brand-secondary);color:var(--app-text)}
+.settings-link.expanded,.bottom-nav .nav-item.active,.house-picker-option.active{background:var(--brand-secondary);color:var(--app-text)}
+.settings-link.expanded{border-color:var(--brand-primary)}
+.settings-link,.settings-subpage,.booking,.member-row,.dashboard-card,.guest-auth-card,.time-field,.slot-display,.slot-wheel-row select,.ios-date-trigger,.appearance-text-choice,.house-picker-option,.calendar-booking-row{border-color:var(--brand-secondary)}
+.settings-subpage{background:var(--app-surface)}
+input,select,.time-pickers input,.time-pickers select,.slot-wheel-row select,.ios-picker{background-color:var(--app-surface);color:var(--app-text);border-color:var(--brand-secondary)}
+.ios-picker-head{border-color:var(--brand-secondary)}
+.ios-wheel-highlight{background:var(--brand-secondary)}
+.ios-wheel-fade{background:linear-gradient(to bottom,var(--app-surface) 0%,transparent 34%,transparent 66%,var(--app-surface) 100%)}
+.actions button:not(.primary),.auth-switch button:not(.primary),#logoutBtn,.calendar-header button,.slot-head button,.push-welcome-actions button:not(.primary),#resetAppearanceColors,.neutral{background:var(--brand-secondary);color:var(--app-text)}
+.text-action,.back-link,.ios-picker-head button,#resetPassword{color:var(--brand-primary)}
+.header-logout{border-color:var(--brand-secondary)}
+.bottom-nav .nav-item.active{background:var(--brand-secondary);color:var(--app-text)}
+.calendar-day.today{outline-color:var(--brand-primary)}
+.calendar-legend,.calendar-booking-details small{color:var(--app-muted)}
+:root.dark .calendar-booking-row{border-color:var(--brand-secondary)}
+.calendar-dot{border-color:#000}
+:root.dark .settings-link,:root.dark .settings-subpage,:root.dark .booking,:root.dark .member-row,:root.dark .dashboard-card,:root.dark .guest-auth-card,:root.dark .time-field,:root.dark .slot-display,:root.dark .slot-wheel-row select,:root.dark .ios-date-trigger,:root.dark .appearance-text-choice,:root.dark .house-picker-option,:root.dark .calendar-booking-row{border-color:var(--brand-secondary)}
+:root.dark .settings-link,:root.dark .settings-subpage,:root.dark .booking,:root.dark .member-row,:root.dark .slot-picker,:root.dark .ios-picker{background-color:var(--app-surface);color:var(--app-text)}
+:root.dark .settings-link small,:root.dark .calendar-weekday,:root.dark .calendar-header button,:root.dark .slot-display>span:last-child,:root.dark .ios-date-chevron,:root.dark .calendar-legend,:root.dark .calendar-booking-details small{color:var(--app-muted)}
+:root.dark .stats div,:root.dark .home-metrics>div,:root.dark .calendar-day:not(.selected),:root.dark .calendar-header button,:root.dark .slot-head button,:root.dark .ios-wheel-highlight,:root.dark .instant-panel,:root.dark .instant-choice-option,:root.dark .instant-choice-option[aria-pressed="true"]{background:var(--brand-secondary);color:var(--app-text);border-color:var(--brand-secondary)}
+.slot-picker{background:var(--app-surface);color:var(--app-text)}
+.instant-panel{background:var(--brand-secondary);border-color:var(--brand-secondary)}
+.instant-choice-option,.instant-choice-option[aria-pressed="true"]{background:var(--brand-secondary);border-color:var(--brand-primary);color:var(--app-text)}
+.instant-choice-hint{color:var(--app-muted)}
+#appToast,:root.dark #appToast{background:var(--brand-primary);color:var(--brand-on-primary)}
+.brand small,.empty,.muted,.stats small,.home-metrics small,.settings-link small,.calendar-weekday,.calendar-legend,.calendar-booking-details small,.ios-picker-hint,.slot-note,.instant-choice-hint,.eyebrow{color:var(--app-muted)}
+:root.dark .brand small,:root.dark .empty,:root.dark .muted,:root.dark .stats small,:root.dark .home-metrics small,:root.dark .settings-link small,:root.dark .calendar-weekday,:root.dark .calendar-legend,:root.dark .calendar-booking-details small,:root.dark .ios-picker-hint,:root.dark .slot-note,:root.dark .instant-choice-hint,:root.dark .eyebrow{color:var(--app-muted)}
+.ios-wheel-option.ios-wheel-unavailable,:root.dark .ios-wheel-option.ios-wheel-unavailable{color:var(--app-muted)}
+:root.dark .ios-wheel-fade{background:linear-gradient(to bottom,var(--app-surface) 0%,transparent 34%,transparent 66%,var(--app-surface) 100%)}
+#calendarDayDetails{border-color:var(--brand-secondary)}
+input::placeholder{color:var(--app-muted);opacity:.75}
+input,select,button{accent-color:var(--brand-primary)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline-color:var(--brand-primary)}
+::selection{background:var(--brand-primary);color:var(--brand-on-primary)}

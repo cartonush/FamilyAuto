@@ -29,12 +29,14 @@ function applyAppearance(){
   root.style.setProperty('--app-background',palette.background);
   root.style.setProperty('--app-surface',palette.surface);
   root.style.setProperty('--app-text',palette.text==='black'?'#000000':'#ffffff');
+  root.style.setProperty('--app-muted',palette.text==='black'?'#000000':'#ffffff');
   root.style.setProperty('--brand-primary',palette.primary);
   root.style.setProperty('--brand-secondary',palette.secondary);
   root.style.setProperty('--brand-on-primary',palette.text==='black'?'#000000':'#ffffff');
  }else{
-  for(const name of ['--app-background','--app-surface','--app-text','--brand-primary','--brand-secondary','--brand-on-primary'])root.style.removeProperty(name);
+  for(const name of ['--app-background','--app-surface','--app-text','--app-muted','--brand-primary','--brand-secondary','--brand-on-primary'])root.style.removeProperty(name);
  }
+ const themeColor=document.querySelector('meta[name="theme-color"]');if(themeColor)themeColor.content=palette.background;
  syncAppearanceControls();
 }
 function saveAppearancePalette(){

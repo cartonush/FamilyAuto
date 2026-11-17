@@ -111,10 +111,10 @@ test('2.1 home release button is wired exactly once without redeclaring state',(
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  assert.equal((nav.match(/const canRelease=/g)||[]).length,1);
  assert.equal((nav.match(/homeFinishBtn'\)\?\.addEventListener\('click'/g)||[]).length,1);
- assert.match(html,/FamilyAuto 2\.2\.5/);
- assert.match(html,/גרסה 2\.2\.5/);
- assert.match(sw,/familyauto-shell-v2\.2\.5/);
- assert.match(sw,/const VERSION='2\.2\.5'/);
+ assert.match(html,/FamilyAuto 2\.2\.6/);
+ assert.match(html,/גרסה 2\.2\.6/);
+ assert.match(sw,/familyauto-shell-v2\.2\.6/);
+ assert.match(sw,/const VERSION='2\.2\.6'/);
 });
 
 test('instant popup is outside hidden Requests tab when opened from Home',()=>{
