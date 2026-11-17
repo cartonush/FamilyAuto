@@ -111,10 +111,10 @@ test('2.1 home release button is wired exactly once without redeclaring state',(
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  assert.equal((nav.match(/const canRelease=/g)||[]).length,1);
  assert.equal((nav.match(/homeFinishBtn'\)\?\.addEventListener\('click'/g)||[]).length,1);
- assert.match(html,/FamilyAuto 2\.1\.7/);
- assert.match(html,/גרסה 2\.1\.7/);
- assert.match(sw,/familyauto-shell-v2\.1\.7/);
- assert.match(sw,/const VERSION='2\.1\.7'/);
+ assert.match(html,/FamilyAuto 2\.1\.8/);
+ assert.match(html,/גרסה 2\.1\.8/);
+ assert.match(sw,/familyauto-shell-v2\.1\.8/);
+ assert.match(sw,/const VERSION='2\.1\.8'/);
 });
 
 test('instant popup is outside hidden Requests tab when opened from Home',()=>{
@@ -126,4 +126,10 @@ test('instant popup is outside hidden Requests tab when opened from Home',()=>{
  assert.match(source,/instantDialog\.showModal\(\)/);
  assert.match(nav,/window\.dispatchEvent\(new Event\('familyauto:instant-open'\)\)/);
  assert.match(html,/id="page-requests"/);
+});
+
+test('instant popup closes after booking save without waiting for push delivery',()=>{
+ const source=readFileSync(new URL('../firebase-requests.js',import.meta.url),'utf8');
+ assert.match(source,/void queueBookingNotification\(hid,bookingRef\.id,'approved'\)/);
+ assert.match(source,/await startInstant\(mode,chosen\);\s*instantDialog\.close\(\)/);
 });

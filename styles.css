@@ -141,6 +141,7 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 .member-permission input{width:19px;height:19px}
 .house-deletion{margin-top:20px;padding:12px;border:1px solid #f0d2d2;border-radius:12px}
 .danger-action{color:#ad2634;border:1px solid #dfb3b8;background:transparent}
+.house-permanent-dialog{max-height:88dvh;overflow:auto}.house-permanent-dialog ul{padding-inline-start:24px;line-height:1.8}.house-permanent-dialog .actions{margin-top:16px}
 :root.dark .instant-panel{background:#213852;border-color:#45668a}
 :root.dark .house-deletion{border-color:#875560}
 

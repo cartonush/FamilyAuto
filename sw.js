@@ -1,6 +1,6 @@
-const CACHE='familyauto-shell-v2.1.7';
-const VERSION='2.1.7';
-const ASSETS=['./','./index.html','./styles.css?v=2.1.7','./app.js?v=2.1.7','./navigation.js?v=2.1.7','./firebase-auth.js?v=2.1.7','./firebase-config.js','./firebase-profile.js?v=2.1.7','./firebase-members.js?v=2.1.7','./firebase-requests.js?v=2.1.7','./firebase-homes.js?v=2.1.7','./firebase-push.js?v=2.1.7','./firebase-activity.js?v=2.1.7','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
+const CACHE='familyauto-shell-v2.1.8';
+const VERSION='2.1.8';
+const ASSETS=['./','./index.html','./styles.css?v=2.1.8','./app.js?v=2.1.8','./navigation.js?v=2.1.8','./firebase-auth.js?v=2.1.8','./firebase-config.js','./firebase-profile.js?v=2.1.8','./firebase-members.js?v=2.1.8','./firebase-requests.js?v=2.1.8','./firebase-homes.js?v=2.1.8','./firebase-push.js?v=2.1.8','./firebase-activity.js?v=2.1.8','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
@@ -26,8 +26,8 @@ self.addEventListener('push',event=>{
  let payload={};
  try{payload=event.data?.json()||{}}catch{payload={}}
  const data=payload.data||payload;
- // iOS already labels a web push with the installed app name. An empty title
- // keeps the banner from repeating "FamilyAuto from FamilyAuto".
+ // Keep the title empty so iOS supplies the installed app name. iOS itself
+ // also adds the PWA attribution line "from <app name>"; web code cannot hide it.
  const title='';
  const body=typeof data.body==='string'?data.body:'יש עדכון חדש על הרכב.';
  const destination=['calendar','settings-houses'].includes(data.destination)?'#'+data.destination:'#requests';

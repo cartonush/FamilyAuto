@@ -314,7 +314,9 @@ async function startInstant(mode='untilDone',chosenEnd=null){
    startAt,endAt,note:'שימוש מיידי ברכב',status:'approved',instantMode:mode,createdAt:serverTimestamp()});
   tx.set(scheduleRef,{reservations:[...active,{id:bookingRef.id,createdBy:uid,startAt,endAt}],updatedAt:serverTimestamp()});
  });
- await queueBookingNotification(hid,bookingRef.id,'approved');
+ // Do not keep the 24-hour choice dialog open while the push event is queued.
+ // The booking is already committed, so notification delivery can continue in the background.
+ void queueBookingNotification(hid,bookingRef.id,'approved').catch(error=>console.warn('FamilyAuto push queue:',error));
 }
 async function finishApproved(record){
  if(!selected||!currentUser)throw Error('בחר בית והתחבר.');
