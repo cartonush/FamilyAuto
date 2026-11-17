@@ -69,7 +69,7 @@ if(root){
  const setup=async()=>{
   if(!user)return say('יש להתחבר לחשבון כדי להפעיל התראות.',true);
   if(isIOS&&!isStandalone)return say('באייפון יש להוסיף את FamilyAuto למסך הבית דרך Safari, לפתוח את האפליקציה משם ואז להפעיל התראות.',true);
-  if(!FCM_VAPID_KEY)return say('ההתראות עדיין בהכנה: חסר מפתח Web Push ציבורי בהגדרות הפרויקט.',true);
+  if(!FCM_VAPID_KEY)return say('לא ניתן להפעיל התראות במכשיר הזה כרגע. נסה שוב מאוחר יותר.',true);
   if(!('Notification'in window)||!('serviceWorker'in navigator))return say('הדפדפן הזה אינו תומך בהתראות Push.',true);
   if(!await isSupported())return say('שירות ההתראות אינו נתמך במכשיר או בדפדפן הזה.',true);
   const permission=await Notification.requestPermission();
@@ -77,7 +77,7 @@ if(root){
   messaging=getMessaging(app);
   const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
   const token=await getToken(messaging,{vapidKey:FCM_VAPID_KEY,serviceWorkerRegistration:registration});
-  if(!token)throw Error('לא התקבל מזהה התראות מ־Firebase.');
+  if(!token)throw Error('לא ניתן להפעיל התראות במכשיר הזה כרגע.');
   const id=await hash(token);
   await setDoc(doc(db,'users',user.uid,'pushTokens',id),{
    token,enabled:true,updatedAt:serverTimestamp(),platform:isIOS?'ios':'web'
@@ -88,7 +88,7 @@ if(root){
   if(setupBusy)return;
   setupBusy=true;
   enable.disabled=true;
-  try{await setup()}catch(e){say('הפעלת ההתראות נכשלה: '+(e.code||e.message||'שגיאה לא ידועה'),true)}
+  try{await setup()}catch(e){say(e.code==='messaging/permission-blocked'?'ההתראות חסומות בהגדרות המכשיר. אפשר לאפשר אותן בהגדרות ולנסות שוב.':'לא ניתן להפעיל התראות כרגע. בדוק את החיבור ונסה שוב.',true)}
   finally{enable.disabled=false;setupBusy=false}
  }
  enable.addEventListener('click',requestEnable);
@@ -98,7 +98,7 @@ if(root){
    if(!user)throw Error('יש להתחבר לחשבון.');
    await unregisterPushForCurrentUser();
    toggle(false);say('ההתראות בוטלו במכשיר הזה.');
-  }catch(e){say('כיבוי ההתראות נכשל: '+(e.code||e.message),true)}
+  }catch(e){say('לא ניתן לכבות את ההתראות כרגע. בדוק את החיבור ונסה שוב.',true)}
   finally{disable.disabled=false}
  });
  onAuthStateChanged(auth,u=>{

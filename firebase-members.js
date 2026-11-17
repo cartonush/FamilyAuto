@@ -5,10 +5,21 @@ import {getFirestore,collection,doc,onSnapshot,setDoc,serverTimestamp} from 'htt
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('membersRoot');
 root.innerHTML='<div class="section-title"><h2>חברי הבית והרשאות</h2><span class="pill">ניהול</span></div><p id="membersStatus">בחר בית כדי לראות את חבריו.</p><div id="membersList"></div>';
 const list=document.getElementById('membersList'),status=document.getElementById('membersStatus');
+const WORKER_URL='https://familyauto.roisuissa6.workers.dev';
 let unsubscribe=null,selected=null,settings={};
 const say=(s,bad=false)=>{status.textContent=s;status.style.color=bad?'#b3261e':''};
 const label=(uid,setting)=>setting?.displayName||('משתמש '+uid.slice(0,8));
 const localValue=date=>{if(!date)return '';const d=date.toDate?date.toDate():new Date(date);const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return local.toISOString().slice(0,16)};
+async function changeMembership(targetUid){
+  const user=auth.currentUser;
+  if(!user||!selected)throw Error('יש להתחבר ולבחור בית.');
+  const response=await fetch(WORKER_URL+'/account/membership',{
+    method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await user.getIdToken()},
+    body:JSON.stringify({houseId:selected.id,targetUid})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(result.error||'לא ניתן לשנות את החברות בבית. נסה שוב.');
+}
 function render(){
   list.replaceChildren();
   if(!selected)return;
@@ -47,10 +58,29 @@ function render(){
             updatedAt:serverTimestamp()
           });
           say('הרשאות המשתמש נשמרו.');
-        }catch(e){say('שמירת הרשאות נכשלה: '+(e.code||e.message)+'. ודא שפרסמת את כללי Firestore החדשים.',true)}
+        }catch(e){say('לא ניתן לשמור את ההרשאות כרגע. בדוק את החיבור ונסה שוב.',true)}
         finally{save.disabled=false}
       };
-      controls.append(role,instantLabel,suspension,save);row.append(controls);
+      const remove=document.createElement('button');remove.type='button';remove.className='danger-action';remove.textContent='הוצאת חבר מהבית';
+      remove.onclick=async()=>{
+        const name=label(uid,setting);
+        if(!confirm('להוציא את '+name+' מהבית? בקשות ממתינות והזמנות עתידיות צריכות להסתיים קודם.'))return;
+        remove.disabled=true;
+        try{await changeMembership(uid);say(name+' הוסר מהבית.');}
+        catch(e){say(e.message||'לא ניתן להוציא את החבר מהבית.',true)}
+        finally{remove.disabled=false}
+      };
+      controls.append(role,instantLabel,suspension,save,remove);row.append(controls);
+    }else if(!owner&&uid===auth.currentUser?.uid){
+      const leave=document.createElement('button');leave.type='button';leave.className='danger-action';leave.textContent='עזיבת הבית';
+      leave.onclick=async()=>{
+        if(!confirm('לעזוב את הבית? בקשות ממתינות והזמנות עתידיות שלך צריכות להסתיים קודם.'))return;
+        leave.disabled=true;
+        try{await changeMembership(uid);say('עזבת את הבית.');}
+        catch(e){say(e.message||'לא ניתן לעזוב את הבית.',true)}
+        finally{leave.disabled=false}
+      };
+      row.append(leave);
     }
     list.append(row);
   }
@@ -61,7 +91,7 @@ function handleHouseChange(event){
   if(!selected)return;
   unsubscribe=onSnapshot(collection(db,'houses',selected.id,'memberSettings'),snap=>{
     settings={};snap.forEach(d=>{settings[d.id]=d.data()});window.dispatchEvent(new CustomEvent('familyauto:permissions',{detail:{houseId:selected.id,settings}}));render();
-  },e=>say('טעינת ההרשאות נכשלה: '+(e.code||e.message),true));
+  },()=>say('לא ניתן לטעון את ההרשאות כרגע. בדוק את החיבור ונסה שוב.',true));
 }
 window.addEventListener('familyauto:house',handleHouseChange);
 // House loading may finish before this module registers its listener.

@@ -253,12 +253,12 @@ async function verifyFirebaseIdToken(jwt){
 async function transferOwnership(uid,houseId,successorUid,token){
  if(typeof houseId!=='string'||!/^[a-f0-9]{32}$/.test(houseId)||
     typeof successorUid!=='string'||successorUid.length>128||!successorUid||successorUid===uid)
-  return jsonResponse({error:'Invalid house or successor'},400);
+  return jsonResponse({error:'יש לבחור בית וחבר בית אחר.'},400);
  const house=await firestore('houses/'+houseId,token);
- if(!house)return jsonResponse({error:'House not found'},404);
- if(str(house,'ownerUid')!==uid)return jsonResponse({error:'Only owner may transfer'},403);
- if(field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'Restore house before transfer'},409);
- if(!arr(house,'memberIds').includes(successorUid))return jsonResponse({error:'Successor must be an approved member'},409);
+ if(!house)return jsonResponse({error:'הבית לא נמצא.'},404);
+ if(str(house,'ownerUid')!==uid)return jsonResponse({error:'רק מנהל הבית יכול להעביר בעלות.'},403);
+ if(field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'יש לשחזר את הבית לפני העברת בעלות.'},409);
+ if(!arr(house,'memberIds').includes(successorUid))return jsonResponse({error:'יש לבחור חבר מאושר בבית.'},409);
  const memberName='projects/'+PROJECT+'/databases/(default)/documents/houses/'+houseId+'/memberSettings/'+encodeURIComponent(uid);
  const response=await fetch(BASE+':commit',{
   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
@@ -270,7 +270,7 @@ async function transferOwnership(uid,houseId,successorUid,token){
     updateMask:{fieldPaths:['role','canTakeCar','updatedAt']}}
   ]})
  });
- if(response.status===409||response.status===412)return jsonResponse({error:'House changed; retry'},409);
+ if(response.status===409||response.status===412)return jsonResponse({error:'פרטי הבית השתנו. רענן ונסה שוב.'},409);
  if(!response.ok)throw Error('Ownership transfer '+response.status);
  return jsonResponse({success:true});
 }
@@ -312,12 +312,12 @@ async function deleteDocuments(documents,token){
 }
 async function permanentlyDeleteHouse(uid,houseId,confirmName,token){
  if(typeof houseId!=='string'||!/^[a-f0-9]{32}$/.test(houseId)||typeof confirmName!=='string')
-  return jsonResponse({error:'Invalid house or confirmation'},400);
+  return jsonResponse({error:'פרטי הבית או האישור אינם תקינים.'},400);
  const house=await firestore('houses/'+houseId,token);
- if(!house)return jsonResponse({error:'House not found'},404);
- if(str(house,'ownerUid')!==uid)return jsonResponse({error:'Only the house owner may delete it'},403);
- if(!field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'Move the house to trash before permanent deletion'},409);
- if(str(house,'name')!==confirmName)return jsonResponse({error:'House name confirmation does not match'},409);
+ if(!house)return jsonResponse({error:'הבית לא נמצא.'},404);
+ if(str(house,'ownerUid')!==uid)return jsonResponse({error:'רק מנהל הבית יכול למחוק אותו.'},403);
+ if(!field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'יש להעביר את הבית לאזור השחזור לפני מחיקה לצמיתות.'},409);
+ if(str(house,'name')!==confirmName)return jsonResponse({error:'שם הבית שהוקלד אינו תואם.'},409);
  const [bookings,joinRequests,memberSettings,activity,system,events,deliveries]=await Promise.all([
   listAllDocuments('houses/'+houseId+'/bookingRequests',token),
   listAllDocuments('houses/'+houseId+'/joinRequests',token),
@@ -331,23 +331,97 @@ async function permanentlyDeleteHouse(uid,houseId,confirmName,token){
  const latest=await firestore('houses/'+houseId,token);
  if(!latest)return jsonResponse({success:true});
  if(str(latest,'ownerUid')!==uid||str(latest,'name')!==confirmName||!field(latest,'deletedAt')?.timestampValue)
-  return jsonResponse({error:'House changed while deleting; review it and retry'},409);
+  return jsonResponse({error:'פרטי הבית השתנו בזמן המחיקה. רענן ונסה שוב.'},409);
  const url=new URL(BASE+'/houses/'+houseId);
  url.searchParams.set('currentDocument.updateTime',latest.updateTime);
  const response=await fetch(url,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
- if(response.status===409||response.status===412)return jsonResponse({error:'House changed while deleting; review it and retry'},409);
+ if(response.status===409||response.status===412)return jsonResponse({error:'פרטי הבית השתנו בזמן המחיקה. רענן ונסה שוב.'},409);
  if(!response.ok)throw Error('Firestore house delete '+response.status);
  return jsonResponse({success:true});
+}
+function activeBookingForUser(booking){
+ const status=str(booking,'status'),end=field(booking,'endAt')?.timestampValue;
+ return status==='pending'||(status==='approved'&&end&&Date.parse(end)>Date.now());
+}
+async function loadMemberBookings(houseId,uid,token){
+ const bookings=await listAllDocuments('houses/'+houseId+'/bookingRequests',token);
+ return bookings.filter(item=>str(item,'createdBy')===uid);
+}
+async function changeHouseMember(actorUid,houseId,targetUid,token){
+ if(typeof houseId!=='string'||!/^[a-f0-9]{32}$/.test(houseId)||typeof targetUid!=='string'||!targetUid||targetUid.length>128)
+  return jsonResponse({error:'פרטי הבית או המשתמש אינם תקינים.'},400);
+ const house=await firestore('houses/'+houseId,token);
+ if(!house)return jsonResponse({error:'הבית לא נמצא.'},404);
+ if(field(house,'deletedAt')?.timestampValue)return jsonResponse({error:'יש לשחזר את הבית לפני שינוי החברים.'},409);
+ const members=arr(house,'memberIds'),ownerUid=str(house,'ownerUid');
+ const leaving=actorUid===targetUid&&actorUid!==ownerUid;
+ const ownerRemoving=actorUid===ownerUid&&targetUid!==ownerUid;
+ if(!leaving&&!ownerRemoving)return jsonResponse({error:'רק חבר יכול לעזוב, ומנהל הבית יכול להוציא חבר אחר.'},403);
+ if(!members.includes(targetUid))return jsonResponse({error:'המשתמש אינו חבר בבית הזה.'},409);
+ const bookings=await loadMemberBookings(houseId,targetUid,token);
+ if(bookings.some(activeBookingForUser))return jsonResponse({error:'יש למשתמש בקשה ממתינה או הזמנת רכב עתידית. יש לטפל בה לפני עזיבת הבית.'},409);
+ const newMembers=members.filter(id=>id!==targetUid);
+ const memberSettingsName='projects/'+PROJECT+'/databases/(default)/documents/houses/'+houseId+'/memberSettings/'+encodeURIComponent(targetUid);
+ const joinRequestName='projects/'+PROJECT+'/databases/(default)/documents/houses/'+houseId+'/joinRequests/'+encodeURIComponent(targetUid);
+ const response=await fetch(BASE+':commit',{
+  method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+  body:JSON.stringify({writes:[
+   {update:{name:house.name,fields:{memberIds:{arrayValue:{values:newMembers.map(uid=>({stringValue:uid}))}}}},updateMask:{fieldPaths:['memberIds']},currentDocument:{updateTime:house.updateTime}},
+   {delete:memberSettingsName},{delete:joinRequestName}
+  ]})
+ });
+ if(response.status===409||response.status===412)return jsonResponse({error:'רשימת החברים השתנתה. רענן ונסה שוב.'},409);
+ if(!response.ok)throw Error('House membership update '+response.status);
+ return jsonResponse({success:true});
+}
+async function cleanupAccountData(uid,token){
+ const allHouses=await listAllDocuments('houses',token);
+ const houses=allHouses.filter(h=>arr(h,'memberIds').includes(uid));
+ if(houses.some(h=>str(h,'ownerUid')===uid))
+  return jsonResponse({error:'לפני מחיקת החשבון יש להעביר את ניהול הבתים שלך או למחוק אותם.'},409);
+ const bookingsByHouse=await Promise.all(houses.map(h=>loadMemberBookings(h.name.split('/').pop(),uid,token)));
+ if(bookingsByHouse.some(bookings=>bookings.some(activeBookingForUser)))
+  return jsonResponse({error:'יש לך בקשה ממתינה או הזמנת רכב עתידית. יש לטפל בה לפני מחיקת החשבון.'},409);
+ for(let index=0;index<houses.length;index++){
+  const house=houses[index],houseId=house.name.split('/').pop();
+  const bookings=bookingsByHouse[index];
+  for(const booking of bookings)if(str(booking,'displayName'))await replaceDisplayName(booking,token);
+  const activities=await listAllDocuments('houses/'+houseId+'/activity',token);
+  for(const activity of activities)if(str(activity,'actorUid')===uid&&str(activity,'displayName'))await replaceDisplayName(activity,token);
+  const members=arr(house,'memberIds').filter(memberUid=>memberUid!==uid);
+  const response=await fetch(BASE+':commit',{
+   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({writes:[
+    {update:{name:house.name,fields:{memberIds:{arrayValue:{values:members.map(memberUid=>({stringValue:memberUid}))}}}},updateMask:{fieldPaths:['memberIds']},currentDocument:{updateTime:house.updateTime}},
+    {delete:'projects/'+PROJECT+'/databases/(default)/documents/houses/'+houseId+'/memberSettings/'+encodeURIComponent(uid)},
+    {delete:'projects/'+PROJECT+'/databases/(default)/documents/houses/'+houseId+'/joinRequests/'+encodeURIComponent(uid)}
+   ]})
+  });
+  if(!response.ok)throw Error('Account house cleanup '+response.status);
+ }
+ await firestore('profiles/'+encodeURIComponent(uid),token,{method:'DELETE'});
+ const tokens=await listAllDocuments('users/'+encodeURIComponent(uid)+'/pushTokens',token);
+ await deleteDocuments(tokens,token);
+ await firestore('users/'+encodeURIComponent(uid),token,{method:'DELETE'});
+ return jsonResponse({success:true});
+}
+async function replaceDisplayName(document,token){
+ const url=new URL('https://firestore.googleapis.com/v1/'+document.name);
+ url.searchParams.append('updateMask.fieldPaths','displayName');
+ url.searchParams.set('currentDocument.updateTime',document.updateTime);
+ const response=await fetch(url,{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({name:document.name,fields:{displayName:{stringValue:'משתמש שנמחק'}}})});
+ if(response.status===409||response.status===412)return;
+ if(!response.ok)throw Error('Account history cleanup '+response.status);
 }
 export default {
  async fetch(request,env){
   const url=new URL(request.url);
-  if(request.method==='OPTIONS'&&['/dispatch','/account/transfer','/account/delete'].includes(url.pathname))return new Response(null,{status:204,headers:CORS});
+  if(request.method==='OPTIONS'&&['/dispatch','/account/transfer','/account/delete','/account/membership','/account/cleanup'].includes(url.pathname))return new Response(null,{status:204,headers:CORS});
   if(url.pathname==='/health'&&request.method==='GET')return jsonResponse({ok:true,service:'FamilyAuto push'});
-  if(!['/dispatch','/account/transfer','/account/delete'].includes(url.pathname)||request.method!=='POST')return jsonResponse({error:'Not found'},404);
+  if(!['/dispatch','/account/transfer','/account/delete','/account/membership','/account/cleanup'].includes(url.pathname)||request.method!=='POST')return jsonResponse({error:'הפעולה לא נמצאה.'},404);
   try{
    const bearer=request.headers.get('Authorization')||'';
-   if(!bearer.startsWith('Bearer '))return jsonResponse({error:'Unauthorized'},401);
+   if(!bearer.startsWith('Bearer '))return jsonResponse({error:'יש להתחבר לחשבון כדי לבצע את הפעולה.'},401);
    const uid=await verifyFirebaseIdToken(bearer.slice(7));
    const data=await request.json();
    if(url.pathname==='/account/transfer'){
@@ -358,13 +432,21 @@ export default {
     const token=await googleAccessToken(env);
     return permanentlyDeleteHouse(uid,data?.houseId,data?.confirmName,token);
    }
-   if(typeof data.eventId!=='string')return jsonResponse({error:'Bad request'},400);
+   if(url.pathname==='/account/membership'){
+    const token=await googleAccessToken(env);
+    return changeHouseMember(uid,data?.houseId,data?.targetUid,token);
+   }
+   if(url.pathname==='/account/cleanup'){
+    const token=await googleAccessToken(env);
+    return cleanupAccountData(uid,token);
+   }
+   if(typeof data.eventId!=='string')return jsonResponse({error:'הבקשה אינה תקינה.'},400);
    const token=await googleAccessToken(env);
    const event=await firestore('notificationEvents/'+encodeURIComponent(data.eventId),token);
-   if(!event||str(event,'actorUid')!==uid)return jsonResponse({error:'Forbidden'},403);
+   if(!event||str(event,'actorUid')!==uid)return jsonResponse({error:'אין לך הרשאה לבצע את הפעולה הזאת.'},403);
    const result=await processBatch(env,data.eventId);
    return jsonResponse(result);
-  }catch(error){console.error(error);return jsonResponse({error:'Dispatch failed'},500)}
+  }catch(error){console.error(error);return jsonResponse({error:'לא ניתן להשלים את הפעולה כרגע. בדוק את החיבור ונסה שוב.'},500)}
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(processBatch(env).then(result=>console.log('FamilyAuto push batch',result))

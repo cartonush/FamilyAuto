@@ -183,10 +183,10 @@ let selected=null,stopRequests=null,stopSchedule=null,records=[],schedule=[],cur
 const say=(message,error=false)=>{status.textContent=message;status.style.color=error?'#b3261e':''};
 const friendlyError=e=>{
  const code=e?.code||'';
- if(code==='permission-denied')return 'אין הרשאה ב־Firestore. ודא שכללי firestore.rules המעודכנים פורסמו ושהמשתמש קיבל הרשאה מתאימה.';
- if(code==='unavailable')return 'אין חיבור זמין ל־Firebase. נסה שוב כשיש אינטרנט.';
- if(code==='failed-precondition')return 'פעולת ההזמנה לא הושלמה. נסה שוב, ייתכן שהרכב הוזמן במקביל.';
- return code||e?.message||'שגיאה לא ידועה';
+ if(code==='permission-denied')return 'אין לך הרשאה לבצע את הפעולה הזאת.';
+ if(code==='unavailable'||code==='network-request-failed')return 'אין חיבור זמין. בדוק את האינטרנט ונסה שוב.';
+ if(code==='failed-precondition')return 'הפעולה לא הושלמה. ייתכן שהרכב הוזמן במקביל; רענן ונסה שוב.';
+ return e?.message||'לא ניתן להשלים את הפעולה כרגע. נסה שוב.';
 };
 const dateOf=v=>v?.toDate?v.toDate():new Date(0);
 const overlaps=(a,b)=>a.startAt.toMillis()<b.endAt.toMillis()&&a.endAt.toMillis()>b.startAt.toMillis();
@@ -566,10 +566,10 @@ form.addEventListener('submit',async e=>{
     say('ההזמנה אושרה ונשמרה ביומן המשותף.');
    }catch(err){
     if(err.code!=='permission-denied')throw err;
-    // Until the new Firestore rules are published, retain the ability to request a booking.
+    // Keep a pending-request fallback if direct booking is not available.
     const pendingRef=await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});
     await queueBookingNotification(houseId,pendingRef.id,'pending');
-    say('כללי Firestore החדשים עדיין לא מאפשרים הזמנה ישירה. נשלחה בקשה לאישור במקום הזמנה מאושרת; יש לפרסם את כללי הגרסה החדשה.',true);
+    say('נשלחה בקשה לאישור בעל הבית.');
    }
   }else{
    const pendingRef=await addDoc(collection(db,'houses',houseId,'bookingRequests'),{...bookingData,status:'pending'});

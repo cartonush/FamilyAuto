@@ -18,7 +18,7 @@ onAuthStateChanged(auth,u=>{
     form.elements.displayName.value=data.displayName||u.displayName||'';
     form.elements.phone.value=data.phone||'';
     say('הפרטים נשמרים בחשבון שלך ומסתנכרנים בין מכשירים.');
-  },err=>say('לא ניתן לטעון פרופיל: '+(err.code||err.message)+'. בדוק שכללי Firestore עודכנו.',true));
+  },()=>say('לא ניתן לטעון את הפרופיל כרגע. בדוק את החיבור ונסה שוב.',true));
 });
 form.addEventListener('submit',async e=>{
   e.preventDefault();
@@ -33,6 +33,6 @@ form.addEventListener('submit',async e=>{
     await setDoc(reference,{displayName:name,phone,updatedAt:serverTimestamp()},{merge:true});
     if(auth.currentUser?.uid===uid)await updateProfile(auth.currentUser,{displayName:name});
     say('הפרופיל נשמר בהצלחה.');
-  }catch(err){say('שמירת הפרופיל נכשלה: '+(err.code||err.message),true)}
+  }catch(err){say('לא ניתן לשמור את הפרופיל כרגע. בדוק את החיבור ונסה שוב.',true)}
   finally{button.disabled=false}
 });
