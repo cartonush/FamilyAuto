@@ -191,6 +191,19 @@ const friendlyError=e=>{
 };
 const dateOf=v=>v?.toDate?v.toDate():new Date(0);
 const overlaps=(a,b)=>a.startAt.toMillis()<b.endAt.toMillis()&&a.endAt.toMillis()>b.startAt.toMillis();
+const isActiveBooking=record=>record?.status==='approved'&&record.startAt?.toMillis?.()<=Date.now()&&record.endAt?.toMillis?.()>Date.now();
+const canFinishBooking=record=>!!(selected&&currentUser&&isActiveBooking(record)&&
+ (record.createdBy===currentUser.uid||selected.ownerUid===currentUser.uid));
+function confirmEarlyReturn(record){
+ if(!canFinishBooking(record))return false;
+ return window.confirm(record.createdBy!==currentUser.uid?
+  'החזרה כפויה: אתה עומד לשחרר את הרכב מהזמנה של חבר בית אחר. הפעולה תסיים את ההזמנה ותאפשר לאחרים להזמין את הזמן שנותר. להמשיך?':
+  'סיימת להשתמש ברכב והחזרת אותו? השריון ישוחרר מיד והזמן שנותר יהיה פנוי. להמשיך?');
+}
+async function finishWithConfirmation(record){
+ if(!confirmEarlyReturn(record))return;
+ await finishApproved(record);
+}
 function publish(){window.dispatchEvent(new CustomEvent('familyauto:requests',{detail:{houseId:selected?.id||null,records:[...records],schedule:[...schedule]}}))}
 function render(){
  list.replaceChildren();if(!selected)return;
@@ -203,9 +216,9 @@ function render(){
   const card=document.createElement('div');card.className='booking request-entry';
   const details=document.createElement('div');details.className='request-details';
   const name=document.createElement('strong');name.textContent=r.displayName||'חבר בית';
-  const range=document.createElement('small');range.textContent=dateOf(r.startAt).toLocaleString('he-IL')+' – '+dateOf(r.endAt).toLocaleString('he-IL')+(r.instantMode==='untilDone'&&r.status==='approved'?' (ניתן לסיים מוקדם)':'');
+  const range=document.createElement('small');range.textContent=dateOf(r.startAt).toLocaleString('he-IL')+' – '+dateOf(r.endAt).toLocaleString('he-IL')+(isActiveBooking(r)?' (אפשר לשחרר מוקדם)':'');
   const state=document.createElement('small');state.className='request-state '+r.status;
-  state.textContent=({pending:'ממתינה לאישור',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה'})[r.status]||r.status;
+  state.textContent=({pending:'ממתינה לאישור',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה',ended:'הסתיימה — הרכב שוחרר'})[r.status]||r.status;
   details.append(name,range,state);
   if(r.note){const note=document.createElement('small');note.textContent=r.note;details.append(note)}
   card.append(details);
@@ -217,10 +230,16 @@ function render(){
    reject.onclick=()=>perform(reject,async()=>{await updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'rejected'});await queueBookingNotification(selected.id,r.id,'rejected')});
    actions.append(approve,reject)
   }
-  if(r.status==='approved'&&r.instantMode&&(r.createdBy===currentUser?.uid||isOwner)){
-   const finish=document.createElement('button');finish.type='button';finish.className='primary';finish.textContent='סיימתי — החזרתי את הרכב';finish.onclick=()=>perform(finish,()=>finishInstant(r));actions.append(finish);
+  if(canFinishBooking(r)){
+   const finish=document.createElement('button');finish.type='button';finish.className='primary';
+   finish.textContent=r.createdBy===currentUser?.uid?'סיימתי — שחררתי את הרכב':'החזרה כפויה — שחרור הרכב';
+   finish.onclick=()=>perform(finish,()=>finishWithConfirmation(r));
+   actions.append(finish);
   }
-  if((r.status==='pending'&&r.createdBy===currentUser?.uid)||(r.status==='approved'&&!r.instantMode&&(isOwner||r.createdBy===currentUser?.uid))){
+  // Future bookings may be cancelled; an active booking is ended instead.
+  if((r.status==='pending'&&r.createdBy===currentUser?.uid)||
+     (r.status==='approved'&&!r.instantMode&&r.startAt?.toMillis?.()>Date.now()&&
+      (isOwner||r.createdBy===currentUser?.uid))){
    const cancel=document.createElement('button');cancel.type='button';cancel.textContent=r.status==='approved'?'ביטול הזמנה':'ביטול בקשה';
    cancel.onclick=()=>perform(cancel,async()=>{if(r.status==='approved')await cancelApproved(r);else{await updateDoc(doc(db,'houses',selected.id,'bookingRequests',r.id),{status:'cancelled'});await queueBookingNotification(selected.id,r.id,'cancelled')}});
    actions.append(cancel)
@@ -292,19 +311,32 @@ async function startInstant(mode='untilDone',chosenEnd=null){
  });
  await queueBookingNotification(hid,bookingRef.id,'approved');
 }
-async function finishInstant(record){
+async function finishApproved(record){
+ if(!selected||!currentUser)throw Error('בחר בית והתחבר.');
  const hid=selected.id,uid=currentUser.uid;
- if(record.createdBy!==uid&&selected.ownerUid!==uid)throw Error('אין הרשאה לסיים שימוש זה.');
  const bookingRef=doc(db,'houses',hid,'bookingRequests',record.id),scheduleRef=doc(db,'houses',hid,'system','schedule');
  await runTransaction(db,async tx=>{
   const [bookingSnap,scheduleSnap]=await Promise.all([tx.get(bookingRef),tx.get(scheduleRef)]);
-  if(!bookingSnap.exists()||bookingSnap.data().status!=='approved')throw Error('השימוש כבר הסתיים.');
+  if(!bookingSnap.exists())throw Error('ההזמנה לא נמצאה.');
+  const booking=bookingSnap.data();
+  if(booking.status!=='approved')throw Error('ההזמנה כבר אינה פעילה.');
+  if(booking.createdBy!==uid&&selected.ownerUid!==uid)throw Error('רק המזמין או בעל הבית יכולים לשחרר את הרכב.');
+  const now=Date.now();
+  if(booking.startAt.toMillis()>now||booking.endAt.toMillis()<=now)
+   throw Error('אפשר לשחרר מוקדם רק הזמנה פעילה.');
   const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
+  if(!entries.some(r=>r.id===record.id))throw Error('השריון כבר שוחרר.');
+  // Booking history and shared availability are updated in one transaction.
   tx.update(bookingRef,{status:'ended',endedAt:serverTimestamp()});
   tx.set(scheduleRef,{reservations:entries.filter(r=>r.id!==record.id),updatedAt:serverTimestamp()});
  });
  await queueBookingNotification(hid,record.id,'ended');
 }
+window.addEventListener('familyauto:finish-active',e=>{
+ const record=records.find(r=>r.id===e.detail?.bookingId);
+ if(!record||!canFinishBooking(record))return;
+ finishWithConfirmation(record).catch(err=>say('שחרור הרכב נכשל: '+friendlyError(err),true));
+});
 function canBookDirectly(){
  if(!selected||!currentUser||selected.deletedAt)return false;
  if(selected.ownerUid===currentUser.uid)return true;
