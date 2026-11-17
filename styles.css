@@ -189,3 +189,6 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 
 /* Keep the confirmation button reachable on smaller iPhones. */
 .instant-choice-dialog{max-height:90dvh;overflow-y:auto;overscroll-behavior:contain}
+
+#appToast{position:fixed;z-index:1001;left:16px;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;padding:14px 16px;border-radius:14px;background:#14263f;color:#fff;box-shadow:0 8px 32px #0004;text-align:center}
+:root.dark #appToast{background:#e6edf7;color:#14263f}
