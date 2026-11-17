@@ -334,3 +334,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings-link){box-shadow:0 0 0 2px var(--brand-primary)}
 .settings-link:hover,.settings-link:focus-visible{border-color:var(--brand-primary)}
 .bottom-nav .nav-item:hover:not(.active){background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .neutral{background:var(--brand-secondary);color:var(--app-text)}
+:root.dark #resetAppearanceColors{background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .auth-switch button:not(.primary),:root.dark #logoutBtn,:root.dark .push-welcome-actions button:not(.primary){background:var(--brand-secondary);color:var(--app-text)}
+:root.dark .ios-picker-head{border-color:var(--brand-secondary)}
+.appearance-color-fields input[type="color"]{border:1px solid var(--brand-secondary);border-radius:12px;background:var(--app-surface);color:var(--app-text)}
+.appearance-color-fields input[type="color"]::-webkit-color-swatch-wrapper{padding:4px}
+.appearance-color-fields input[type="color"]::-webkit-color-swatch{border:0;border-radius:8px}
+:root.dark .appearance-color-fields input[type="color"]{border-color:var(--brand-secondary);background:var(--app-surface)}
+*{-webkit-tap-highlight-color:color-mix(in srgb,var(--brand-secondary) 65%,transparent)}
