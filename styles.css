@@ -385,3 +385,13 @@ button:hover:not(.danger-action):not(.calendar-day):not(.nav-item):not(.settings
 
 :root.appearance-dividers-off .settings-logout-area,:root.appearance-dividers-off #calendarDayDetails,:root.appearance-dividers-off .ios-picker-head,:root.appearance-dividers-off .calendar-booking-row,:root.appearance-dividers-off #houseControls form,
 :root.dark.appearance-dividers-off .settings-logout-area,:root.dark.appearance-dividers-off #calendarDayDetails,:root.dark.appearance-dividers-off .ios-picker-head,:root.dark.appearance-dividers-off .calendar-booking-row,:root.dark.appearance-dividers-off #houseControls form{border-top:0!important;border-bottom:0!important}
+
+/* Keep selection highlights compact so headings and navigation stay readable. */
+.settings-link.expanded,:root.dark .settings-link.expanded{background:var(--app-surface);border-color:var(--brand-secondary);box-shadow:inset -4px 0 0 var(--brand-highlight);color:var(--app-text)}
+.bottom-nav .nav-item{position:relative}
+.bottom-nav .nav-item.active,:root.dark .bottom-nav .nav-item.active{background:transparent;color:var(--app-text)}
+.bottom-nav .nav-item.active::after{content:"";display:block;width:22px;height:4px;margin-top:2px;border-radius:4px;background:var(--brand-highlight)}
+.bottom-nav .nav-item:hover:not(.active){background:transparent;color:var(--app-text)}
+.bottom-nav .nav-item:hover::after{content:"";display:block;width:16px;height:3px;margin-top:2px;border-radius:4px;background:var(--brand-highlight)}
+:root.appearance-highlights-off .settings-link.expanded,:root.dark.appearance-highlights-off .settings-link.expanded{box-shadow:none}
+:root.appearance-highlights-off .bottom-nav .nav-item.active::after,:root.dark.appearance-highlights-off .bottom-nav .nav-item.active::after,:root.appearance-highlights-off .bottom-nav .nav-item:hover::after,:root.dark.appearance-highlights-off .bottom-nav .nav-item:hover::after{display:none}
