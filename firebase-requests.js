@@ -327,7 +327,7 @@ async function finishApproved(record){
   const entries=scheduleSnap.exists()?(scheduleSnap.data().reservations||[]):[];
   if(!entries.some(r=>r.id===record.id))throw Error('השריון כבר שוחרר.');
   // Booking history and shared availability are updated in one transaction.
-  tx.update(bookingRef,{status:'ended',endedAt:serverTimestamp()});
+  tx.update(bookingRef,{status:'ended',endedAt:serverTimestamp(),endedBy:uid});
   tx.set(scheduleRef,{reservations:entries.filter(r=>r.id!==record.id),updatedAt:serverTimestamp()});
  });
  await queueBookingNotification(hid,record.id,'ended');
