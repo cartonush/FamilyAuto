@@ -3,6 +3,12 @@ on:
   push:
     paths:
       - 'firestore.rules'
+      - 'navigation.js'
+      - 'firebase-requests.js'
+      - 'booking-time.mjs'
+      - 'index.html'
+      - 'sw.js'
+      - 'styles.css'
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
@@ -42,6 +48,7 @@ jobs:
       - run: npm install --no-audit --no-fund
       - name: Check JavaScript syntax
         run: |
+          node --check navigation.js
           node --check firebase-requests.js
           node --check booking-time.mjs
           node --check tests/booking-time.test.mjs

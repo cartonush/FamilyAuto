@@ -104,3 +104,15 @@ test('normal active booking early return is limited to renter or house owner',()
  assert.match(html,/id="homeFinishBtn"/);
  assert.match(nav,/!\['cancelled','rejected','ended'\]\.includes\(r\.status\)/);
 });
+
+test('2.1 home release button is wired exactly once without redeclaring state',()=>{
+ const nav=readFileSync(new URL('../navigation.js',import.meta.url),'utf8');
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+ assert.equal((nav.match(/const canRelease=/g)||[]).length,1);
+ assert.equal((nav.match(/homeFinishBtn'\)\?\.addEventListener\('click'/g)||[]).length,1);
+ assert.match(html,/FamilyAuto 2\.1/);
+ assert.match(html,/גרסה 2\.1/);
+ assert.match(sw,/familyauto-shell-v2\.1/);
+ assert.match(sw,/const VERSION='2\.1'/);
+});
