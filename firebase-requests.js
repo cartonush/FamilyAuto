@@ -375,6 +375,10 @@ window.addEventListener('familyauto:instant-open',openInstantDialog);
 // to Requests. The minute wheel is first in RTL (right), the hour wheel second
 // (left). The two wheels reuse the booking picker dimensions and 15-minute slots.
 const instantDialog=$('instantChoiceDialog');
+// These dialogs are built inside #page-requests, which is display:none on Home.
+// A modal opened from Home can otherwise block touches without being visible.
+// Move both dialogs to the document body so they are never inside a hidden tab.
+document.body.append(picker,instantDialog);
 const instantHour=$('instantHour'),instantMinute=$('instantMinute');
 const instantWheels=[instantMinute,instantHour];
 let instantMode='untilDone',instantDraft=null,instantLock=false,instantSubmitting=false;
