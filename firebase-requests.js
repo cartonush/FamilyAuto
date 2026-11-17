@@ -220,6 +220,12 @@ function render(){
   const state=document.createElement('small');state.className='request-state '+r.status;
   state.textContent=({pending:'ממתינה לאישור',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה',ended:'הסתיימה — הרכב שוחרר'})[r.status]||r.status;
   details.append(name,range,state);
+  if(r.status==='ended'&&r.endedAt){
+   const actual=document.createElement('small');
+   actual.textContent='שוחרר בפועל: '+dateOf(r.endedAt).toLocaleString('he-IL')+
+    (r.endedBy&&r.endedBy!==r.createdBy?' (על ידי בעל הבית)':'');
+   details.append(actual);
+  }
   if(r.note){const note=document.createElement('small');note.textContent=r.note;details.append(note)}
   card.append(details);
   const actions=document.createElement('div');actions.className='request-actions';
