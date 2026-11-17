@@ -119,7 +119,7 @@ function drawCalendar(){
  for(let day=1;day<=days;day++){
   const date=new Date(first.getFullYear(),first.getMonth(),day);
   const next=new Date(first.getFullYear(),first.getMonth(),day+1);
-  const relevant=requestItems.filter(r=>r.status!=='cancelled'&&r.status!=='rejected'&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>date.getTime());
+  const relevant=requestItems.filter(r=>!['cancelled','rejected','ended'].includes(r.status)&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>date.getTime());
   const btn=document.createElement('button');btn.type='button';btn.className='calendar-day';btn.textContent=String(day);
   if(relevant.length){btn.classList.add(relevant.some(r=>r.status==='approved')?'has-approved':'has-request');btn.setAttribute('aria-label',day+' בחודש, '+relevant.length+' בקשות')}
   if(date.toDateString()===new Date().toDateString())btn.classList.add('today');
@@ -131,7 +131,7 @@ function drawCalendar(){
 }
 function dayDetails(){
  const day=selectedDate,next=new Date(day.getFullYear(),day.getMonth(),day.getDate()+1);
- const relevant=requestItems.filter(r=>r.status!=='cancelled'&&r.status!=='rejected'&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>day.getTime());
+ const relevant=requestItems.filter(r=>!['cancelled','rejected','ended'].includes(r.status)&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>day.getTime());
  const root=$('calendarDayDetails');root.replaceChildren();
  const title=document.createElement('h3');title.textContent=dayFmt.format(day);root.append(title);
  if(!relevant.length){const p=document.createElement('p');p.textContent='אין בקשות שלך בתאריך הזה.';root.append(p);return}
