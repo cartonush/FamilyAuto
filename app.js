@@ -37,8 +37,12 @@ const palette=(background,surface,primary,secondary,highlight,text)=>({backgroun
 const appearancePresets=[
  ...appearanceThemes.flatMap(theme=>{
   const {hue,saturation,secondaryHue=hue}=theme;
-  const light=palette(hslHex(hue,Math.min(saturation,40),95),hslHex(hue,Math.min(saturation,32),99),hslHex(hue,saturation,72),hslHex(secondaryHue,Math.min(saturation,50),86),hslHex(hue,saturation,35),'black');
-  const dark=palette(hslHex(hue,24,10),hslHex(hue,27,22),hslHex(hue,Math.min(saturation,50),hue>=40&&hue<=110?27:34),hslHex(secondaryHue,28,30),hslHex(hue,Math.min(saturation,58),76),'white');
+  const light=theme.id==='brown'
+   ?palette('#f7f2e8','#fffdf7','#c8b58f','#e8dfc7','#755b3d','black')
+   :palette(hslHex(hue,Math.min(saturation,40),95),hslHex(hue,Math.min(saturation,32),99),hslHex(hue,saturation,72),hslHex(secondaryHue,Math.min(saturation,50),86),hslHex(hue,saturation,35),'black');
+  const dark=theme.id==='brown'
+   ?palette('#1e1b16','#3a2c22','#626b48','#514a35','#e2d0a6','white')
+   :palette(hslHex(hue,24,10),hslHex(hue,27,22),hslHex(hue,Math.min(saturation,50),hue>=40&&hue<=110?27:34),hslHex(secondaryHue,28,30),hslHex(hue,Math.min(saturation,58),76),'white');
   return [{...light,id:theme.id+'-light',name:theme.name+' · בהיר',mode:'light',family:theme.id},
    {...dark,id:theme.id+'-dark',name:theme.name+' · כהה',mode:'dark',family:theme.id}];
  }),
@@ -52,9 +56,10 @@ const appearancePresets=[
 const presetGrid=$('#appearancePresets');
 for(const preset of appearancePresets){
  const button=document.createElement('button');button.type='button';button.className='appearance-preset';button.dataset.preset=preset.id;
- button.innerHTML='<span class="appearance-preset-swatches" aria-hidden="true"><i></i><i></i><i></i></span><span></span>';
- button.querySelectorAll('i').forEach((swatch,index)=>swatch.style.background=[preset.background,preset.primary,preset.highlight][index]);
- button.querySelector('span:last-child').textContent=preset.name;
+ button.innerHTML='<span class="appearance-preset-preview" aria-hidden="true"><span class="appearance-preset-preview-card"><i class="appearance-preset-preview-title"></i><i class="appearance-preset-preview-secondary"></i><i class="appearance-preset-preview-primary"></i></span></span><span class="appearance-preset-name"></span>';
+ for(const role of ['background','surface','primary','secondary','highlight'])button.style.setProperty('--preview-'+role,preset[role]);
+ button.style.setProperty('--preview-text',preset.text==='white'?'#ffffff':'#000000');
+ button.querySelector('.appearance-preset-name').textContent=preset.name;
  button.addEventListener('click',()=>{
   const mode=preset.mode||(preset.text==='white'?'dark':'light');
   document.documentElement.classList.toggle('dark',mode==='dark');localStorage.setItem('familyauto-theme',mode);
