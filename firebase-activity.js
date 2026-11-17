@@ -38,12 +38,12 @@ if(root){
     entry(record.title||'עדכון רכב',[
      'מועד הפעולה: '+format(record.occurredAt),
      'משתמש: '+(record.displayName||'חבר בית'),
-     'זמן הרכב: '+formatCarRange(record.startAt,record.endAt)
+     'זמן הרכב: '+formatCarRange(record.startAt,record.eventType==='ended'&&record.endedAt?record.endedAt:record.endAt)
     ]);
    }else{
     const lines=[
      'בקשה נוצרה: '+format(record.createdAt),
-     'זמן הרכב: '+formatCarRange(record.startAt,record.endAt),
+     'זמן הרכב: '+formatCarRange(record.startAt,record.status==='ended'&&record.endedAt?record.endedAt:record.endAt),
      'מצב נוכחי: '+(({pending:'ממתינה',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה',ended:'הסתיימה'})[record.status]||record.status)
     ];
     if(record.approvedAt)lines.push('מועד אישור: '+format(record.approvedAt));

@@ -124,7 +124,7 @@ if(root){
    if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
    const data=payload.data||{};
    const registration=await navigator.serviceWorker.ready;
-   await registration.showNotification(data.title||'FamilyAuto',{
+   await registration.showNotification('',{
     body:data.body||'יש עדכון חדש על הרכב.',
     icon:'./icon.svg',tag:data.eventId||'familyauto',
     data:{destination:['calendar','settings-houses'].includes(data.destination)?'#'+data.destination:'#requests'}

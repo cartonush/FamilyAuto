@@ -96,6 +96,7 @@ async function recordActivity(event,booking,token){
  const displayName=str(member,'displayName')||'חבר בית';
  const startAt=field(booking,'startAt')?.timestampValue;
  const endAt=field(booking,'endAt')?.timestampValue;
+ const endedAt=field(booking,'endedAt')?.timestampValue;
  const createdAt=field(event,'createdAt')?.timestampValue;
  const payload={fields:{
   bookingId:{stringValue:str(event,'bookingId')},
@@ -106,6 +107,7 @@ async function recordActivity(event,booking,token){
   createdBy:{stringValue:str(booking,'createdBy')},
   ...(startAt?{startAt:{timestampValue:startAt}}:{}),
   ...(endAt?{endAt:{timestampValue:endAt}}:{}),
+  ...(endedAt?{endedAt:{timestampValue:endedAt}}:{}),
   occurredAt:{timestampValue:createdAt||new Date().toISOString()}
  }};
  const url=BASE+'/houses/'+houseId+'/activity?documentId='+encodeURIComponent(eventId);
