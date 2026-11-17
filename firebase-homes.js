@@ -1,5 +1,5 @@
 import {getAuth,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
-import {getFirestore,collection,doc,setDoc,updateDoc,query,where,onSnapshot,serverTimestamp,arrayUnion,writeBatch,getDocs} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,query,where,onSnapshot,serverTimestamp,arrayUnion,writeBatch,getDocs} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
 import {app} from './firebase-config.js';
 import {queueJoinNotification} from './firebase-notification-queue.js';
 const auth=getAuth(app),db=getFirestore(app),root=document.getElementById('homesRoot');
@@ -25,11 +25,39 @@ async function deleteHouseOnWorker(houseId,confirmName){
 }
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let stopHouses=null,stopRequests=null,currentHouse=null,houses=[],user=null;
+let stopHouses=null,stopRequests=null,currentHouse=null,houses=[],user=null,housesLoaded=false,houseLoadError=null,housePickerDialog=null,housePickerBody=null;
 root.innerHTML='<div class="section-title"><h2>הבתים שלי</h2><span class="pill">Firestore</span></div><p id="houseInfo">התחבר כדי לנהל בתים משותפים.</p><div id="houseControls" hidden><form id="createHouseForm"><label>שם בית חדש<input name="houseName" maxlength="25" required placeholder="לדוגמה: הבית שלנו"></label><button class="primary">יצירת בית</button></form><form id="joinHouseForm"><label>קוד הזמנה לבית<input name="houseCode" maxlength="32" minlength="32" required autocomplete="off" placeholder="הדבק קוד שקיבלת"></label><button>בקשת הצטרפות</button></form><div id="houseList"></div><div id="houseDetails"></div></div>';
 const readableError=e=>e?.message||e?.code||String(e||'שגיאה לא ידועה');
 const $=id=>document.getElementById(id),info=(msg,error=false)=>{$('houseInfo').textContent=msg;$('houseInfo').style.color=error?'#b3261e':''};
 function code(){const bytes=crypto.getRandomValues(new Uint8Array(16));return [...bytes].map(n=>n.toString(16).padStart(2,'0')).join('')}
+function refreshHousePicker(){
+ if(!housePickerDialog?.open||!housePickerBody)return;
+ housePickerBody.replaceChildren();
+ if(!user){const p=document.createElement('p');p.textContent='יש להתחבר לחשבון כדי לבחור בית.';housePickerBody.append(p);return}
+ if(!housesLoaded){const p=document.createElement('p');p.textContent='טוען את הבתים שלך…';housePickerBody.append(p);return}
+ if(houseLoadError){const p=document.createElement('p');p.textContent='לא ניתן לטעון את הבתים: '+houseLoadError;housePickerBody.append(p);return}
+ const available=houses.filter(h=>!h.deletedAt);
+ if(!available.length){
+  const p=document.createElement('p');p.textContent='לא נמצאו בתים מאושרים שאתה חבר בהם. אפשר ליצור בית או להצטרף לבית דרך ניהול בתים.';
+  const manage=document.createElement('button');manage.type='button';manage.className='primary';manage.textContent='ניהול בתים';manage.onclick=()=>{housePickerDialog?.close();document.querySelector('[data-goto="settings-houses"]')?.click()};
+  housePickerBody.append(p,manage);return;
+ }
+ for(const h of available){
+  const button=document.createElement('button');button.type='button';button.className='house-picker-option'+(currentHouse===h.id?' active':'');
+  button.textContent=h.name+(currentHouse===h.id?' ✓':'');button.onclick=()=>{selectHouse(h.id);housePickerDialog?.close()};housePickerBody.append(button);
+ }
+}
+function openHousePicker(){
+ if(housePickerDialog?.open){refreshHousePicker();return}
+ const dialog=document.createElement('dialog');dialog.className='house-picker-dialog';
+ const title=document.createElement('h2');title.textContent='בחירת בית';
+ const body=document.createElement('div');body.className='house-picker-options';
+ const close=document.createElement('button');close.type='button';close.textContent='סגירה';close.onclick=()=>dialog.close();
+ dialog.append(title,body,close);document.body.append(dialog);housePickerDialog=dialog;housePickerBody=body;
+ dialog.addEventListener('close',()=>{dialog.remove();if(housePickerDialog===dialog){housePickerDialog=null;housePickerBody=null}});
+ try{dialog.showModal()}catch{dialog.setAttribute('open','')};refreshHousePicker();
+}
+window.addEventListener('familyauto:open-house-picker',openHousePicker);
 async function permanentlyDeleteHouse(h){
  if(!h.deletedAt||h.ownerUid!==user?.uid)return;
  const dialog=document.createElement('dialog');dialog.className='house-permanent-dialog';dialog.setAttribute('aria-labelledby','permanentDeleteTitle');
@@ -120,5 +148,34 @@ function selectHouse(id){if(stopRequests){stopRequests();stopRequests=null}curre
  }
  const pending=document.createElement('div');details.append(pending);stopRequests=onSnapshot(query(collection(db,'houses',id,'joinRequests'),where('status','==','pending')),snap=>{pending.replaceChildren();const title=document.createElement('h3');title.textContent='בקשות הצטרפות ('+snap.size+')';pending.append(title);snap.forEach(req=>{const row=document.createElement('div');row.className='booking';const name=document.createElement('strong');name.textContent=req.data().displayName||'משתמש';const approve=document.createElement('button');approve.textContent='אישור';approve.className='primary';approve.onclick=async()=>{approve.disabled=true;try{const b=writeBatch(db);b.update(doc(db,'houses',id),{memberIds:arrayUnion(req.id)});b.update(req.ref,{status:'accepted'});b.set(doc(db,'houses',id,'memberSettings',req.id),{displayName:String(req.data().displayName||'חבר בית').slice(0,60),role:'user',canTakeCar:false,suspendedUntil:null,updatedAt:serverTimestamp()});await b.commit();await queueJoinNotification(id,req.id,'accepted');info('המשתמש נוסף לבית')}catch(e){info('האישור נכשל: '+readableError(e),true)}finally{approve.disabled=false}};const reject=document.createElement('button');reject.textContent='דחייה';reject.onclick=async()=>{reject.disabled=true;try{await updateDoc(req.ref,{status:'rejected'});await queueJoinNotification(id,req.id,'rejected');info('בקשת ההצטרפות נדחתה.')}catch(e){info('דחיית הבקשה נכשלה: '+readableError(e),true)}finally{reject.disabled=false}};row.append(name,approve,reject);pending.append(row)})},e=>info('לא ניתן לקרוא בקשות: '+readableError(e),true))}else if(stopRequests){stopRequests();stopRequests=null}}
 $('createHouseForm').onsubmit=async e=>{e.preventDefault();if(!user)return;const form=e.currentTarget;const name=String(new FormData(form).get('houseName')||'').trim();if(!name||name.length>25)return info('שם הבית חייב להכיל 1–25 תווים.',true);const id=code();try{await setDoc(doc(db,'houses',id),{name,ownerUid:user.uid,memberIds:[user.uid],createdAt:serverTimestamp()});form.reset();info('הבית נוצר בהצלחה. אפשר לבחור אותו ולהעתיק קוד הזמנה.');currentHouse=id}catch(err){info('יצירת הבית נכשלה: '+readableError(err),true)}};
-$('joinHouseForm').onsubmit=async e=>{e.preventDefault();if(!user)return;const form=e.currentTarget;const id=String(new FormData(form).get('houseCode')||'').trim().toLowerCase();if(!/^[a-f0-9]{32}$/.test(id))return info('קוד ההזמנה אינו תקין.',true);try{await setDoc(doc(db,'houses',id,'joinRequests',user.uid),{uid:user.uid,displayName:user.displayName||user.email||'משתמש',status:'pending',createdAt:serverTimestamp()});await queueJoinNotification(id,user.uid,'pending');info('בקשת ההצטרפות נשלחה. מנהל הבית צריך לאשר אותה.');form.reset()}catch(err){info('לא ניתן לשלוח בקשה: '+readableError(err),true)}};
-onAuthStateChanged(auth,u=>{user=u;$('houseControls').hidden=!u;if(stopHouses){stopHouses();stopHouses=null}if(stopRequests){stopRequests();stopRequests=null}houses=[];currentHouse=u?(localStorage.getItem('familyauto-house-'+u.uid)||null):null;publishHouse(null);if(!u)window.dispatchEvent(new Event('familyauto:signout'));$('houseDetails').replaceChildren();if(!u){info('התחבר כדי ליצור בית או להצטרף לבית.');return}info('הבתים והבקשות מסתנכרנים בזמן אמת עם Firestore.');stopHouses=onSnapshot(query(collection(db,'houses'),where('memberIds','array-contains',u.uid)),snap=>{houses=snap.docs.map(d=>({id:d.id,...d.data()}));if((!currentHouse||!houses.some(h=>h.id===currentHouse))&&houses.length)currentHouse=(houses.find(h=>!h.deletedAt)||houses[0]).id;render();if(currentHouse&&houses.some(h=>h.id===currentHouse))selectHouse(currentHouse)},err=>info('לא ניתן לטעון בתים: '+readableError(err),true))});
+$('joinHouseForm').onsubmit=async e=>{
+ e.preventDefault();if(!user)return;
+ const form=e.currentTarget,id=String(new FormData(form).get('houseCode')||'').trim().toLowerCase();
+ if(!/^[a-f0-9]{32}$/.test(id))return info('קוד ההזמנה אינו תקין.',true);
+ try{
+  const alreadyJoined=houses.find(h=>h.id===id&&!h.deletedAt);
+  if(alreadyJoined){selectHouse(id);form.reset();return info('אתה כבר חבר בבית הזה. הבית נבחר עבורך.')}
+  const requestRef=doc(db,'houses',id,'joinRequests',user.uid),existing=await getDoc(requestRef);
+  if(existing.exists()&&existing.data().status==='pending'){form.reset();return info('בקשת ההצטרפות כבר ממתינה לאישור מנהל הבית.')}
+  await setDoc(requestRef,{uid:user.uid,displayName:String(user.displayName||user.email||'משתמש').slice(0,60),status:'pending',createdAt:serverTimestamp()});
+  await queueJoinNotification(id,user.uid,'pending');info('בקשת ההצטרפות נשלחה. מנהל הבית צריך לאשר אותה.');form.reset();
+ }catch(err){
+  const message=err.code==='permission-denied'?'Firestore חסם את בקשת ההצטרפות. ייתכן שהבית לא קיים, שהחשבון כבר חבר בו, או שכללי Firestore העדכניים עדיין לא פורסמו.':readableError(err);
+  info('לא ניתן לשלוח בקשה: '+message,true);
+ }
+};
+onAuthStateChanged(auth,u=>{
+ user=u;$('houseControls').hidden=!u;
+ if(stopHouses){stopHouses();stopHouses=null}
+ if(stopRequests){stopRequests();stopRequests=null}
+ houses=[];housesLoaded=false;houseLoadError=null;
+ currentHouse=u?(localStorage.getItem('familyauto-house-'+u.uid)||null):null;
+ publishHouse(null);
+ if(!u){window.dispatchEvent(new Event('familyauto:signout'));info('התחבר כדי ליצור בית או להצטרף לבית.');refreshHousePicker();return}
+ $('houseDetails').replaceChildren();info('הבתים והבקשות מסתנכרנים בזמן אמת עם Firestore.');
+ stopHouses=onSnapshot(query(collection(db,'houses'),where('memberIds','array-contains',u.uid)),snap=>{
+  houses=snap.docs.map(d=>({id:d.id,...d.data()}));housesLoaded=true;houseLoadError=null;
+  if((!currentHouse||!houses.some(h=>h.id===currentHouse))&&houses.length)currentHouse=(houses.find(h=>!h.deletedAt)||houses[0]).id;
+  render();if(currentHouse&&houses.some(h=>h.id===currentHouse))selectHouse(currentHouse);refreshHousePicker();
+ },err=>{housesLoaded=true;houseLoadError=readableError(err);info('לא ניתן לטעון בתים: '+houseLoadError,true);refreshHousePicker()});
+});

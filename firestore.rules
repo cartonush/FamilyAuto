@@ -340,7 +340,7 @@ service cloud.firestore {
           && (request.resource.data.status == 'rejected' || uid in getAfter(/databases/$(database)/documents/houses/$(hid)).data.memberIds)
         ) || (
           signedIn() && uid == request.auth.uid && !member(hid)
-          && resource.data.status in ['rejected','accepted']
+          && resource.data.status in ['pending','rejected','accepted']
           && request.resource.data.keys().hasOnly(['uid','displayName','status','createdAt'])
           && request.resource.data.uid == uid
           && request.resource.data.displayName is string

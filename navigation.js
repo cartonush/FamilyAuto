@@ -59,8 +59,10 @@ window.addEventListener('familyauto:auth',event=>{
 window.addEventListener('familyauto:signout',()=>{activeHouse=null;requestItems=[];reservations=[];myUid=null;home();drawCalendar()});
 navigate(location.hash.slice(1)||'home',{replace:true});
 $('appearanceToggle')?.addEventListener('click',()=>$('themeBtn')?.click());
+ $('homeSelectHouseBtn')?.addEventListener('click',()=>window.dispatchEvent(new Event('familyauto:open-house-picker')));
 function home(){
  $('homeHouseName').textContent=activeHouse?'משפחת '+activeHouse.name:'בחר בית בהגדרות כדי להתחיל.';
+ const selectHouseButton=$('homeSelectHouseBtn');if(selectHouseButton)selectHouseButton.hidden=!!activeHouse;
  $('homeHouseSummary').textContent=activeHouse?activeHouse.name+' · '+(activeHouse.memberIds?.length||0)+' חברים':'עדיין לא נבחר בית. אפשר ליצור בית בהגדרות.';
  $('homeHouseRole').textContent=!activeHouse?'—':activeHouse.ownerUid===myUid?'בעל בית':'חבר בית';
  const active=reservations.find(r=>r.startAt?.toMillis&&r.endAt?.toMillis&&r.startAt.toMillis()<=Date.now()&&r.endAt.toMillis()>Date.now());

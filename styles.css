@@ -250,3 +250,10 @@ html,body{touch-action:pan-x pan-y}
 :root.dark .appearance-text-choice{border-color:#3a4b60}
 :root.dark #resetAppearanceColors{background:#30465f;color:#fff}
 @media(max-width:430px){.appearance-color-fields{grid-template-columns:1fr}.appearance-text-choice{flex-wrap:wrap}}
+.house-picker-dialog{display:grid;gap:12px;max-height:calc(100dvh - 36px);overflow:auto}
+.house-picker-dialog h2{margin:0}
+.house-picker-options{display:grid;gap:8px;max-height:55dvh;overflow:auto}
+.house-picker-option{width:100%;text-align:right;background:#f1f5fa;color:#15263e}
+.house-picker-option.active{outline:2px solid var(--brand-primary);background:var(--brand-secondary)}
+:root.dark .house-picker-option{background:#26384d;color:#f0f5fc}
+:root.dark .house-picker-option.active{background:var(--brand-secondary);color:#fff}
