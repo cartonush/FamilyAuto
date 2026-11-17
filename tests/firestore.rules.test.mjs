@@ -367,3 +367,99 @@ test('notification outbox can be queued only for an existing booking in the corr
   ...queued,status:'approved'
  }));
 });
+
+ 
+// A normal six-hour booking may be ended after 4.5 hours. Only its renter or
+// house owner may atomically release the remaining time.
+const earlyReturnCases=[
+ {hid:'40000000000000000000000000000001',actor:'renter',allowed:true},
+ {hid:'40000000000000000000000000000002',actor:'owner',allowed:true},
+ {hid:'40000000000000000000000000000003',actor:'other',allowed:false}
+];
+for(const scenario of earlyReturnCases){
+ test('active regular booking early return by '+scenario.actor+' (allowed='+scenario.allowed+')',async()=>{
+  const start=Timestamp.fromDate(new Date(Date.now()-4.5*3600_000));
+  const end=Timestamp.fromDate(new Date(Date.now()+1.5*3600_000));
+  const bid='early-return';
+  await env.withSecurityRulesDisabled(async ctx=>{
+   const admin=ctx.firestore();
+   await setDoc(doc(admin,'houses',scenario.hid),{
+    name:'Early Return Test',ownerUid:'owner',memberIds:['owner','renter','other'],createdAt:Timestamp.now()
+   });
+   await setDoc(doc(admin,'houses',scenario.hid,'bookingRequests',bid),{
+    createdBy:'renter',displayName:'Renter',startAt:start,endAt:end,note:'6 hours',
+    status:'approved',approvedBy:'owner',approvedAt:Timestamp.now(),createdAt:Timestamp.now()
+   });
+   await setDoc(doc(admin,'houses',scenario.hid,'system','schedule'),{
+    reservations:[{id:bid,createdBy:'renter',startAt:start,endAt:end}],updatedAt:Timestamp.now()
+   });
+  });
+  const db=env.authenticatedContext(scenario.actor).firestore();
+  const booking=doc(db,'houses',scenario.hid,'bookingRequests',bid);
+  const schedule=doc(db,'houses',scenario.hid,'system','schedule');
+  const finish=()=>runTransaction(db,async tx=>{
+   const [bookSnap,schedSnap]=await Promise.all([tx.get(booking),tx.get(schedule)]);
+   assert.equal(bookSnap.data().status,'approved');
+   tx.update(booking,{status:'ended',endedAt:serverTimestamp(),endedBy:scenario.actor});
+   tx.set(schedule,{
+    reservations:schedSnap.data().reservations.filter(x=>x.id!==bid),
+    updatedAt:serverTimestamp()
+   });
+  });
+  if(scenario.allowed){
+   await assertSucceeds(finish());
+   const [bookSnap,schedSnap]=await Promise.all([getDoc(booking),getDoc(schedule)]);
+   assert.equal(bookSnap.data().status,'ended');
+   assert.equal(bookSnap.data().endedBy,scenario.actor);
+   assert.equal(schedSnap.data().reservations.length,0);
+  }else{
+   await assertFails(finish());
+   assert.equal((await getDoc(booking)).data().status,'approved');
+   assert.equal((await getDoc(schedule)).data().reservations.length,1);
+  }
+ });
+}
+test('cannot mark an active booking ended without atomically freeing the schedule',async()=>{
+ const hid='40000000000000000000000000000004',bid='booking';
+ const start=Timestamp.fromDate(new Date(Date.now()-3600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+3600_000));
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const db=ctx.firestore();
+  await setDoc(doc(db,'houses',hid),{name:'Atomic Return',ownerUid:'owner',memberIds:['owner','renter'],createdAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'bookingRequests',bid),{
+   createdBy:'renter',displayName:'Renter',startAt:start,endAt:end,note:'',status:'approved',
+   approvedBy:'owner',approvedAt:Timestamp.now(),createdAt:Timestamp.now()
+  });
+  await setDoc(doc(db,'houses',hid,'system','schedule'),{
+   reservations:[{id:bid,createdBy:'renter',startAt:start,endAt:end}],updatedAt:Timestamp.now()
+  });
+ });
+ const db=env.authenticatedContext('renter').firestore();
+ await assertFails(updateDoc(doc(db,'houses',hid,'bookingRequests',bid),{
+  status:'ended',endedAt:serverTimestamp(),endedBy:'renter'
+ }));
+});
+test('early-return actor identity cannot be forged',async()=>{
+ const hid='40000000000000000000000000000005',bid='booking';
+ const start=Timestamp.fromDate(new Date(Date.now()-3600_000));
+ const end=Timestamp.fromDate(new Date(Date.now()+3600_000));
+ await env.withSecurityRulesDisabled(async ctx=>{
+  const db=ctx.firestore();
+  await setDoc(doc(db,'houses',hid),{name:'Return Actor',ownerUid:'owner',memberIds:['owner','renter'],createdAt:Timestamp.now()});
+  await setDoc(doc(db,'houses',hid,'bookingRequests',bid),{
+   createdBy:'renter',displayName:'Renter',startAt:start,endAt:end,note:'',status:'approved',
+   approvedBy:'owner',approvedAt:Timestamp.now(),createdAt:Timestamp.now()
+  });
+  await setDoc(doc(db,'houses',hid,'system','schedule'),{
+   reservations:[{id:bid,createdBy:'renter',startAt:start,endAt:end}],updatedAt:Timestamp.now()
+  });
+ });
+ const db=env.authenticatedContext('renter').firestore();
+ await assertFails(runTransaction(db,async tx=>{
+  const booking=doc(db,'houses',hid,'bookingRequests',bid);
+  const schedule=doc(db,'houses',hid,'system','schedule');
+  await Promise.all([tx.get(booking),tx.get(schedule)]);
+  tx.update(booking,{status:'ended',endedAt:serverTimestamp(),endedBy:'owner'});
+  tx.set(schedule,{reservations:[],updatedAt:serverTimestamp()});
+ }));
+});
