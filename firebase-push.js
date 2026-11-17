@@ -127,7 +127,7 @@ if(root){
    await registration.showNotification(data.title||'FamilyAuto',{
     body:data.body||'יש עדכון חדש על הרכב.',
     icon:'./icon.svg',tag:data.eventId||'familyauto',
-    data:{destination:data.destination==='calendar'?'#calendar':'#requests'}
+    data:{destination:['calendar','settings-houses'].includes(data.destination)?'#'+data.destination:'#requests'}
    });
   });
  }).catch(()=>{});

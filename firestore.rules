@@ -8,6 +8,29 @@ service cloud.firestore {
     function activeHouse(hid) { return member(hid) && (!('deletedAt' in house(hid).data) || house(hid).data.deletedAt == null); }
     function authorizedBookingAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.role == 'authorized' && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
     function instantAllowed(hid) { return owner(hid) || (activeHouse(hid) && exists(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)) && get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.canTakeCar == true && (get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil == null || get(/databases/$(database)/documents/houses/$(hid)/memberSettings/$(request.auth.uid)).data.suspendedUntil <= request.time)); }
+    function validJoinNotification(eventId) {
+      let data = request.resource.data;
+      let hid = data.houseId;
+      let target = data.targetUid;
+      let status = data.status;
+      let joinPath = /databases/$(database)/documents/houses/$(hid)/joinRequests/$(target);
+      return data.keys().hasOnly(['kind','houseId','targetUid','status','actorUid','state','createdAt'])
+        && data.kind == 'join'
+        && hid is string && hid.matches('[a-f0-9]{32}')
+        && target is string && target.size() > 0 && target.size() <= 128
+        && status in ['pending','accepted','rejected']
+        && data.actorUid == request.auth.uid
+        && data.state == 'queued'
+        && data.createdAt == request.time
+        && eventId == hid + '_join_' + target + '_' + status
+        && exists(/databases/$(database)/documents/houses/$(hid))
+        && (!('deletedAt' in house(hid).data) || house(hid).data.deletedAt == null)
+        && exists(joinPath)
+        && get(joinPath).data.uid == target
+        && get(joinPath).data.status == status
+        && ((status == 'pending' && target == request.auth.uid && !member(hid))
+          || (status in ['accepted','rejected'] && owner(hid)));
+    }
     // Device push tokens belong to the signed-in user only; Cloud Functions read via Admin SDK.
     // Only a household member may queue an event for a real booking in its current state.
     // Clients cannot edit, delete, or mark events as delivered.
@@ -15,22 +38,22 @@ service cloud.firestore {
       allow get: if signedIn() && resource.data.actorUid == request.auth.uid;
       allow list: if false;
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['houseId','bookingId','status','actorUid','state','createdAt'])
-        && request.resource.data.houseId is string
-        && request.resource.data.bookingId is string
-        && request.resource.data.status in ['pending','approved','rejected','cancelled','ended']
         && request.resource.data.actorUid == request.auth.uid
         && request.resource.data.state == 'queued'
         && request.resource.data.createdAt == request.time
-        && eventId == request.resource.data.houseId + '_' + request.resource.data.bookingId + '_' + request.resource.data.status
-        && request.resource.data.houseId.matches('[a-f0-9]{32}')
-        && request.resource.data.bookingId.matches('[A-Za-z0-9]{20}')
-        && activeHouse(request.resource.data.houseId)
-        && getAfter(/databases/$(database)/documents/houses/$(request.resource.data.houseId)/bookingRequests/$(request.resource.data.bookingId)).data.status == request.resource.data.status
-        && (
-          request.auth.uid == getAfter(/databases/$(database)/documents/houses/$(request.resource.data.houseId)/bookingRequests/$(request.resource.data.bookingId)).data.createdBy
-          || owner(request.resource.data.houseId)
-        );
+        && ((request.resource.data.kind == 'join' && validJoinNotification(eventId)) || (
+          request.resource.data.keys().hasOnly(['houseId','bookingId','status','actorUid','state','createdAt'])
+          && request.resource.data.houseId is string
+          && request.resource.data.bookingId is string
+          && request.resource.data.status in ['pending','approved','rejected','cancelled','ended']
+          && eventId == request.resource.data.houseId + '_' + request.resource.data.bookingId + '_' + request.resource.data.status
+          && request.resource.data.houseId.matches('[a-f0-9]{32}')
+          && request.resource.data.bookingId.matches('[A-Za-z0-9]{20}')
+          && activeHouse(request.resource.data.houseId)
+          && getAfter(/databases/$(database)/documents/houses/$(request.resource.data.houseId)/bookingRequests/$(request.resource.data.bookingId)).data.status == request.resource.data.status
+          && (request.auth.uid == getAfter(/databases/$(database)/documents/houses/$(request.resource.data.houseId)/bookingRequests/$(request.resource.data.bookingId)).data.createdBy
+            || owner(request.resource.data.houseId))
+        ));
       allow update, delete: if false;
     }
     match /users/{uid}/pushTokens/{tokenId} {

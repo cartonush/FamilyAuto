@@ -76,11 +76,11 @@ async function listTokens(uid,token){
   token:str(d,'token'),name:d.name
  })).filter(d=>d.token);
 }
-async function sendFCM(token,target,body,eventId,destination){
+async function sendFCM(token,target,title,body,eventId,destination){
  const response=await fetch('https://fcm.googleapis.com/v1/projects/'+PROJECT+'/messages:send',{
   method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
   body:JSON.stringify({message:{token:target,data:{
-   title:'FamilyAuto',body,eventId,destination
+   title,body,eventId,destination
   },webpush:{headers:{TTL:'3600',Urgency:'normal'}}}})
  });
  const result=await response.json().catch(()=>({}));
@@ -91,7 +91,7 @@ async function sendFCM(token,target,body,eventId,destination){
 async function recordActivity(event,booking,token){
  const eventId=event.name.split('/').pop();
  const houseId=str(event,'houseId'),actorUid=str(event,'actorUid'),status=str(event,'status');
- const titles={pending:'בקשה חדשה',approved:'הרכב הוזמן',rejected:'הבקשה נדחתה',cancelled:'ההזמנה בוטלה',ended:'השימוש הסתיים'};
+ const titles={pending:'בקשה חדשה',approved:str(booking,'instantMode')?'הרכב נלקח עכשיו':'הרכב הוזמן',rejected:'הבקשה נדחתה',cancelled:'ההזמנה בוטלה',ended:'השימוש הסתיים'};
  const member=await firestore('houses/'+houseId+'/memberSettings/'+encodeURIComponent(actorUid),token);
  const displayName=str(member,'displayName')||'חבר בית';
  const startAt=field(booking,'startAt')?.timestampValue;
@@ -114,6 +114,7 @@ async function recordActivity(event,booking,token){
  if(!response.ok)throw Error('Firestore activity '+response.status);
 }
 async function processEvent(event,token){
+ if(str(event,'kind')==='join')return processJoinEvent(event,token);
  const eventId=event.name.split('/').pop();
  const hid=str(event,'houseId'),bid=str(event,'bookingId'),status=str(event,'status');
  const actorUid=str(event,'actorUid');
@@ -123,13 +124,14 @@ async function processEvent(event,token){
  const house=await firestore('houses/'+hid,token);
  const booking=await firestore('houses/'+hid+'/bookingRequests/'+bid,token);
  if(!house||!booking||field(house,'deletedAt')?.timestampValue||str(booking,'status')!==status)return markInvalid(event,token);
- const members=arr(house,'memberIds'),owner=str(house,'ownerUid'),requester=str(booking,'createdBy'),approver=str(booking,'approvedBy');
+ const members=arr(house,'memberIds'),owner=str(house,'ownerUid'),requester=str(booking,'createdBy');
  if(!members.includes(actorUid)||!(actorUid===requester||actorUid===owner))return markInvalid(event,token);
  let recipients=[];
  if(status==='pending')recipients=[owner].filter(uid=>uid!==requester);
  else if(status==='rejected')recipients=[requester].filter(uid=>uid!==actorUid);
  else recipients=members.filter(uid=>uid!==actorUid);
- recipients=[...new Set(recipients)].filter(uid=>members.includes(uid));
+ if(status==='approved'&&requester!==actorUid)recipients.push(requester);
+ recipients=[...new Set(recipients)].filter(uid=>members.includes(uid)||(['approved','rejected'].includes(status)&&uid===requester));
  const claimed=await patchEvent(event,token,{state:'processing',leaseUntil:new Date(Date.now()+120000)});
  if(!claimed)return {skipped:true};
  // Record the booking action even when no device has enabled notifications.
@@ -138,8 +140,12 @@ async function processEvent(event,token){
   await patchEvent(claimed,token,{state:'queued',lastAttemptAt:new Date()});
   throw error;
  }
+ const instantMode=status==='approved'?str(booking,'instantMode'):'';
+ const requesterName=str(booking,'displayName')||'חבר בית';
+ const titleFor=uid=>instantMode?'הרכב נלקח עכשיו':status==='approved'&&uid===requester?'הבקשה שלך אושרה':'FamilyAuto';
  const bodyFor=uid=>{
   if(status==='pending')return 'התקבלה בקשה חדשה לשימוש ברכב.';
+  if(instantMode)return requesterName+' התחיל עכשיו להשתמש ברכב.';
   if(status==='approved')return uid===requester?'הבקשה שלך לשימוש ברכב אושרה!':'עדכון חדש על הרכב התקבל, בדקו!';
   if(status==='rejected')return 'הבקשה שלך לשימוש ברכב נדחתה.';
   if(status==='cancelled')return 'הזמנה או בקשה לרכב בוטלה. בדקו את לוח השנה.';
@@ -150,7 +156,7 @@ async function processEvent(event,token){
  for(const uid of recipients){
   const tokens=await listTokens(uid,token);
   for(const device of tokens){
-   try{await sendFCM(token,device.token,bodyFor(uid),eventId,destination);sent++}
+   try{await sendFCM(token,device.token,titleFor(uid),bodyFor(uid),eventId,destination);sent++}
    catch(error){failed++;console.error('FCM delivery failed',eventId,error.message)}
   }
  }
@@ -161,6 +167,36 @@ async function processEvent(event,token){
  });
  return {sent,failed,completed:!!result};
 }
+async function processJoinEvent(event,token){
+ const eventId=event.name.split('/').pop();
+ const hid=str(event,'houseId'),targetUid=str(event,'targetUid'),status=str(event,'status'),actorUid=str(event,'actorUid');
+ if(!/^[a-f0-9]{32}$/.test(hid)||!targetUid||targetUid.length>128
+    ||!['pending','accepted','rejected'].includes(status)
+    ||eventId!==hid+'_join_'+targetUid+'_'+status)return markInvalid(event,token);
+ const house=await firestore('houses/'+hid,token);
+ const joinRequest=await firestore('houses/'+hid+'/joinRequests/'+encodeURIComponent(targetUid),token);
+ if(!house||!joinRequest||field(house,'deletedAt')?.timestampValue||str(joinRequest,'status')!==status
+    ||str(joinRequest,'uid')!==targetUid)return markInvalid(event,token);
+ const owner=str(house,'ownerUid'),members=arr(house,'memberIds');
+ if((status==='pending'&&(actorUid!==targetUid||owner===targetUid||members.includes(targetUid)))
+    ||(status!=='pending'&&actorUid!==owner))return markInvalid(event,token);
+ const recipient=status==='pending'?owner:targetUid;
+ if(!recipient||recipient===actorUid)return markInvalid(event,token);
+ const claimed=await patchEvent(event,token,{state:'processing',leaseUntil:new Date(Date.now()+120000)});
+ if(!claimed)return {skipped:true};
+ const displayName=str(joinRequest,'displayName')||'משתמש';
+ const houseName=str(house,'name')||'הבית';
+ const title=status==='pending'?'בקשת הצטרפות לבית':status==='accepted'?'בקשת ההצטרפות אושרה':'בקשת ההצטרפות נדחתה';
+ const body=status==='pending'?displayName+' מבקש להצטרף ל'+houseName+'.':status==='accepted'?'בקשת ההצטרפות שלך ל'+houseName+' אושרה.':'בקשת ההצטרפות שלך ל'+houseName+' נדחתה.';
+ let sent=0,failed=0;
+ const tokens=await listTokens(recipient,token);
+ for(const device of tokens){
+  try{await sendFCM(token,device.token,title,body,eventId,'settings-houses');sent++}
+  catch(error){failed++;console.error('FCM join delivery failed',eventId,error.message)}
+ }
+ const result=await patchEvent(claimed,token,{state:failed?'queued':'sent',lastAttemptAt:new Date(),lastResult:'sent='+sent+';failed='+failed});
+ return {sent,failed,completed:!!result};
+}
 async function markInvalid(event,token){
  await patchEvent(event,token,{state:'invalid',lastAttemptAt:new Date()});
  return {invalid:true};
@@ -168,7 +204,9 @@ async function markInvalid(event,token){
 async function processBatch(env,specificId=null){
  const token=await googleAccessToken(env);
  if(specificId){
-  if(!/^[a-f0-9]{32}_[A-Za-z0-9]{20}_(pending|approved|rejected|cancelled|ended)$/.test(specificId))return {invalid:true};
+  const bookingEvent=/^[a-f0-9]{32}_[A-Za-z0-9]{20}_(pending|approved|rejected|cancelled|ended)$/.test(specificId);
+  const joinEvent=/^[a-f0-9]{32}_join_.+_(pending|accepted|rejected)$/.test(specificId);
+  if(!bookingEvent&&!joinEvent)return {invalid:true};
   const event=await firestore('notificationEvents/'+specificId,token);
   if(!event)return {missing:true};
   if(state(event)!=='queued')return {skipped:true};

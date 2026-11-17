@@ -1,6 +1,6 @@
-const CACHE='familyauto-shell-v2.1.5';
-const VERSION='2.1.5';
-const ASSETS=['./','./index.html','./styles.css?v=2.1.5','./app.js?v=2.1.5','./navigation.js?v=2.1.5','./firebase-auth.js?v=2.1.5','./firebase-config.js','./firebase-profile.js?v=2.1.5','./firebase-members.js?v=2.1.5','./firebase-requests.js?v=2.1.5','./firebase-homes.js?v=2.1.5','./firebase-push.js?v=2.1.5','./firebase-activity.js?v=2.1.5','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
+const CACHE='familyauto-shell-v2.1.6';
+const VERSION='2.1.6';
+const ASSETS=['./','./index.html','./styles.css?v=2.1.6','./app.js?v=2.1.6','./navigation.js?v=2.1.6','./firebase-auth.js?v=2.1.6','./firebase-config.js','./firebase-profile.js?v=2.1.6','./firebase-members.js?v=2.1.6','./firebase-requests.js?v=2.1.6','./firebase-homes.js?v=2.1.6','./firebase-push.js?v=2.1.6','./firebase-activity.js?v=2.1.6','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
@@ -28,7 +28,7 @@ self.addEventListener('push',event=>{
  const data=payload.data||payload;
  const title=typeof data.title==='string'?data.title:'FamilyAuto';
  const body=typeof data.body==='string'?data.body:'יש עדכון חדש על הרכב.';
- const destination=data.destination==='calendar'?'#calendar':'#requests';
+ const destination=['calendar','settings-houses'].includes(data.destination)?'#'+data.destination:'#requests';
  event.waitUntil(self.registration.showNotification(title,{
   body,icon:'./icon.svg',badge:'./icon.svg',tag:data.eventId||'familyauto',
   data:{destination}

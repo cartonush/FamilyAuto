@@ -29,3 +29,25 @@ export async function queueBookingNotification(houseId,bookingId,status){
   if(!response.ok)console.warn('FamilyAuto push dispatch:',response.status);
  }catch(error){console.warn('FamilyAuto push dispatch deferred to scheduled worker',error)}
 }
+
+export async function queueJoinNotification(houseId,targetUid,status){
+ const user=auth.currentUser;
+ if(!user||!houseId||!targetUid||!['pending','accepted','rejected'].includes(status))return;
+ const eventId=houseId+'_join_'+targetUid+'_'+status;
+ try{
+  await setDoc(doc(db,'notificationEvents',eventId),{
+   kind:'join',houseId,targetUid,status,actorUid:user.uid,state:'queued',createdAt:serverTimestamp()
+  });
+ }catch(error){
+  if(error.code!=='permission-denied')console.warn('FamilyAuto join push event queue:',error.code||error);
+  return;
+ }
+ try{
+  const token=await user.getIdToken();
+  const response=await fetch(WORKER_URL.replace(/\/$/,'')+'/dispatch',{
+   method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+   body:JSON.stringify({eventId})
+  });
+  if(!response.ok)console.warn('FamilyAuto join push dispatch:',response.status);
+ }catch(error){console.warn('FamilyAuto join push dispatch deferred to scheduled worker',error)}
+}
