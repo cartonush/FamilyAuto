@@ -65,16 +65,43 @@ function home(){
  $('homeHouseRole').textContent=!activeHouse?'—':activeHouse.ownerUid===myUid?'בעל בית':'חבר בית';
  const active=reservations.find(r=>r.startAt?.toMillis&&r.endAt?.toMillis&&r.startAt.toMillis()<=Date.now()&&r.endAt.toMillis()>Date.now());
  const next=reservations.filter(r=>r.startAt?.toMillis&&r.startAt.toMillis()>Date.now()).sort((a,b)=>a.startAt.toMillis()-b.startAt.toMillis())[0];
+ const activeBooking=active&&requestItems.find(r=>r.id===active.id&&r.status==='approved');
+ const canRelease=!!(activeBooking&&myUid&&(activeBooking.createdBy===myUid||activeHouse?.ownerUid===myUid));
+ const releaseButton=$('homeFinishBtn');
+ if(releaseButton){
+  releaseButton.hidden=!canRelease;
+  releaseButton.dataset.bookingId=canRelease?activeBooking.id:'';
+  releaseButton.textContent=activeBooking?.createdBy===myUid?'סיימתי — שחררתי את הרכב':'החזרה כפויה — שחרור הרכב';
+ }
  const badge=$('liveCarBadge'),message=$('liveCarText');
  if(badge&&message){
   badge.textContent=!activeHouse?'בחר בית':active?'בשימוש':'אין שימוש פעיל';
   badge.className='pill '+(active?'busy':'neutral');
-  message.textContent=!activeHouse?'בחר בית כדי לראות זמינות.':active?'הרכב משוריין כעת בהזמנה מאושרת.':next?'ההזמנה המאושרת הבאה: '+next.startAt.toDate().toLocaleString('he-IL'):'לא נמצאה הזמנה מאושרת פעילה בלוח הבית.';
+  message.textContent=!activeHouse?'בחר בית כדי לראות זמינות.':active?'הרכב משוריין כעת בהזמנה מאושרת עד '+active.endAt.toDate().toLocaleString('he-IL')+'.':next?'ההזמנה המאושרת הבאה: '+next.startAt.toDate().toLocaleString('he-IL'):'לא נמצאה הזמנה מאושרת פעילה בלוח הבית.';
+ }
+ const finish=$('homeFinishBtn');
+ const activeRecord=active&&requestItems.find(r=>r.id===active.id&&r.status==='approved');
+ const canRelease=!!(activeRecord&&activeHouse&&myUid&&(activeRecord.createdBy===myUid||activeHouse.ownerUid===myUid));
+ if(finish){
+  finish.hidden=!canRelease;
+  finish.dataset.bookingId=canRelease?activeRecord.id:'';
+  finish.textContent=canRelease&&activeRecord.createdBy!==myUid?'החזרה כפויה — שחרור הרכב':'סיימתי — שחררתי את הרכב';
  }
  const own=requestItems.filter(x=>x.createdBy===myUid);
  $('homePendingCount').textContent=activeHouse?own.filter(x=>x.status==='pending').length:'—';
  $('homeRequestsMessage').textContent=!activeHouse?'בחר בית כדי להציג את הבקשות שלך.':own.length?'בקשה אחרונה: '+new Date((own[0].startAt?.seconds||0)*1000).toLocaleString('he-IL'):'אין בקשות שהגשת בבית הזה.';
 }
+$('homeFinishBtn')?.addEventListener('click',()=>{
+ const id=$('homeFinishBtn').dataset.bookingId;
+ if(!id)return;
+ window.dispatchEvent(new CustomEvent('familyauto:finish-active',{detail:{bookingId:id}}));
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){home();drawCalendar()}});
+setInterval(()=>{if(!document.hidden)home()},60_000);
+$('homeFinishBtn')?.addEventListener('click',event=>{
+ const bookingId=event.currentTarget.dataset.bookingId;
+ if(bookingId)window.dispatchEvent(new CustomEvent('familyauto:finish-active',{detail:{bookingId}}));
+});
 const instantHomeButton=document.getElementById('homeInstantBtn');
 instantHomeButton?.addEventListener('click',()=>{
  // Open the instant-use bottom sheet in place, without leaving the home page.
@@ -104,7 +131,7 @@ function drawCalendar(){
  for(let day=1;day<=days;day++){
   const date=new Date(first.getFullYear(),first.getMonth(),day);
   const next=new Date(first.getFullYear(),first.getMonth(),day+1);
-  const relevant=requestItems.filter(r=>r.status!=='cancelled'&&r.status!=='rejected'&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>date.getTime());
+  const relevant=requestItems.filter(r=>!['cancelled','rejected','ended'].includes(r.status)&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>date.getTime());
   const btn=document.createElement('button');btn.type='button';btn.className='calendar-day';btn.textContent=String(day);
   if(relevant.length){btn.classList.add(relevant.some(r=>r.status==='approved')?'has-approved':'has-request');btn.setAttribute('aria-label',day+' בחודש, '+relevant.length+' בקשות')}
   if(date.toDateString()===new Date().toDateString())btn.classList.add('today');
@@ -116,7 +143,7 @@ function drawCalendar(){
 }
 function dayDetails(){
  const day=selectedDate,next=new Date(day.getFullYear(),day.getMonth(),day.getDate()+1);
- const relevant=requestItems.filter(r=>r.status!=='cancelled'&&r.status!=='rejected'&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>day.getTime());
+ const relevant=requestItems.filter(r=>!['cancelled','rejected','ended'].includes(r.status)&&r.startAt?.seconds&&r.endAt?.seconds&&r.startAt.seconds*1000<next.getTime()&&r.endAt.seconds*1000>day.getTime());
  const root=$('calendarDayDetails');root.replaceChildren();
  const title=document.createElement('h3');title.textContent=dayFmt.format(day);root.append(title);
  if(!relevant.length){const p=document.createElement('p');p.textContent='אין בקשות שלך בתאריך הזה.';root.append(p);return}

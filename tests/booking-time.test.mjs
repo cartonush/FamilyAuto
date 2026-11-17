@@ -88,3 +88,19 @@ test('home instant booking opens a dialog rather than switching tabs',()=>{
  assert.match(source,/instantDialog\.showModal\(\)/);
  assert.match(source,/await startInstant\(mode,chosen\)/);
 });
+
+test('normal active booking early return is limited to renter or house owner',()=>{
+ const source=readFileSync(new URL('../firebase-requests.js',import.meta.url),'utf8');
+ const nav=readFileSync(new URL('../navigation.js',import.meta.url),'utf8');
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ assert.match(source,/record\.createdBy===currentUser\.uid\|\|selected\.ownerUid===currentUser\.uid/);
+ assert.match(source,/async function finishApproved\(record\)/);
+ assert.match(source,/status:'ended',endedAt:serverTimestamp\(\),endedBy:uid/);
+ assert.match(source,/reservations:entries\.filter\(r=>r\.id!==record\.id\)/);
+ assert.match(source,/החזרה כפויה — שחרור הרכב/);
+ assert.match(source,/r\.startAt\?\.toMillis\?\.\(\)>Date\.now\(\)/);
+ assert.match(nav,/id===active\.id&&r\.status==='approved'/);
+ assert.match(nav,/familyauto:finish-active/);
+ assert.match(html,/id="homeFinishBtn"/);
+ assert.match(nav,/!\['cancelled','rejected','ended'\]\.includes\(r\.status\)/);
+});

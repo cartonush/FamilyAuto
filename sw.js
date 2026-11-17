@@ -1,6 +1,6 @@
 const CACHE='familyauto-shell-v2-instant-popup';
-const VERSION='2.0-instant-popup';
-const ASSETS=['./','./index.html','./styles.css?v=2.0-instant-popup','./app.js?v=2.0-instant-popup','./navigation.js?v=2.0-instant-popup','./firebase-auth.js?v=2.0-instant-popup','./firebase-config.js','./firebase-profile.js?v=2.0-instant-popup','./firebase-members.js?v=2.0-instant-popup','./firebase-requests.js?v=2.0-instant-popup','./firebase-homes.js?v=2.0-instant-popup','./firebase-push.js?v=2.0-instant-popup','./firebase-activity.js?v=2.0-instant-popup','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
+const VERSION='2.0-early-return';
+const ASSETS=['./','./index.html','./styles.css?v=2.0-early-return','./app.js?v=2.0-early-return','./navigation.js?v=2.0-early-return','./firebase-auth.js?v=2.0-early-return','./firebase-config.js','./firebase-profile.js?v=2.0-early-return','./firebase-members.js?v=2.0-early-return','./firebase-requests.js?v=2.0-early-return','./firebase-homes.js?v=2.0-early-return','./firebase-push.js?v=2.0-early-return','./firebase-activity.js?v=2.0-early-return','./firebase-notification-queue.js','./booking-time.mjs','./push-config.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{

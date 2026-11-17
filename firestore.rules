@@ -124,8 +124,9 @@ service cloud.firestore {
             && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.endAt == item.endAt;
         }
         function reservationEnded(item) {
-          return item.createdBy == request.auth.uid
-            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'ended';
+          return (item.createdBy == request.auth.uid || owner(hid))
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'ended'
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.endedBy == request.auth.uid;
         }
         function reservationCancelled(item) {
           return item.createdBy == request.auth.uid
@@ -212,6 +213,7 @@ service cloud.firestore {
         }
         function ownerCancellation() {
           return owner(hid) && resource.data.status == 'approved'
+            && resource.data.startAt > request.time
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
             && request.resource.data.status == 'cancelled';
         }
@@ -258,6 +260,7 @@ service cloud.firestore {
         function directCancellation() {
           return activeHouse(hid)
             && resource.data.status == 'approved'
+            && resource.data.startAt > request.time
             && !('instantMode' in resource.data)
             && resource.data.createdBy == request.auth.uid
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
@@ -267,13 +270,18 @@ service cloud.firestore {
               'startAt': resource.data.startAt, 'endAt': resource.data.endAt
             }]);
         }
-        function finishInstant() {
+        function finishApproved() {
+          // Applies to instant and regular reservations, only while in use.
+          // The renter and the house owner are the only authorized actors.
           return activeHouse(hid)
             && resource.data.status == 'approved'
+            && resource.data.startAt <= request.time
+            && resource.data.endAt > request.time
             && (resource.data.createdBy == request.auth.uid || owner(hid))
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','endedAt'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','endedAt','endedBy'])
             && request.resource.data.status == 'ended'
             && request.resource.data.endedAt == request.time
+            && request.resource.data.endedBy == request.auth.uid
             && !getAfter(/databases/$(database)/documents/houses/$(hid)/system/schedule).data.reservations.hasAny([{
               'id': requestId, 'createdBy': resource.data.createdBy,
               'startAt': resource.data.startAt, 'endAt': resource.data.endAt
@@ -287,7 +295,7 @@ service cloud.firestore {
           && resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
           && request.resource.data.status == 'cancelled'
-        ) || ownerDecision() || ownerCancellation() || directCancellation() || finishInstant();
+        ) || ownerDecision() || ownerCancellation() || directCancellation() || finishApproved();
         allow delete: if false;
       }
       match /joinRequests/{uid} {
