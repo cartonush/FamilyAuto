@@ -45,8 +45,7 @@ root.innerHTML=`<div class="section-title"><h2>בקשות והזמנות</h2><sp
 <button type="button" class="primary wide" id="instantConfirm">אישור — הרכב אצלי</button>
 </dialog>
 <section id="instantPanel" class="instant-panel" hidden><h3>הרכב אצלי</h3><p>שימוש מיידי ברכב, בהתאם להרשאה שבעל הבית העניק לך.</p>
-<button type="button" class="primary wide" id="instantSubmit">הרכב אצלי — התחל שימוש</button></section><div id="requestList"></div>
-<p class="request-warning">זוהי גרסת בדיקה. בקשות ואישורים מסתנכרנים בין חברי הבית. לפני שימוש אמיתי ברכב יש לוודא את הזמינות עם המשפחה.</p>`;
+<button type="button" class="primary wide" id="instantSubmit">הרכב אצלי — התחל שימוש</button></section><div id="requestList"></div>`;
 const $=id=>document.getElementById(id),status=$('requestStatus'),form=$('requestForm'),list=$('requestList');
 const startInput=form.elements.start,endInput=form.elements.end;
 const SLOT_MS=15*60*1000,DAY_MS=86400000;

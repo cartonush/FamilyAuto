@@ -5,7 +5,15 @@ if(root){
  root.innerHTML='<div class="section-title"><h2>היסטוריית פעולות</h2><span class="pill">יומן הרכב</span></div><p id="activityStatus" class="muted">בחר בית כדי לראות את ההיסטוריה שלו.</p><div id="activityList"></div>';
  const status=document.getElementById('activityStatus'),list=document.getElementById('activityList');
  let houseId=null,records=[],events=[],stop=null;
- const format=value=>value?.toDate?value.toDate().toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'}):'לא ידוע';
+ const asDate=value=>value?.toDate?value.toDate():value instanceof Date?value:null;
+ const format=value=>{const date=asDate(value);return date?date.toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'}):'לא ידוע'};
+ const formatCarRange=(startValue,endValue)=>{
+  const start=asDate(startValue),end=asDate(endValue);
+  if(!start||!end)return 'לא ידוע';
+  const time=date=>date.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+  if(start.toDateString()===end.toDateString())return start.toLocaleDateString('he-IL',{dateStyle:'short'})+' · '+time(start)+' עד '+time(end);
+  return format(start)+' עד '+format(end);
+ };
  const entry=(title,lines)=>{
   const card=document.createElement('div');card.className='booking';
   const details=document.createElement('div');details.className='request-details';
@@ -30,12 +38,12 @@ if(root){
     entry(record.title||'עדכון רכב',[
      'מועד הפעולה: '+format(record.occurredAt),
      'משתמש: '+(record.displayName||'חבר בית'),
-     'זמן הרכב: '+format(record.startAt)+' – '+format(record.endAt)
+     'זמן הרכב: '+formatCarRange(record.startAt,record.endAt)
     ]);
    }else{
     const lines=[
      'בקשה נוצרה: '+format(record.createdAt),
-     'זמן הרכב: '+format(record.startAt)+' – '+format(record.endAt),
+     'זמן הרכב: '+formatCarRange(record.startAt,record.endAt),
      'מצב נוכחי: '+(({pending:'ממתינה',approved:'מאושרת',rejected:'נדחתה',cancelled:'בוטלה',ended:'הסתיימה'})[record.status]||record.status)
     ];
     if(record.approvedAt)lines.push('מועד אישור: '+format(record.approvedAt));

@@ -6,8 +6,16 @@ import {getMessaging,isSupported,getToken,deleteToken,onMessage} from 'https://w
 
 const auth=getAuth(app),db=getFirestore(app);
 const root=document.getElementById('pushSettingsRoot');
+const headerPushButton=document.getElementById('headerPushBtn');
 let user=null,messaging=null,tokenId=null,registeredToken=null;
 const tokenStorageKey=uid=>'familyauto-push-token-'+uid;
+function refreshHeaderPushButton(){
+ if(!headerPushButton)return;
+ let enabled=false;
+ try{enabled=!!user&&typeof Notification!=='undefined'&&Notification.permission==='granted'&&!!localStorage.getItem(tokenStorageKey(user.uid))}catch{}
+ headerPushButton.hidden=enabled;
+ headerPushButton.title=typeof Notification!=='undefined'&&Notification.permission==='denied'?'ההתראות חסומות — לחצו לפרטים':'הפעלת התראות';
+}
 // Remove the Firestore registration while the old Firebase session is still valid.
 // This prevents a signed-out device from receiving another household's updates.
 export async function unregisterPushForCurrentUser(){
@@ -19,6 +27,7 @@ export async function unregisterPushForCurrentUser(){
  tokenId=null;registeredToken=null;
  document.getElementById('enablePushBtn')?.removeAttribute('hidden');
  const disable=document.getElementById('disablePushBtn');if(disable)disable.hidden=true;
+ refreshHeaderPushButton();
 }
 
 const say=(message,error=false)=>{const status=document.getElementById('pushStatus');if(status){status.textContent=message;status.style.color=error?'#b3261e':''}};
@@ -52,6 +61,10 @@ if(root){
  root.innerHTML='<h2>התראות על הרכב</h2><p class="muted">התראות על בקשות והזמנות שקשורות אליך או לבית שלך. ההודעות נשלחות רק למכשירים שבהם אישרת התראות.</p><p id="pushStatus" role="status" aria-live="polite"></p><button type="button" id="enablePushBtn" class="primary wide">הפעלת התראות במכשיר הזה</button><button type="button" id="disablePushBtn" class="wide" hidden>כיבוי התראות במכשיר הזה</button>';
  const enable=document.getElementById('enablePushBtn'),disable=document.getElementById('disablePushBtn');
  const toggle=enabled=>{enable.hidden=enabled;disable.hidden=!enabled};
+ headerPushButton?.addEventListener('click',()=>{
+  if(user)enable.click();
+  else document.querySelector('.settings-link[data-goto="settings-account"]')?.click();
+ });
  const setup=async()=>{
   if(!user)return say('יש להתחבר לחשבון כדי להפעיל התראות.',true);
   if(isIOS&&!isStandalone)return say('באייפון יש להוסיף את FamilyAuto למסך הבית דרך Safari, לפתוח את האפליקציה משם ואז להפעיל התראות.',true);
@@ -68,7 +81,7 @@ if(root){
   await setDoc(doc(db,'users',user.uid,'pushTokens',id),{
    token,enabled:true,updatedAt:serverTimestamp(),platform:isIOS?'ios':'web'
   });
-  tokenId=id;registeredToken=token;localStorage.setItem(tokenStorageKey(user.uid),id);toggle(true);say('ההתראות הופעלו במכשיר הזה.');
+  tokenId=id;registeredToken=token;localStorage.setItem(tokenStorageKey(user.uid),id);toggle(true);refreshHeaderPushButton();say('ההתראות הופעלו במכשיר הזה.');
  };
  enable.addEventListener('click',async()=>{
   enable.disabled=true;
@@ -97,7 +110,9 @@ if(root){
   else if(isIOS&&!isStandalone)say('באייפון, פתח את האפליקציה ממסך הבית כדי להפעיל התראות.');
   else if(typeof Notification!=='undefined'&&Notification.permission==='denied')say('התראות חסומות בהגדרות הדפדפן.',true);
   else say('לחץ על הפעלת התראות כדי לאשר קבלת עדכונים.');
+  refreshHeaderPushButton();
  });
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHeaderPushButton()});
  // Foreground updates are already reflected in the live Firestore UI.
  isSupported().then(ok=>{
   if(!ok)return;
