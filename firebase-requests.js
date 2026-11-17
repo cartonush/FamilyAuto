@@ -549,3 +549,6 @@ form.addEventListener('submit',async e=>{
  }catch(err){say('שליחת הבקשה נכשלה: '+friendlyError(err),true)}
  finally{submit.disabled=false}
 });
+// A booking can become active without a Firestore change. Re-evaluate early
+// return buttons periodically while the app remains open.
+setInterval(()=>{if(selected&&currentUser)render()},30_000);
