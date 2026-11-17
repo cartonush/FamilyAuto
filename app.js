@@ -8,3 +8,10 @@ const KEY='familyauto-demo-bookings-v1';const $=s=>document.querySelector(s);let
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})});
  }).catch(()=>{});
 }render();
+
+// Disable page zoom gestures across every screen while preserving one-finger scrolling.
+const preventMultiTouchZoom=event=>{if(event.touches?.length>1)event.preventDefault()};
+document.addEventListener('touchmove',preventMultiTouchZoom,{passive:false});
+for(const eventName of ['gesturestart','gesturechange','gestureend']){
+ document.addEventListener(eventName,event=>event.preventDefault(),{passive:false});
+}

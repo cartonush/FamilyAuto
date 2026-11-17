@@ -113,7 +113,7 @@ test('2.1 home release button is wired exactly once without redeclaring state',(
  assert.equal((nav.match(/homeFinishBtn'\)\?\.addEventListener\('click'/g)||[]).length,1);
  assert.match(html,/FamilyAuto 2\.1\.9/);
  assert.match(html,/גרסה 2\.1\.9/);
- assert.match(sw,/familyauto-shell-v2\.1\.9/);
+ assert.match(sw,/familyauto-shell-v2\.2\.0/);
  assert.match(sw,/const VERSION='2\.1\.9'/);
 });
 

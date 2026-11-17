@@ -218,3 +218,14 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 :root.dark .calendar-booking-row{border-color:#3a4b60}
 :root.dark .calendar-booking-details small,:root.dark .calendar-legend{color:#a8b7c9}
 .notification-action{font-size:18px}
+html,body{touch-action:pan-x pan-y}
+@media (orientation:landscape) and (max-height:520px){
+ header{height:56px;padding-inline:14px}
+ header .brand strong{font-size:17px}
+ header .brand small{font-size:10px}
+ header .logo{padding:6px}
+ main{padding-top:12px;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+ .bottom-nav{padding-top:4px;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+ .bottom-nav .nav-item{min-height:44px;padding:2px;font-size:10px}
+ .bottom-nav .nav-icon{font-size:19px}
+}
