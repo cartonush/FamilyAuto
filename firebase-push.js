@@ -24,6 +24,26 @@ export async function unregisterPushForCurrentUser(){
 const say=(message,error=false)=>{const status=document.getElementById('pushStatus');if(status){status.textContent=message;status.style.color=error?'#b3261e':''}};
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+// Explain push notifications once when an installed PWA first opens on a device
+// that has not granted permission. Permission is requested only after a tap.
+if(isStandalone&&(!('Notification'in window)||Notification.permission!=='granted')){
+ try{
+  const key='familyauto-push-first-pwa-open-v1';
+  if(!localStorage.getItem(key)){
+   const dialog=document.getElementById('pushWelcomeDialog');
+   const body=document.getElementById('pushWelcomeBody');
+   if(dialog&&body){
+    body.textContent=typeof Notification!=='undefined'&&Notification.permission==='denied'
+     ?'במכשיר הזה ההתראות חסומות כרגע. כדי לקבל עדכונים על בקשות והזמנות לרכב, יש לאפשר התראות בהגדרות המכשיר ואז להפעיל אותן בהגדרות FamilyAuto.'
+     :'במכשיר הזה עדיין לא אישרת התראות. אפשר להפעיל אותן כדי לקבל עדכונים על בקשות והזמנות לרכב.';
+    localStorage.setItem(key,'1');
+    requestAnimationFrame(()=>dialog.showModal());
+   }
+  }
+ }catch(e){console.warn('לא ניתן להציג את הסבר ההתראות',e)}
+}
+document.getElementById('pushWelcomeLater')?.addEventListener('click',()=>document.getElementById('pushWelcomeDialog')?.close());
+document.getElementById('pushWelcomeSettings')?.addEventListener('click',()=>document.getElementById('pushWelcomeDialog')?.close());
 const hash=async value=>{
  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));
  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
