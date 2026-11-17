@@ -65,14 +65,6 @@ function home(){
  $('homeHouseRole').textContent=!activeHouse?'—':activeHouse.ownerUid===myUid?'בעל בית':'חבר בית';
  const active=reservations.find(r=>r.startAt?.toMillis&&r.endAt?.toMillis&&r.startAt.toMillis()<=Date.now()&&r.endAt.toMillis()>Date.now());
  const next=reservations.filter(r=>r.startAt?.toMillis&&r.startAt.toMillis()>Date.now()).sort((a,b)=>a.startAt.toMillis()-b.startAt.toMillis())[0];
- const activeBooking=active&&requestItems.find(r=>r.id===active.id&&r.status==='approved');
- const canRelease=!!(activeBooking&&myUid&&(activeBooking.createdBy===myUid||activeHouse?.ownerUid===myUid));
- const releaseButton=$('homeFinishBtn');
- if(releaseButton){
-  releaseButton.hidden=!canRelease;
-  releaseButton.dataset.bookingId=canRelease?activeBooking.id:'';
-  releaseButton.textContent=activeBooking?.createdBy===myUid?'סיימתי — שחררתי את הרכב':'החזרה כפויה — שחרור הרכב';
- }
  const badge=$('liveCarBadge'),message=$('liveCarText');
  if(badge&&message){
   badge.textContent=!activeHouse?'בחר בית':active?'בשימוש':'אין שימוש פעיל';
@@ -91,11 +83,6 @@ function home(){
  $('homePendingCount').textContent=activeHouse?own.filter(x=>x.status==='pending').length:'—';
  $('homeRequestsMessage').textContent=!activeHouse?'בחר בית כדי להציג את הבקשות שלך.':own.length?'בקשה אחרונה: '+new Date((own[0].startAt?.seconds||0)*1000).toLocaleString('he-IL'):'אין בקשות שהגשת בבית הזה.';
 }
-$('homeFinishBtn')?.addEventListener('click',()=>{
- const id=$('homeFinishBtn').dataset.bookingId;
- if(!id)return;
- window.dispatchEvent(new CustomEvent('familyauto:finish-active',{detail:{bookingId:id}}));
-});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){home();drawCalendar()}});
 setInterval(()=>{if(!document.hidden)home()},60_000);
 $('homeFinishBtn')?.addEventListener('click',event=>{
