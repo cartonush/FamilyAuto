@@ -13,7 +13,7 @@ const errors={'auth/strong-password-required':'בהרשמה נדרשת סיסמ�
 const fail=e=>message(errors[e.code]||'לא ניתן להשלים את הפעולה כרגע. בדוק את הפרטים ונסה שוב.',true);
 el('authForm').onsubmit=async event=>{event.preventDefault();const email=el('authEmail').value.trim();const password=el('authPassword').value;el('authSubmit').disabled=true;try{if(mode==='register'){if(password.length<12||!/[A-Za-z]/.test(password)||!/[0-9]/.test(password))throw {code:'auth/strong-password-required'};const user=await createUserWithEmailAndPassword(auth,email,password);const name=el('authName').value.trim();if(name)await updateProfile(user.user,{displayName:name})}else await signInWithEmailAndPassword(auth,email,password);el('authForm').reset()}catch(e){fail(e)}finally{el('authSubmit').disabled=false}};
 const resetMessage='אם כתובת האימייל משויכת לחשבון, נשלח אליה קישור לאיפוס הסיסמה. כדאי לבדוק גם בתיקיית הספאם.';
-const requestPasswordReset=async(email,button,show)=>{if(!email){show('יש להזין כתובת אימייל תקינה.',true);return}button.disabled=true;try{await sendPasswordResetEmail(auth,email);show(resetMessage,false)}catch(e){show(errors[e.code]||'בקשת האיפוס נכשלה: '+(e.code||'שגיאה לא ידועה'),true)}finally{button.disabled=false}};
+const requestPasswordReset=async(email,button,show)=>{if(!email){show('יש להזין כתובת אימייל תקינה.',true);return}button.disabled=true;try{await sendPasswordResetEmail(auth,email);show(resetMessage,false)}catch(e){show(errors[e.code]||'לא ניתן לשלוח קישור איפוס כרגע. בדוק את כתובת האימייל ונסה שוב.',true)}finally{button.disabled=false}};
 el('resetPassword').onclick=()=>requestPasswordReset(el('authEmail').value.trim(),el('resetPassword'),message);
 if(el('settingsResetForm'))el('settingsResetForm').onsubmit=event=>{event.preventDefault();const status=el('settingsResetStatus');requestPasswordReset(el('settingsResetEmail').value.trim(),el('settingsResetBtn'),(msg,bad)=>{status.textContent=msg;status.style.color=bad?'#b3261e':''})};
 const deleteButton=el('deleteAccountBtn');
@@ -38,7 +38,7 @@ if(deleteButton)deleteButton.onclick=async()=>{
   el('deleteAccountPassword').value='';
   status.textContent='החשבון נמחק לצמיתות.';
  }catch(e){
-  status.textContent='מחיקת החשבון נכשלה: '+(errors[e.code]||e.message||'בדוק את החיבור ונסה שוב.');
+  status.textContent='מחיקת החשבון נכשלה: '+(errors[e.code]||(!e.code?e.message:'בדוק את החיבור ונסה שוב.')||'בדוק את החיבור ונסה שוב.');
  }finally{deleteButton.disabled=false}
 };
 const logout=async()=>{const buttons=['logoutBtn','settingsLogoutBtn'].map(el).filter(Boolean);buttons.forEach(b=>b.disabled=true);try{await unregisterPushForCurrentUser().catch(e=>console.warn('Push cleanup before logout:',e.code||e.message));await signOut(auth)}catch(e){fail(e)}finally{buttons.forEach(b=>b.disabled=false)}};for(const id of ['logoutBtn','settingsLogoutBtn']){const button=el(id);if(button)button.onclick=logout;}

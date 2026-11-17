@@ -60,7 +60,7 @@ if(root){
   stop=onSnapshot(query(collection(db,'houses',selectedId,'activity'),orderBy('occurredAt','desc'),limit(100)),snap=>{
    if(selectedId!==houseId)return;
    events=snap.docs.map(d=>d.data());render();
-  },error=>{if(selectedId===houseId)status.textContent='טעינת יומן הפעולות נכשלה: '+(error.code||error.message)});
+  },()=>{if(selectedId===houseId)status.textContent='לא ניתן לטעון את היסטוריית הפעולות כרגע. בדוק את החיבור ונסה שוב.'});
  });
  window.addEventListener('familyauto:requests',event=>{
   if(event.detail?.houseId!==houseId)return;

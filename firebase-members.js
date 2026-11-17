@@ -13,10 +13,11 @@ const localValue=date=>{if(!date)return '';const d=date.toDate?date.toDate():new
 async function changeMembership(targetUid){
   const user=auth.currentUser;
   if(!user||!selected)throw Error('יש להתחבר ולבחור בית.');
-  const response=await fetch(WORKER_URL+'/account/membership',{
+  let response;
+  try{response=await fetch(WORKER_URL+'/account/membership',{
     method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+await user.getIdToken()},
     body:JSON.stringify({houseId:selected.id,targetUid})
-  });
+  })}catch{throw Error('אין חיבור לשרת. בדוק את האינטרנט ונסה שוב.')}
   const result=await response.json().catch(()=>({}));
   if(!response.ok)throw Error(result.error||'לא ניתן לשנות את החברות בבית. נסה שוב.');
 }
