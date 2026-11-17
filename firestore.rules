@@ -124,8 +124,9 @@ service cloud.firestore {
             && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.endAt == item.endAt;
         }
         function reservationEnded(item) {
-          return item.createdBy == request.auth.uid
-            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'ended';
+          return (item.createdBy == request.auth.uid || owner(hid))
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.status == 'ended'
+            && getAfter(/databases/$(database)/documents/houses/$(hid)/bookingRequests/$(item.id)).data.endedBy == request.auth.uid;
         }
         function reservationCancelled(item) {
           return item.createdBy == request.auth.uid
