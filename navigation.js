@@ -152,3 +152,5 @@ function dayDetails(){
 $('calPrev').addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()-1,1);drawCalendar()});
 $('calNext').addEventListener('click',()=>{calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+1,1);drawCalendar()});
 home();drawCalendar();
+// Refresh active-booking actions as the clock crosses start/end times.
+setInterval(home,30_000);
