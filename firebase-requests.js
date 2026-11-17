@@ -379,6 +379,14 @@ const instantDialog=$('instantChoiceDialog');
 // A modal opened from Home can otherwise block touches without being visible.
 // Move both dialogs to the document body so they are never inside a hidden tab.
 document.body.append(picker,instantDialog);
+let instantToastTimer;
+function showInstantToast(message){
+ const toast=$('appToast');
+ if(!toast)return;
+ toast.textContent=message;toast.hidden=false;
+ clearTimeout(instantToastTimer);
+ instantToastTimer=setTimeout(()=>{toast.hidden=true},5000);
+}
 const instantHour=$('instantHour'),instantMinute=$('instantMinute');
 const instantWheels=[instantMinute,instantHour];
 let instantMode='untilDone',instantDraft=null,instantLock=false,instantSubmitting=false;
@@ -419,7 +427,12 @@ function setInstantMode(mode){
  }else updateInstantPreview();
 }
 function openInstantDialog(){
- if(!canInstant()||instantDialog.open||instantSubmitting)return;
+ if(instantSubmitting)return;
+ if(!canInstant()){
+  showInstantToast('אין לך כרגע הרשאה לשימוש מיידי ברכב. בקש מבעל הבית להפעיל אותה.');
+  return;
+ }
+ if(instantDialog.open)return;
  $('instantChoiceError').hidden=true;
  instantWheels.forEach(w=>{
   w.replaceChildren();
@@ -434,7 +447,17 @@ function openInstantDialog(){
   }
   w.append(spacer.cloneNode());
  });
- instantDialog.showModal();
+ try{
+  if(typeof instantDialog.showModal==='function')instantDialog.showModal();
+  else instantDialog.setAttribute('open','');
+ }catch(error){
+  // Keep the fixed-position sheet usable if the browser rejects native modal mode.
+  instantDialog.setAttribute('open','');
+ }
+ if(!instantDialog.open){
+  showInstantToast('לא ניתן לפתוח את חלונית השימוש. רענן את האפליקציה ונסה שוב.');
+  return;
+ }
  setInstantMode('untilDone');
 }
 $('instantUntilDone').addEventListener('click',()=>setInstantMode('untilDone'));
