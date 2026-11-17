@@ -204,7 +204,7 @@ html,body{max-width:100%;overflow-x:hidden}body{overflow-wrap:anywhere}button,in
 /* Calendar status dots and booking ranges. */
 .calendar-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:5px;gap:1px}
 .calendar-dots{position:absolute;bottom:4px;left:0;right:0;display:flex;justify-content:center;gap:3px}
-.calendar-dot{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:#8b98a8}
+.calendar-dot{display:inline-block;flex:none;width:7px;height:7px;border:1px solid #000;border-radius:50%;background:#8b98a8}
 .dot-pending{background:#e0a32e}
 .dot-approved{background:#1ba766}
 .dot-rejected{background:#d64545}
