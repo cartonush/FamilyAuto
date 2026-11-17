@@ -61,8 +61,9 @@ if(root){
  root.innerHTML='<h2>התראות על הרכב</h2><p class="muted">התראות על בקשות והזמנות שקשורות אליך או לבית שלך. ההודעות נשלחות רק למכשירים שבהם אישרת התראות.</p><p id="pushStatus" role="status" aria-live="polite"></p><button type="button" id="enablePushBtn" class="primary wide">הפעלת התראות במכשיר הזה</button><button type="button" id="disablePushBtn" class="wide" hidden>כיבוי התראות במכשיר הזה</button>';
  const enable=document.getElementById('enablePushBtn'),disable=document.getElementById('disablePushBtn');
  const toggle=enabled=>{enable.hidden=enabled;disable.hidden=!enabled};
+ let setupBusy=false;
  headerPushButton?.addEventListener('click',()=>{
-  if(user)enable.click();
+  if(user)requestEnable();
   else document.querySelector('.settings-link[data-goto="settings-account"]')?.click();
  });
  const setup=async()=>{
@@ -83,11 +84,14 @@ if(root){
   });
   tokenId=id;registeredToken=token;localStorage.setItem(tokenStorageKey(user.uid),id);toggle(true);refreshHeaderPushButton();say('ההתראות הופעלו במכשיר הזה.');
  };
- enable.addEventListener('click',async()=>{
+ async function requestEnable(){
+  if(setupBusy)return;
+  setupBusy=true;
   enable.disabled=true;
   try{await setup()}catch(e){say('הפעלת ההתראות נכשלה: '+(e.code||e.message||'שגיאה לא ידועה'),true)}
-  finally{enable.disabled=false}
- });
+  finally{enable.disabled=false;setupBusy=false}
+ }
+ enable.addEventListener('click',requestEnable);
  disable.addEventListener('click',async()=>{
   disable.disabled=true;
   try{
